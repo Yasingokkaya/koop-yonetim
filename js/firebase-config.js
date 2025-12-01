@@ -1,11 +1,7 @@
-// js/firebase-config.js
-
-// DİKKAT: Buradaki linkler https://www.gstatic.com... ile başlamalıdır.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Senin Firebase ayarların (Aynen kalsın)
 const firebaseConfig = {
   apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
   authDomain: "koopplatform-dd9f8.firebaseapp.com",
@@ -16,10 +12,8 @@ const firebaseConfig = {
   measurementId: "G-R9K7G471FN"
 };
 
-// Firebase'i başlat
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Dışarıya aktar
-export { auth, db, onAuthStateChanged, signOut, signInWithEmailAndPassword, doc, getDoc, collection, addDoc, query, where, getDocs };
+export { auth, db, onAuthStateChanged, signOut, signInWithEmailAndPassword, doc, getDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove };

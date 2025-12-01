@@ -1,3 +1,636 @@
-<h1 style="color:red; text-align:center; margin-top:50px;">
-    BURASI YÖNETİCİ PANELİ (GİRİŞ BAŞARILI!)
-</h1>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: 260px; height: 100vh; position: fixed; background-color: #1e293b; color: #fff; transition: all 0.3s; z-index: 100; }
+        .sidebar-header { padding: 20px; background-color: #14532d; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        .nav-link { color: #cbd5e1; padding: 15px 20px; cursor: pointer; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background-color: #334155; color: #4ade80; padding-left: 25px; }
+        .main-content { margin-left: 260px; padding: 20px; }
+        .hidden-section { display: none; }
+        .card { border-radius: 12px; overflow: hidden; }
+        .settings-list-item { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 12px 15px; margin-bottom: 8px; 
+    background: #fff; border-radius: 10px; border: 1px solid #f1f5f9;
+    transition: all 0.2s;
+}
+.settings-list-item:hover { 
+    transform: translateX(5px); border-color: #3b82f6; box-shadow: 0 2px 10px rgba(59, 130, 246, 0.1); 
+}
+.list-icon-box {
+    width: 35px; height: 35px; 
+    background: #e0f2fe; color: #0284c7; /* Mavi tonları */
+    border-radius: 8px; 
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 12px;
+}
+.settings-card {
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid #e2e8f0;
+}
+.settings-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    border-color: #3b82f6;
+}
+.settings-icon-box {
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    margin: 0 auto 15px auto;
+}
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header" id="brandTitle"><i class="fa-solid fa-tractor"></i> YÖNETİM PANELİ</div>
+    <ul class="nav flex-column mt-3">
+        <li class="nav-item">
+            <a class="nav-link active" onclick="switchTab('dashboard', this)">
+                <i class="fa-solid fa-gauge"></i> Genel Durum
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" onclick="switchTab('members', this)">
+                <i class="fa-solid fa-users"></i> <span id="lblMenuMembers">Üye İşlemleri</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" onclick="switchTab('settings', this)">
+                <i class="fa-solid fa-gears"></i> Tanımlar / Ayarlar
+            </a>
+        </li>
+        <li class="nav-item mt-5">
+            <a class="nav-link text-danger" id="logoutBtn">
+                <i class="fa-solid fa-right-from-bracket"></i> Güvenli Çıkış
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm mb-4">
+        <h5 class="m-0 text-secondary" id="page-title">Genel Durum</h5>
+        <div class="text-end lh-1">
+            <small class="text-muted" id="lblCompanyName">Yükleniyor...</small><br>
+            <span class="fw-bold text-dark" id="userEmailDisplay">...</span>
+        </div>
+    </div>
+
+    <div id="dashboard" class="content-section">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card p-4 border-0 shadow-sm border-start border-primary border-5">
+                    <h6 class="text-muted text-uppercase small" id="lblDashTotal">Toplam Kayıt</h6>
+                    <h2 class="fw-bold mb-0 text-primary" id="dashTotalMember">0</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-4 border-0 shadow-sm border-start border-success border-5">
+                    <h6 class="text-muted text-uppercase small">Günlük İşlem</h6>
+                    <h2 class="fw-bold mb-0 text-success">0 Lt</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="members" class="content-section hidden-section">
+        <div class="card border-0 shadow-sm p-4">
+            <div class="row mb-4 align-items-center">
+                <div class="col-md-4">
+                    <h4 class="mb-0"><i class="fa-solid fa-list text-secondary"></i> <span id="lblListTitle">Listesi</span></h4>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="searchInput" placeholder="İsim ara...">
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-success px-4" data-bs-toggle="modal" data-bs-target="#addMemberModal" id="btnAddMember">
+                        <i class="fa-solid fa-plus me-2"></i> Yeni Ekle
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sıra</th>
+                            <th id="thName">Ad Soyad</th>
+                            <th>Bölge / Köy</th>
+                            <th>Telefon</th>
+                            <th class="text-end">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberTableBody"></tbody>
+                </table>
+            </div>
+            <div class="text-muted small mt-2" id="recordCount">Toplam 0 kayıt</div>
+        </div>
+    </div>
+
+    <div id="settings" class="content-section hidden-section">
+    
+    <div id="settings-main-menu">
+        <h4 class="mb-4 text-secondary"><i class="fa-solid fa-gears"></i> Sistem Tanımları</h4>
+        <div class="row g-4">
+            
+            <div class="col-md-4 col-sm-6">
+                <div class="card p-4 text-center settings-card" onclick="openSubSetting('sub-regions')">
+                    <div class="settings-icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="fa-solid fa-map-location-dot fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Bölge & Rota</h5>
+                    <small class="text-muted">Köy ve mahalle tanımları</small>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <div class="card p-4 text-center settings-card opacity-50" onclick="Swal.fire('Yakında','Fiyat modülü eklenecek','info')">
+                    <div class="settings-icon-box bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-turkish-lira-sign fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Süt Fiyatları</h5>
+                    <small class="text-muted">Litre başı birim fiyatlar</small>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <div class="card p-4 text-center settings-card opacity-50">
+                    <div class="settings-icon-box bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-truck fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Araç Tanımları</h5>
+                    <small class="text-muted">Plaka ve şoför eşleştirmeleri</small>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="sub-regions" class="d-none sub-setting-page">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-outline-secondary me-3 rounded-circle" onclick="closeSubSetting()">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <h4 class="m-0">Bölge / Köy / Rota Tanımları</h4>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body bg-light">
+                        <form id="addVillageForm" class="d-flex gap-2 mb-3">
+                            <input type="text" class="form-control" id="newVillageInput" placeholder="Yeni bölge adı giriniz..." required>
+                            <button type="submit" class="btn btn-primary px-4">Ekle</button>
+                        </form>
+                        
+                        <div class="card">
+                            <div class="card-header bg-white small fw-bold text-muted">KAYITLI BÖLGELER</div>
+                            <div id="villageList" class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                                <div class="p-3 text-center text-muted small">Yükleniyor...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="alert alert-info border-0 shadow-sm">
+                    <h5 class="alert-heading"><i class="fa-solid fa-circle-info"></i> Bilgilendirme</h5>
+                    <p>Buraya eklediğiniz bölgeler:</p>
+                    <ul>
+                        <li>Yeni üye kayıt formunda,</li>
+                        <li>Şoför süt toplama ekranında,</li>
+                        <li>Rapor filtrelerinde</li>
+                    </ul>
+                    <p class="mb-0">seçenek olarak otomatik görünecektir.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<div class="modal fade" id="addMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="lblModalTitle">Yeni Kayıt</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addMemberForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">Rota Sıra No</label>
+                        <input type="number" class="form-control" id="uyeSira" placeholder="Örn: 1" required>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Adı</label>
+                            <input type="text" class="form-control" id="uyeAd" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Soyadı</label>
+                            <input type="text" class="form-control" id="uyeSoyad" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" id="lblInputTc">T.C. / Vergi No</label>
+                        <input type="number" class="form-control" id="uyeTc">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Bölge / Köy Seçiniz</label>
+                        <select class="form-select" id="uyeKoy" required>
+                            <option value="">Yükleniyor...</option>
+                        </select>
+                        <div class="form-text small"><a href="#" onclick="switchTab('settings', document.querySelectorAll('.nav-link')[2])">Liste boş mu? Ayarlardan ekle.</a></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Telefon</label>
+                        <input type="tel" class="form-control" id="uyeTel" placeholder="05...">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Kaydet</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="module">
+    import { auth, db, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "../js/firebase-config.js";
+   
+
+    let currentCoopId = null;
+    let allMembers = [];
+    let firmaTuru = "koop";
+    let villageList = []; // Köyleri burada tutacağız
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            document.getElementById("userEmailDisplay").innerText = user.email;
+            currentCoopId = sessionStorage.getItem("coopId");
+            if(currentCoopId) {
+                // Şirket bilgilerini (Ve köy listesini) canlı dinle
+                sirketBilgileriniDinle(currentCoopId);
+                canliUyeDinle();
+            }
+        } else { window.location.href = "../index.html"; }
+    });
+
+    // 1. ŞİRKET AYARLARINI DİNLE (KÖYLER BURADAN GELECEK)
+    function sirketBilgileriniDinle(id) {
+        onSnapshot(doc(db, "cooperatives", id), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                
+                // Firma Adı ve Türü
+                document.getElementById("lblCompanyName").innerText = data.ad;
+                if (data.tur === "sahis") {
+                    firmaTuru = "sahis";
+                    // Cari modu ayarlamaları...
+                    document.getElementById("brandTitle").innerHTML = '<i class="fa-solid fa-shop"></i> FİRMA PANELİ';
+                    document.getElementById("lblMenuMembers").innerText = "Cari İşlemler";
+                    document.getElementById("lblDashTotal").innerText = "Toplam Cari";
+                    document.getElementById("lblListTitle").innerText = "Cari Listesi";
+                    document.getElementById("btnAddMember").innerHTML = '<i class="fa-solid fa-plus me-2"></i> Yeni Cari';
+                    document.getElementById("thName").innerText = "Cari Adı / Unvan";
+                    document.getElementById("lblModalTitle").innerText = "Yeni Cari Kartı";
+                }
+
+                // KÖY LİSTESİNİ GÜNCELLE
+                villageList = data.villages || []; // Eğer yoksa boş dizi
+                ayarlarListesiniCiz();
+                modalSelectDoldur();
+            }
+        });
+    }
+
+   // 2. AYARLAR LİSTESİNİ ÇİZ (RENKLİ & DÜZENLEME BUTONLU)
+    function ayarlarListesiniCiz() {
+        const listDiv = document.getElementById("villageList");
+        listDiv.innerHTML = "";
+        
+        if(villageList.length === 0) {
+            listDiv.innerHTML = '<div class="p-3 text-center text-muted">Henüz bölge eklenmemiş.</div>';
+            return;
+        }
+
+        villageList.sort();
+        villageList.forEach(koy => {
+            const item = document.createElement("div");
+            item.className = "settings-list-item";
+            item.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="list-icon-box">
+                        <i class="fa-solid fa-map-pin"></i>
+                    </div>
+                    <span class="fw-bold text-dark fs-5">${koy}</span>
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-light text-primary border me-1" onclick="bolgeDuzenle('${koy}')">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light text-danger border" onclick="bolgeSil('${koy}')">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            listDiv.appendChild(item);
+        });
+    }
+    // 3. BÖLGE ADI DÜZENLEME
+    window.bolgeDuzenle = async function(eskiAd) {
+        const { value: yeniAd } = await Swal.fire({
+            title: 'Bölge Adını Düzenle',
+            input: 'text',
+            inputValue: eskiAd,
+            showCancelButton: true,
+            confirmButtonText: 'Güncelle',
+            cancelButtonText: 'İptal',
+            inputValidator: (value) => {
+                if (!value) return 'Bir isim yazmalısınız!';
+                if (villageList.includes(value) && value !== eskiAd) return 'Bu isimde bir bölge zaten var!';
+            }
+        });
+
+        if (yeniAd && yeniAd !== eskiAd) {
+            try {
+                const coopRef = doc(db, "cooperatives", currentCoopId);
+                
+                // Firestore'da dizi elemanını güncellemek için: Önce eskini sil, sonra yeniyi ekle
+                // Not: Bu işlem atomik (batch) yapılsa daha iyi olur ama şimdilik sıralı işlem yeterli.
+                await updateDoc(coopRef, { villages: arrayRemove(eskiAd) });
+                await updateDoc(coopRef, { villages: arrayUnion(yeniAd) });
+
+                const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 2000});
+                Toast.fire({ icon: 'success', title: 'Güncellendi' });
+                
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Hata", "Güncellenirken sorun oluştu.", "error");
+            }
+        }
+    }
+
+    // 3. MODALDAKİ SELECT KUTUSUNU DOLDUR
+    function modalSelectDoldur() {
+        const selectBox = document.getElementById("uyeKoy");
+        selectBox.innerHTML = '<option value="">Seçiniz...</option>';
+        
+        villageList.sort();
+        villageList.forEach(koy => {
+            const opt = document.createElement("option");
+            opt.value = koy;
+            opt.text = koy;
+            selectBox.appendChild(opt);
+        });
+    }
+
+    // 4. YENİ BÖLGE EKLEME
+    document.getElementById("addVillageForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("newVillageInput");
+        const yeniBolge = input.value.trim();
+        
+        if(!yeniBolge) return;
+        if(villageList.includes(yeniBolge)) {
+            Swal.fire("Uyarı", "Bu bölge zaten ekli!", "warning");
+            return;
+        }
+
+        try {
+            const coopRef = doc(db, "cooperatives", currentCoopId);
+            // arrayUnion: Sadece listede yoksa ekler
+            await updateDoc(coopRef, {
+                villages: arrayUnion(yeniBolge)
+            });
+            input.value = "";
+            const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+            Toast.fire({ icon: 'success', title: 'Bölge eklendi' });
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Hata", "Eklenerken sorun oluştu.", "error");
+        }
+    });
+
+    // 5. BÖLGE SİLME (Global fonksiyon yaptık)
+    window.bolgeSil = async function(ad) {
+        const res = await Swal.fire({
+            title: 'Silinsin mi?', 
+            text: `"${ad}" listesinden kaldırılacak.`, 
+            icon: 'warning', showCancelButton: true, confirmButtonText: 'Evet, Sil'
+        });
+        
+        if(res.isConfirmed) {
+            try {
+                const coopRef = doc(db, "cooperatives", currentCoopId);
+                await updateDoc(coopRef, {
+                    villages: arrayRemove(ad)
+                });
+                Swal.fire("Silindi", "", "success");
+            } catch (error) {
+                Swal.fire("Hata", error.message, "error");
+            }
+        }
+    }
+
+    // --- MEVCUT FONKSİYONLAR (Üye Listeleme vs.) ---
+    function canliUyeDinle() {
+        const q = query(collection(db, "members"), where("coopId", "==", currentCoopId));
+        onSnapshot(q, (snapshot) => {
+            allMembers = [];
+            snapshot.forEach((doc) => { let d = doc.data(); d.id = doc.id; allMembers.push(d); });
+            allMembers.sort((a,b) => (Number(a.sira) || 999) - (Number(b.sira) || 999));
+            tabloyuCiz(allMembers);
+            document.getElementById("dashTotalMember").innerText = allMembers.length;
+        });
+    }
+
+    function tabloyuCiz(data) {
+        const tbody = document.getElementById("memberTableBody");
+        tbody.innerHTML = "";
+        
+        if (data.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center text-muted'>Kayıt bulunamadı.</td></tr>";
+            return;
+        }
+
+        data.forEach(uye => {
+            const row = `
+                <tr>
+                    <td><span class="badge bg-primary rounded-pill">${uye.sira || '-'}</span></td>
+                    <td class="fw-bold">${uye.ad} ${uye.soyad}</td>
+                    <td>${uye.koy}</td>
+                    <td>${uye.telefon}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-light text-primary border me-1" onclick="uyeDuzenle('${uye.id}')">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light text-danger border btn-delete" data-id="${uye.id}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+        document.getElementById("recordCount").innerText = `Toplam ${data.length} kayıt`;
+        
+        // Silme butonlarını canlandır
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', function() {
+                uyeSil(this.getAttribute('data-id'));
+            });
+        });
+    }
+
+    // Arama, Ekleme, Silme, Çıkış...
+    document.getElementById("searchInput").addEventListener("input", function(e) {
+        const val = e.target.value.toLowerCase();
+        const filt = allMembers.filter(m => m.ad.toLowerCase().includes(val) || m.soyad.toLowerCase().includes(val));
+        tabloyuCiz(filt);
+    });
+// --- YENİ KAYIT VE GÜNCELLEME İŞLEMİ ---
+let duzenlenecekId = null; // Hangi kaydın düzenlendiğini tutar
+// --- YENİ KAYIT VE GÜNCELLEME İŞLEMİ (BİLDİRİMLİ) ---
+    document.getElementById("addMemberForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        // Form verilerini hazırla
+        const veri = {
+            sira: Number(document.getElementById("uyeSira").value),
+            ad: document.getElementById("uyeAd").value,
+            soyad: document.getElementById("uyeSoyad").value,
+            tc: document.getElementById("uyeTc").value,
+            koy: document.getElementById("uyeKoy").value,
+            telefon: document.getElementById("uyeTel").value,
+            coopId: currentCoopId,
+            // Güncelleme ise tarihi elleme, yeni ise tarih ekle
+            ...(duzenlenecekId ? {} : { kayitTarihi: new Date() }) 
+        };
+
+        try {
+            if (duzenlenecekId) {
+                // --- GÜNCELLEME MODU ---
+                const docRef = doc(db, "members", duzenlenecekId);
+                await updateDoc(docRef, veri);
+                
+                // GÜNCELLEME BİLDİRİMİ (Burayı senin için belirginleştirdim)
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Güncelleme Başarılı!',
+                    text: 'Kayıt bilgileri başarıyla değiştirildi.',
+                    timer: 2000, // 2 saniye ekranda kalır
+                    showConfirmButton: false
+                });
+
+            } else {
+                // --- YENİ EKLEME MODU ---
+                await addDoc(collection(db, "members"), veri);
+                
+                // EKLEME BİLDİRİMİ
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Yeni kayıt eklendi',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+
+            // Modalı kapat ve formu temizle
+            bootstrap.Modal.getInstance(document.getElementById('addMemberModal')).hide();
+            formuTemizle();
+
+        } catch (error) {
+            // HATA BİLDİRİMİ
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Hata Oluştu',
+                text: 'İşlem sırasında bir sorun çıktı: ' + error.message
+            });
+        }
+    });
+
+    window.uyeSil = async function(id) { if(confirm("Sil?")) deleteDoc(doc(db,"members",id)); }
+    document.getElementById("logoutBtn").addEventListener("click", async()=>{ await signOut(auth); window.location.href="../index.html"; });
+
+    window.switchTab = function(tabId, el) { 
+        document.querySelectorAll('.content-section').forEach(e=>e.classList.add('hidden-section')); 
+        document.getElementById(tabId).classList.remove('hidden-section');
+        document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active'));
+        if(el) el.classList.add('active');
+        
+        let t = "Genel Durum";
+        if(tabId==='members') t = firmaTuru==='sahis'?"Cari İşlemleri":"Üye İşlemleri";
+        if(tabId==='settings') t = "Tanımlar / Ayarlar";
+        document.getElementById('page-title').innerText = t;
+    }
+    // --- DÜZENLEME BUTONUNA BASINCA ÇALIŞIR ---
+window.uyeDuzenle = function(id) {
+    const uye = allMembers.find(m => m.id === id);
+    if (!uye) return;
+
+    duzenlenecekId = id; // Sistemi güncelleme moduna al
+
+    // Formu doldur
+    document.getElementById("uyeSira").value = uye.sira || "";
+    document.getElementById("uyeAd").value = uye.ad;
+    document.getElementById("uyeSoyad").value = uye.soyad;
+    document.getElementById("uyeTc").value = uye.tc;
+    document.getElementById("uyeKoy").value = uye.koy;
+    document.getElementById("uyeTel").value = uye.telefon;
+
+    // Modalı aç ve başlığı değiştir
+    document.getElementById("lblModalTitle").innerText = "Kayıt Düzenle";
+    document.querySelector("#addMemberForm button[type='submit']").innerText = "Güncelle";
+    
+    new bootstrap.Modal(document.getElementById('addMemberModal')).show();
+}
+
+// --- MODAL KAPANDIĞINDA TEMİZLİK ---
+// (Vazgeçip kapatırsa, bir sonraki 'Yeni Ekle' temiz açılsın diye)
+document.getElementById('addMemberModal').addEventListener('hidden.bs.modal', function () {
+    formuTemizle();
+});
+
+function formuTemizle() {
+    document.getElementById("addMemberForm").reset();
+    duzenlenecekId = null; // Modu sıfırla
+    document.getElementById("lblModalTitle").innerText = "Yeni Kayıt";
+    document.querySelector("#addMemberForm button[type='submit']").innerText = "Kaydet";
+}
+// --- AYARLAR MENÜ NAVİGASYONU ---
+window.openSubSetting = function(id) {
+    // Ana menüyü gizle
+    document.getElementById('settings-main-menu').classList.add('d-none');
+    // İstenen alt sayfayı göster
+    document.getElementById(id).classList.remove('d-none');
+}
+
+window.closeSubSetting = function() {
+    // Tüm alt sayfaları gizle
+    document.querySelectorAll('.sub-setting-page').forEach(el => el.classList.add('d-none'));
+    // Ana menüyü geri getir
+    document.getElementById('settings-main-menu').classList.remove('d-none');
+}
+</script>
+</body>
+</html>
