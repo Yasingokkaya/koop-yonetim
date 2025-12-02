@@ -8,102 +8,133 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { background-color: #f1f5f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 90px; }
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; }
         
-        /* CANLI HEADER TASARIMI */
+        /* HEADER (Daha az yer kaplayan) */
         .header-card {
-            background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%); /* Turkuaz/Mavi Geçiş */
+            background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%);
             color: white; 
-            padding: 20px 20px 30px 20px;
-            border-bottom-left-radius: 30px; 
-            border-bottom-right-radius: 30px;
-            box-shadow: 0 10px 25px rgba(14, 116, 144, 0.3);
+            padding: 15px 15px 35px 15px; /* Alt boşluk input card için */
+            border-bottom-left-radius: 25px; 
+            border-bottom-right-radius: 25px;
+            box-shadow: 0 5px 15px rgba(14, 116, 144, 0.3);
             position: relative;
-            margin-bottom: 40px;
+            margin-bottom: 0;
         }
 
-        /* İSTATİSTİK KUTULARI */
+        /* İSTATİSTİK KUTULARI (Daha kompakt) */
         .stats-grid {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
-            margin-top: 20px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+            margin-top: 15px;
         }
         .stat-box {
             background: rgba(255,255,255,0.15);
             border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 15px; padding: 10px 5px;
+            border-radius: 12px; padding: 5px;
             text-align: center; backdrop-filter: blur(5px);
         }
-        .stat-val { font-size: 1.4rem; font-weight: 800; line-height: 1.2; }
-        .stat-label { font-size: 0.75rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-val { font-size: 1.1rem; font-weight: 800; line-height: 1.1; }
+        .stat-label { font-size: 0.65rem; opacity: 0.9; text-transform: uppercase; }
 
         /* ÇIKIŞ BUTONU */
         .logout-btn {
             background: rgba(255,255,255,0.2); border: none; color: white;
-            width: 40px; height: 40px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            transition: 0.2s; cursor: pointer;
+            width: 35px; height: 35px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
-        .logout-btn:active { transform: scale(0.9); background: rgba(255,0,0,0.4); }
-        .date-picker-custom {
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-            color: white; border-radius: 10px; padding: 5px 10px; width: 100%; text-align: center;
-        }
+
+        /* GİRİŞ KARTI (Yukarı bindirme ayarı) */
         .input-card {
-            background: white; border-radius: 20px; padding: 25px;
-            margin: -20px 15px 15px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); position: relative;
+            background: white; border-radius: 20px; padding: 20px 15px;
+            margin: -25px 10px 10px 10px; /* Kenar boşlukları azaltıldı */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); position: relative;
         }
-        .form-select-lg, .form-control-lg { border-radius: 12px; border: 2px solid #e2e8f0; padding: 12px; font-size: 1.1rem; }
-        .btn-collect {
-            background: linear-gradient(45deg, #22c55e, #16a34a); color: white; font-weight: bold; font-size: 1.2rem;
-            padding: 14px; border-radius: 12px; width: 100%; border: none; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+
+        /* FORM ELEMANLARI (Daha ince) */
+        .form-label { margin-bottom: 2px; font-size: 0.8rem; color: #64748b; font-weight: 600; }
+        
+        .form-select, .form-control {
+            border-radius: 10px; border: 1px solid #cbd5e1; 
+            padding: 8px 10px; font-size: 0.95rem; /* Yazı boyutu ideal */
+            height: auto;
         }
-        .record-item { background: white; margin: 10px 15px; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border-left: 5px solid; }
-        .border-sabah { border-color: #f59e0b; } 
-        .border-aksam { border-color: #3b82f6; }
-        /* YENİ EKLENECEK STİL: SANAL KLAVYE */
+        .form-select:focus, .form-control:focus {
+            border-color: #0e7490; box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.1);
+        }
+
+        /* NUMPAD (Optimize edilmiş) */
         .numpad-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 Yan yana */
-            gap: 8px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+            margin-bottom: 15px; margin-top: 10px;
         }
         .numpad-grid button {
-            padding: 15px 0;
-            font-size: 1.8rem; /* Büyük rakamlar */
-            border-radius: 12px;
-            background-color: #fff;
-            border: 1px solid #dee2e6;
-            color: #1e293b;
-            font-weight: 700;
+            padding: 10px 0; /* Tuş yüksekliği azaltıldı */
+            font-size: 1.3rem; /* Rakamlar hala büyük */
+            border-radius: 8px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #334155; font-weight: 700;
             box-shadow: 0 2px 0 #cbd5e1;
-            transition: 0.1s;
         }
-        .numpad-grid button:active {
-            transform: scale(0.95);
-            background-color: #f1f5f9;
-            box-shadow: none;
+        .numpad-grid button:active { transform: scale(0.96); background-color: #e2e8f0; }
+
+        /* BUTONLAR */
+        .btn-collect {
+            background: linear-gradient(45deg, #059669, #10b981);
+            color: white; font-weight: bold; font-size: 1rem;
+            padding: 12px; border-radius: 10px; width: 100%; border: none;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
         }
-        /* LİSTE İKONLARI İÇİN RENKLİ KUTULAR */
-        .icon-box {
-            width: 45px; height: 45px;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; margin-right: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        .sabah-bg { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; } /* Turuncu Tonları */
-        .aksam-bg { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; } /* Mavi Tonları */
         
-        /* BUTON GRUBU */
-        .action-btns button {
-            width: 38px; height: 38px; border-radius: 10px; border: none;
-            display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
+        /* LİSTE GÖRÜNÜMÜ */
+        .record-item { 
+            background: white; margin: 8px 10px; padding: 12px; 
+            border-radius: 12px; display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); border-left: 4px solid;
         }
-        .btn-edit-rec { background: #e0f2fe; color: #0284c7; margin-right: 5px; }
-        .btn-del-rec { background: #fee2e2; color: #dc2626; }
-        .btn-edit-rec:active, .btn-del-rec:active { transform: scale(0.90); }
+        
+        .icon-box {
+            width: 35px; height: 35px; border-radius: 8px; font-size: 1rem; margin-right: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .sabah-bg { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+        .aksam-bg { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+        .border-sabah { border-color: #f59e0b; } 
+        .border-aksam { border-color: #3b82f6; }
+        
+        /* --- YENİ EKLENECEK BUTON STİLLERİ --- */
+        .action-btns {
+            display: flex;
+            gap: 8px; /* Butonlar arasına boşluk */
+        }
+
+        .action-btns button { 
+            width: 40px; height: 40px; /* Buton boyutu mobilde kolay kullanım için artırıldı */
+            border-radius: 10px;
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            transition: transform 0.1s;
+            cursor: pointer;
+        }
+        
+        .action-btns button:active { transform: scale(0.9); }
+
+        /* DÜZENLE BUTONU (MAVİ) */
+        .btn-edit-rec {
+            background-color: #e0f2fe; /* Açık Mavi Zemin */
+            color: #0369a1;            /* Koyu Mavi İkon */
+        }
+
+        /* SİL BUTONU (KIRMIZI) */
+        .btn-del-rec {
+            background-color: #fee2e2; /* Açık Kırmızı Zemin */
+            color: #dc2626;            /* Koyu Kırmızı İkon */
+        }
+        /* -------------------------------------- */
     </style>
+       
+    
 </head>
 <body>
 
@@ -160,30 +191,25 @@
         </div>
     </div>
 </div>
-
 <div class="input-card">
     <form id="collectionForm">
-        <div class="mb-3">
-            <label class="form-label text-muted small fw-bold">Rota / Köy Seç</label>
+        <div class="mb-2">
+            <label class="form-label">Rota / Köy Seç</label>
             <select class="form-select" id="villageFilter">
                 <option value="all">Tüm Rotalar</option>
-                <option value="Merkez">Merkez</option>
-                <option value="Cevizlik">Cevizlik</option>
-                <option value="Kınık">Kınık</option>
-                <option value="Diğer">Diğer</option>
             </select>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label text-muted small fw-bold">Üretici / Cari (Sıralı)</label>
-            <select class="form-select form-select-lg fw-bold text-dark" id="memberSelect" required>
+        <div class="mb-2">
+            <label class="form-label">Sıradaki Üretici</label>
+            <select class="form-select fw-bold text-dark" id="memberSelect" required>
                 <option value="">Önce rota seçiniz...</option>
             </select>
         </div>
         
-        <div class="mb-3">
-            <label class="form-label text-muted small fw-bold">Süt Miktarı (Lt)</label>
-            <input type="tel" class="form-control form-control-lg fw-bold text-center bg-white fs-1 text-primary" id="literInput" placeholder="0" readonly>
+        <div class="mb-1">
+            <label class="form-label">Süt Miktarı (Lt)</label>
+            <input type="text" class="form-control fw-bold text-center bg-white fs-3 text-primary" id="literInput" placeholder="0" readonly style="height: 45px;">
         </div>
 
         <div class="numpad-grid">
@@ -199,12 +225,19 @@
             <button type="button" onclick="addNum('8')">8</button>
             <button type="button" onclick="addNum('9')">9</button>
             
-            <button type="button" class="text-danger" onclick="clearNum()">C</button>
+            <button type="button" class="text-danger" onclick="delNum()"><i class="fa-solid fa-delete-left"></i></button>
             <button type="button" onclick="addNum('0')">0</button>
-            <button type="button" class="text-secondary" onclick="delNum()"><i class="fa-solid fa-delete-left"></i></button>
+            <button type="button" class="fw-bold" onclick="addNum('.')">.</button>
         </div>
 
-        <button type="submit" class="btn btn-collect"><i class="fa-solid fa-save me-2"></i> KAYDET</button>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary fw-bold" style="width: 30%; border-radius:10px;" onclick="pasGec()">
+                PAS
+            </button>
+            <button type="submit" class="btn btn-collect flex-grow-1">
+                KAYDET
+            </button>
+        </div>
     </form>
 </div>
 
@@ -215,28 +248,59 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script type="module">
-    import { auth, db, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, getDoc, doc, deleteDoc, updateDoc } from "../js/firebase-config.js";
-
+    import { auth, db, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, getDoc, doc, deleteDoc, updateDoc, getDocs } from "../js/firebase-config.js";
    let currentCoopId = null;
     let currentDriverId = null;
     let currentPeriod = "sabah";
     let allMembersData = [];
-    let todayRecords = []; // YENİ: Bugün süt verenleri burada tutacağız
+    let todayRecords = [];
+    let skippedMembers = []; 
+    let deviationLimit = 0; // YENİ: Hata almamak için bunu ekledik
 
     // Sayfa açılınca bugünün tarihini seçili yap
     document.getElementById('islemTarihi').valueAsDate = new Date();
-
-    onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentDriverId = user.uid;
+            
+            // 1. Şoförün Bilgilerini Al (Hangi Kooperatif?)
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if(userDoc.exists()) {
                 currentCoopId = userDoc.data().coopId;
-                document.getElementById("driverName").innerText = userDoc.data().adSoyad;
+                document.getElementById("driverName").innerText = userDoc.data().adSoyad || "Şoför";
+
+                // 2. Kooperatif Ayarlarını Al (Limit ve Rotalar)
+                const coopDoc = await getDoc(doc(db, "cooperatives", currentCoopId));
+                
+                if(coopDoc.exists()) {
+                    const data = coopDoc.data();
+                    
+                    // A) Sapma Limiti (Global değişkene ata)
+                    deviationLimit = Number(data.deviationLimit) || 0;
+
+                    // B) Rota Listesini Doldur
+                    const rotalar = data.villages || [];
+                    const rotaSelect = document.getElementById("villageFilter");
+                    
+                    // Kutuyu temizle ve tekrar doldur
+                    rotaSelect.innerHTML = '<option value="all">Tüm Rotalar</option>';
+                    
+                    // Alfabetik sırayla ekle
+                    rotalar.sort().forEach(r => {
+                        const opt = document.createElement("option");
+                        opt.value = r;
+                        opt.text = r;
+                        rotaSelect.appendChild(opt);
+                    });
+                }
+
+                // 3. Verileri Başlat
                 uyeleriHafizayaAl();
-                kayitlariDinle(); // Seçili tarihe göre dinler
+                kayitlariDinle();
             }
-        } else { window.location.href = "../index.html"; }
+        } else { 
+            window.location.href = "../index.html"; 
+        }
     });
 
     // TARİH DEĞİŞİNCE LİSTEYİ YENİLE
@@ -264,26 +328,34 @@
         // 1. Köye göre filtrele
         let filtered = (selectedVillage === "all") ? allMembersData : allMembersData.filter(m => m.koy === selectedVillage);
 
-        // 2. YENİ: Zaten süt vermişse listeden çıkar!
-        // Mantık: Şu anki periyotta (sabah/akşam) bu üye ID'sine ait bir kayıt var mı?
+        // 2. Süt verenleri çıkar
         filtered = filtered.filter(uye => {
-            // Bu üyenin bugünkü kayıtlar içinde, şu anki periyotta (örn: sabah) kaydı var mı?
             const zatenVerdi = todayRecords.some(rec => rec.memberId === uye.id && rec.period === currentPeriod);
-            return !zatenVerdi; // Eğer verdi ise false döndür (listeden at), vermedi ise true (listede tut)
+            return !zatenVerdi;
         });
 
-        // 3. Sıralama (1, 2, 3...)
-        filtered.sort((a,b) => (Number(a.sira) || 999) - (Number(b.sira) || 999));
+        // 3. PAS GEÇİLENLERİ AYIKLA VE SONA EKLE
+        let normalList = filtered.filter(uye => !skippedMembers.includes(uye.id));
+        let skippedList = filtered.filter(uye => skippedMembers.includes(uye.id));
 
-        if(filtered.length === 0) {
+        // Her iki listeyi de kendi içinde sıra numarasına göre diz
+        normalList.sort((a,b) => (Number(a.sira) || 999) - (Number(b.sira) || 999));
+        skippedList.sort((a,b) => (Number(a.sira) || 999) - (Number(b.sira) || 999));
+
+        // Birleştir (Normaller önce, Pas geçilenler sonra)
+        const finalSorted = [...normalList, ...skippedList];
+
+        if(finalSorted.length === 0) {
              const option = document.createElement("option");
              option.text = "--- Bu rotada işlem tamam ---";
              selectBox.appendChild(option);
         } else {
-            filtered.forEach(uye => {
+            finalSorted.forEach(uye => {
                 const option = document.createElement("option");
                 option.value = uye.id;
-                option.text = `${uye.sira || '-'} - ${uye.ad} ${uye.soyad}`;
+                // Eğer pas geçilmişse isminin başına (PAS) yazalım
+                const prefix = skippedMembers.includes(uye.id) ? '(SONA ATILDI) ' : `${uye.sira || '-'} - `;
+                option.text = `${prefix}${uye.ad} ${uye.soyad}`;
                 selectBox.appendChild(option);
             });
             // Otomatik 1. sıradakini seç
@@ -291,42 +363,75 @@
         }
     }
 
-    window.setPeriod = function(p) {
+   window.setPeriod = function(p) {
         currentPeriod = p;
         
-        // Buton Stilleri (Aktif olan renkli, pasif olan sönük)
         const btnS = document.getElementById("btnSabah");
         const btnA = document.getElementById("btnAksam");
         
+        // Ortak stil: Tüm butonlar görünür olmalı
+        const pasifStyle = "background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1);";
+        
         if(p === 'sabah') {
-            // Sabah Aktif (Turuncu)
-            btnS.style = "background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; font-weight: bold;";
+            // Sabah Aktif (Parlak Turuncu)
+            btnS.style = "background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; font-weight: bold; opacity: 1;";
             btnS.className = "btn btn-sm flex-grow-1 active";
             
-            // Akşam Pasif
-            btnA.style = "background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.3);";
+            // Akşam Pasif (Sönük ama Görünür)
+            btnA.style = pasifStyle;
             btnA.className = "btn btn-sm flex-grow-1";
         } else {
-            // Akşam Aktif (Mavi)
-            btnA.style = "background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; font-weight: bold;";
+            // Akşam Aktif (Parlak Mavi)
+            btnA.style = "background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; font-weight: bold; opacity: 1;";
             btnA.className = "btn btn-sm flex-grow-1 active";
             
-            // Sabah Pasif
-            btnS.style = "background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.3);";
+            // Sabah Pasif (Sönük ama Görünür)
+            btnS.style = pasifStyle;
             btnS.className = "btn btn-sm flex-grow-1";
         }
 
-        // Listeyi periyoda göre yeniden hesapla (Sabah verenler akşam listesinde görünsün diye)
+        // Listeyi periyoda göre yeniden hesapla
         const seciliKoy = document.getElementById("villageFilter").value;
         dropdownDoldur(seciliKoy);
     }
 
-    // --- SANAL KLAVYE KODLARI ---
+    // --- YENİ KLAVYE VE PAS GEÇ FONKSİYONLARI ---
+
     window.addNum = function(num) {
         const inp = document.getElementById("literInput");
-        // Eğer 0 ise sil, yanına yaz (Çift sıfır olmasın)
-        if(inp.value === "0") inp.value = "";
+        // Çift nokta kontrolü (20.5.5 olmasın)
+        if(num === '.' && inp.value.includes('.')) return;
+        
+        // İlk karakter nokta ise başına 0 koy (0.5)
+        if(num === '.' && inp.value === "") { inp.value = "0."; return; }
+
+        if(inp.value === "0" && num !== '.') inp.value = "";
         inp.value += num;
+    }
+
+    window.delNum = function() {
+        const inp = document.getElementById("literInput");
+        inp.value = inp.value.slice(0, -1);
+    }
+
+    window.pasGec = function() {
+        const selectBox = document.getElementById("memberSelect");
+        const currentId = selectBox.value;
+        
+        if(!currentId) return;
+
+        // ID'yi pas geçilenler listesine ekle
+        if(!skippedMembers.includes(currentId)) {
+            skippedMembers.push(currentId);
+        }
+
+        // Listeyi yenile (Bu kişi sona gidecek)
+        const seciliKoy = document.getElementById("villageFilter").value;
+        dropdownDoldur(seciliKoy);
+
+        // Bildirim ver
+        const Toast = Swal.mixin({toast: true, position: 'center', showConfirmButton: false, timer: 1000});
+        Toast.fire({ icon: 'info', title: 'Sona Atıldı' });
     }
 
     window.delNum = function() {
@@ -338,42 +443,119 @@
         document.getElementById("literInput").value = "";
     }
 
+    // --- YENİ KAYIT İŞLEMİ (AKILLI KONTROL MEKANİZMALI) ---
     document.getElementById("collectionForm").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const memId = document.getElementById("memberSelect").value;
-        const memName = document.getElementById("memberSelect").options[document.getElementById("memberSelect").selectedIndex].text;
+        
+        const memSelect = document.getElementById("memberSelect");
+        const memId = memSelect.value;
+        // İsimden sıra numarasını temizleyip sadece ismi alalım (Opsiyonel temizlik)
+        let rawName = memSelect.options[memSelect.selectedIndex].text;
+        // Eğer "(SONA ATILDI)" veya "1 -" gibi ibareler varsa temiz kalsın istiyorsan buraya regex eklenebilir, şimdilik olduğu gibi alıyoruz.
+        const memName = rawName; 
+
         const liters = Number(document.getElementById("literInput").value);
         
-        
-        
-
-       // SEÇİLİ TARİHİ AL
+        // Tarih ve Saat Ayarları
         const seciliTarihStr = document.getElementById("islemTarihi").value; 
         const dateParts = seciliTarihStr.split("-");
-        const formattedDate = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`;
+        const formattedDate = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`; // DD.MM.YYYY
 
-        // SAAT AYARI: Seçilen tarih ile şu anki saati birleştir
         const suAn = new Date();
         const tamTarih = new Date(seciliTarihStr);
         tamTarih.setHours(suAn.getHours(), suAn.getMinutes(), suAn.getSeconds());
 
-        if(!memId || liters <= 0) { Swal.fire("Eksik", "Bilgileri kontrol et", "warning"); return; }
+        if(!memId || liters <= 0) { 
+            Swal.fire({icon: 'warning', title: 'Eksik Bilgi', text: 'Lütfen kişi seçin ve miktar girin.'}); 
+            return; 
+        }
 
-        try {
-            await addDoc(collection(db, "milk_records"), {
-                memberId: memId,
-                memberName: memName,
-                liters: liters,
-                period: currentPeriod,
-                date: tamTarih,        // Artık saati de içeriyor
-                dateString: formattedDate,
-                driverId: currentDriverId,
-                coopId: currentCoopId
-            });
-            document.getElementById("literInput").value = "";
-            const Toast = Swal.mixin({toast: true, position: 'top', showConfirmButton: false, timer: 1000});
-            Toast.fire({ icon: 'success', title: 'Kaydedildi' });
-        } catch (error) { Swal.fire("Hata", error.message, "error"); }
+        // --- SAPMA KONTROLÜ BAŞLIYOR ---
+        let kaydet = true;
+
+        if (deviationLimit > 0) {
+            // 1. Dünün Tarihini Bul
+            const d = new Date(seciliTarihStr);
+            d.setDate(d.getDate() - 1);
+            
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const dunFormatted = `${dd}.${mm}.${yyyy}`; // Dünün tarihi: 01.12.2025
+
+            // 2. Veritabanından Dünkü Kaydı Çek
+            const qCheck = query(
+                collection(db, "milk_records"),
+                where("coopId", "==", currentCoopId),
+                where("memberId", "==", memId),
+                where("period", "==", currentPeriod), // Aynı periyot (Sabahsa sabah)
+                where("dateString", "==", dunFormatted)
+            );
+
+            const querySnap = await getDocs(qCheck);
+            
+            if (!querySnap.empty) {
+                // Dün kayıt varmış, kontrol et
+                const eskiKayit = querySnap.docs[0].data();
+                const eskiLitre = Number(eskiKayit.liters);
+                
+                // Farkı Yüzde Olarak Hesapla
+                const fark = Math.abs(liters - eskiLitre);
+                const yuzde = (fark / eskiLitre) * 100;
+
+                if (yuzde > deviationLimit) {
+                    kaydet = false; // Şimdilik durdur, onay iste
+                    
+                    const confirmRes = await Swal.fire({
+                        title: 'ANORMAL GİRİŞ!',
+                        html: `
+                            <div class="text-start fs-6">
+                                <p><strong>Dün:</strong> ${eskiLitre} Lt</p>
+                                <p><strong>Bugün:</strong> ${liters} Lt</p>
+                                <p class="text-danger">Fark: %${yuzde.toFixed(0)}</p>
+                                <hr>
+                                Yine de kaydetmek istiyor musunuz?
+                            </div>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Evet, Kaydet',
+                        cancelButtonText: 'İptal'
+                    });
+
+                    if (confirmRes.isConfirmed) {
+                        kaydet = true; // Kullanıcı onayladı, devam et
+                    }
+                }
+            }
+        }
+        // --- KONTROL BİTTİ ---
+
+        if (kaydet) {
+            try {
+                await addDoc(collection(db, "milk_records"), {
+                    memberId: memId,
+                    memberName: memName,
+                    liters: liters,
+                    period: currentPeriod,
+                    date: tamTarih,
+                    dateString: formattedDate,
+                    driverId: currentDriverId,
+                    coopId: currentCoopId
+                });
+                
+                // Başarılı
+                document.getElementById("literInput").value = "";
+                const Toast = Swal.mixin({toast: true, position: 'top', showConfirmButton: false, timer: 1000});
+                Toast.fire({ icon: 'success', title: 'Kaydedildi' });
+
+            } catch (error) { 
+                console.error(error);
+                Swal.fire("Hata", "Sistem hatası: " + error.message, "error"); 
+            }
+        }
     });
 
     function kayitlariDinle() {

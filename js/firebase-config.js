@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
@@ -16,4 +16,5 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { auth, db, onAuthStateChanged, signOut, signInWithEmailAndPassword, doc, getDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove };
+// orderBy ve limit eklendi
+export { auth, db, onAuthStateChanged, signOut, signInWithEmailAndPassword, doc, getDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove, orderBy, limit };
