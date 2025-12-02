@@ -437,10 +437,11 @@
 }
 
 .table-ledger tbody td {
-    padding: 12px 10px;
+    padding: 6px 10px; /* YENİ DEĞER: Satırlar daraldı */
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
     vertical-align: middle;
+    font-size: 0.85rem; /* Yazı fontunu da bir tık küçülttük */
 }
 
 .table-ledger tbody tr:hover {
@@ -473,6 +474,9 @@
         <a class="nav-link" onclick="switchTab('members', this)">
             <i class="fa-solid fa-users" style="width:20px"></i> <span id="lblMenuMembers">Üye İşlemleri</span>
         </a>
+        <a class="nav-link" onclick="switchTab('stocks', this)">
+    <i class="fa-solid fa-boxes-stacked" style="width:20px"></i> Stok Yönetimi
+</a>
         <a class="nav-link" onclick="switchTab('settings', this)">
             <i class="fa-solid fa-sliders" style="width:20px"></i> Ayarlar
         </a>
@@ -562,6 +566,37 @@
                 </div>
             </div>
         </div>
+<div id="stocks" class="content-section hidden-section">
+    <div class="card p-4 border-0 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold text-dark m-0">Depo Mevcudu</h4>
+                <small class="text-muted">Ürünlerin anlık stok durumları</small>
+            </div>
+            <button class="btn btn-primary-custom" onclick="yeniUrunModalAc()">
+                <i class="fa-solid fa-plus me-2"></i> Yeni Ürün Tanımla
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+    <tr>
+        <th>Ürün Adı</th>
+        <th>Kategori</th>
+        <th class="text-center">Mevcut Stok</th>
+        <th class="text-end">Birim Fiyat (Satış)</th>
+        <th class="text-end">İşlem</th>
+    </tr>
+</thead>
+                <tbody id="stockTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
 
         <div id="settings" class="content-section hidden-section">
             
@@ -671,40 +706,50 @@
 
                 </div>
             </div>
-
-           <div class="row g-3 mb-4">
-    <div class="col-12 col-md-4">
+<div class="row g-2 mb-4"> <div class="col-6 col-md-3">
         <button class="quick-action-btn" onclick="yeniEvrakModalAc()">
             <div class="btn-icon-circle" style="background: #e0f2fe; color: #0284c7;">
                 <i class="fa-solid fa-file-invoice"></i>
             </div>
-            <div class="text-start">
-                <div class="fw-bold text-dark">YENİ EVRAK</div>
-                <small class="text-muted" style="font-size: 0.7rem;">Satış Faturası / Hizmet</small>
+            <div class="text-start" style="line-height: 1.2;">
+                <div class="fw-bold text-dark small">YENİ EVRAK</div>
+                <small class="text-muted" style="font-size: 0.65rem;">Fatura Kes</small>
             </div>
         </button>
     </div>
 
-    <div class="col-12 col-md-4">
+    <div class="col-6 col-md-3">
         <button class="quick-action-btn" onclick="islemEkle('tahsilat')">
             <div class="btn-icon-circle" style="background: #dcfce7; color: #166534;">
                 <i class="fa-solid fa-hand-holding-dollar"></i>
             </div>
-            <div class="text-start">
-                <div class="fw-bold text-dark">TAHSİLAT</div>
-                <small class="text-muted" style="font-size: 0.7rem;">Nakit veya Banka</small>
+            <div class="text-start" style="line-height: 1.2;">
+                <div class="fw-bold text-dark small">TAHSİLAT</div>
+                <small class="text-muted" style="font-size: 0.65rem;">Para Girişi</small>
             </div>
         </button>
     </div>
 
-    <div class="col-12 col-md-4">
+    <div class="col-6 col-md-3">
+        <button class="quick-action-btn" onclick="islemEkle('odeme')">
+            <div class="btn-icon-circle" style="background: #ffedd5; color: #c2410c;">
+                <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div class="text-start" style="line-height: 1.2;">
+                <div class="fw-bold text-dark small">ÖDEME YAP</div>
+                <small class="text-muted" style="font-size: 0.65rem;">Para Çıkışı</small>
+            </div>
+        </button>
+    </div>
+
+    <div class="col-6 col-md-3">
         <button class="quick-action-btn" onclick="Swal.fire('Bilgi','PDF Hazırlanıyor...','info')">
             <div class="btn-icon-circle bg-light text-secondary border">
                 <i class="fa-solid fa-print"></i>
             </div>
-            <div class="text-start">
-                <div class="fw-bold text-dark">YAZDIR</div>
-                <small class="text-muted" style="font-size: 0.7rem;">Ekstre Dökümü</small>
+            <div class="text-start" style="line-height: 1.2;">
+                <div class="fw-bold text-dark small">YAZDIR</div>
+                <small class="text-muted" style="font-size: 0.65rem;">Ekstre Dökümü</small>
             </div>
         </button>
     </div>
@@ -792,6 +837,7 @@
     let currentCoopId = null;
     let allMembers = [];
     let villageList = [];
+    let duzenlenecekEvrakId = null;
     window.firmaTuru = "koop"; 
 
     onAuthStateChanged(auth, async (user) => {
@@ -799,12 +845,37 @@
             if(document.getElementById("userEmailDisplay")) {
                 document.getElementById("userEmailDisplay").innerText = user.email;
             }
+            
+            // 1. Önce hafızaya bak
             currentCoopId = sessionStorage.getItem("coopId");
             
+            // 2. Eğer hafızada yoksa (sayfa yenilendiyse), veritabanından tekrar çek (BU KISIM EKSİKTİ)
+            if (!currentCoopId) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    currentCoopId = userData.coopId;
+                    // Hafızayı tazele
+                    sessionStorage.setItem("coopId", currentCoopId);
+                    
+                    // Eğer admin değilse uyar (Güvenlik)
+                    if(userData.role !== 'admin') {
+                        window.location.href = "../index.html";
+                        return;
+                    }
+                }
+            }
+            
+            // 3. ID Bulunduysa Verileri Çekmeye Başla
             if(currentCoopId) {
+                console.log("Sirket ID: ", currentCoopId); // Konsola yazdıralım
                 sirketBilgileriniDinle(currentCoopId);
                 canliUyeDinle();
+                stoklariDinle();
+            } else {
+                Swal.fire("Hata", "Kullanıcıya tanımlı şirket bulunamadı.", "error");
             }
+
         } else { 
             window.location.href = "../index.html"; 
         }
@@ -1172,10 +1243,15 @@
                         <td class="text-end bg-light bg-opacity-25">${borcSutunu}</td>
                         <td class="text-end bg-light bg-opacity-25">${alacakSutunu}</td>
                         <td class="text-end"><span class="text-bakiye">${kumuletifBakiye.toLocaleString('tr-TR')} ₺</span></td>
-                        <td class="text-end" style="min-width: 100px;">
-                            ${detayBtn}
-                            <button class="btn btn-sm btn-light border text-danger" onclick="islemSil('${doc.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </td>
+                        <td class="text-end" style="min-width: 120px;">
+    ${detayBtn}
+    <button class="btn btn-sm btn-light border text-primary me-1" onclick="islemDuzenle('${doc.id}')" title="Düzenle">
+        <i class="fa-solid fa-pen"></i>
+    </button>
+    <button class="btn btn-sm btn-light border text-danger" onclick="islemSil('${doc.id}')" title="Sil">
+        <i class="fa-solid fa-trash"></i>
+    </button>
+</td>
                     </tr>
                 `;
                 tbody.insertAdjacentHTML('afterbegin', tr);
@@ -1187,46 +1263,8 @@
         });
     }
 
-    // --- YENİ EKLENECEK FATURA FONKSİYONLARI ---
+    
 
-    window.yeniEvrakModalAc = function() {
-        // Modalı temizle ve aç
-        document.getElementById("faturaSatirlari").innerHTML = "";
-        document.getElementById("evrakAciklama").value = "";
-        document.getElementById("evrakBelgeNo").value = "";
-        document.getElementById("evrakTarih").valueAsDate = new Date();
-        document.getElementById("evrakGenelToplam").innerText = "0,00 ₺";
-        
-        // İlk boş satırı ekle
-        satirEkle();
-        
-        new bootstrap.Modal(document.getElementById('evrakModal')).show();
-    }
-
-    window.satirEkle = function() {
-        const tbody = document.getElementById("faturaSatirlari");
-        const rowId = Date.now(); // Rastgele ID
-        
-        const tr = document.createElement("tr");
-        tr.id = `row-${rowId}`;
-        tr.innerHTML = `
-            <td><input type="text" class="form-control form-control-sm item-name" placeholder="Ürün adı..."></td>
-            <td><input type="number" class="form-control form-control-sm item-qty" value="1" min="1" oninput="satirHesapla(${rowId})"></td>
-            <td><input type="number" class="form-control form-control-sm item-price" placeholder="0" oninput="satirHesapla(${rowId})"></td>
-            <td>
-                <select class="form-select form-select-sm item-tax" onchange="satirHesapla(${rowId})">
-                    <option value="0">0%</option>
-                    <option value="1">1%</option>
-                    <option value="10" selected>10%</option>
-                    <option value="20">20%</option>
-                </select>
-            </td>
-            <td><input type="text" class="form-control form-control-sm item-tax-amt" disabled value="0.00"></td>
-            <td><input type="text" class="form-control form-control-sm fw-bold item-total" disabled value="0.00"></td>
-            <td class="text-center"><button class="btn btn-sm text-danger" onclick="this.closest('tr').remove(); genelToplamHesapla();"><i class="fa-solid fa-times"></i></button></td>
-        `;
-        tbody.appendChild(tr);
-    }
 
     // Global pencereye ata ki HTML'den çağırılabilsin
     window.satirHesapla = function(id) {
@@ -1245,70 +1283,46 @@
         genelToplamHesapla();
     }
 
+   // --- GENEL TOPLAM HESAPLAMA (DETAYLI VERSİYON) ---
     window.genelToplamHesapla = function() {
-        let grandTotal = 0;
-        document.querySelectorAll('.item-total').forEach(inp => {
-            grandTotal += Number(inp.value) || 0;
-        });
-        document.getElementById("evrakGenelToplam").innerText = grandTotal.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + " ₺";
-    }
+        let araToplam = 0; // KDV Hariç Mal Bedeli
+        let toplamKdv = 0; // Sadece Vergi Kısmı
+        let genelToplam = 0; // Hepsi Dahil
 
-    window.evrakiKaydet = async function() {
-        const items = [];
-        let grandTotal = 0;
-        
-        // Tablodaki verileri topla
         document.querySelectorAll('#faturaSatirlari tr').forEach(row => {
-            const name = row.querySelector('.item-name').value;
-            const qty = row.querySelector('.item-qty').value;
-            const price = row.querySelector('.item-price').value;
-            const tax = row.querySelector('.item-tax').value;
-            const total = row.querySelector('.item-total').value;
+            // Inputlardan değerleri al
+            const qty = Number(row.querySelector('.item-qty').value) || 0;
+            const price = Number(row.querySelector('.item-price').value) || 0;
+            const taxRate = Number(row.querySelector('.item-tax').value) || 0;
+
+            // Satır bazlı hesaplama
+            const satirMatrah = qty * price;              // KDV Hariç Tutar
+            const satirKdv = satirMatrah * (taxRate / 100); // KDV Tutarı
             
-            if(name) { // Adı boş değilse ekle
-                items.push({
-                    name: name,
-                    qty: Number(qty),
-                    price: Number(price),
-                    taxRate: Number(tax),
-                    total: Number(total)
-                });
-                grandTotal += Number(total);
-            }
+            // Toplamlara ekle
+            araToplam += satirMatrah;
+            toplamKdv += satirKdv;
         });
 
-        if(items.length === 0) {
-            Swal.fire("Hata", "En az bir ürün girmelisiniz!", "warning");
-            return;
-        }
+        genelToplam = araToplam + toplamKdv;
 
-        const evrakTuru = document.getElementById("evrakTuru").value; // satis veya iade
-        const tarih = document.getElementById("evrakTarih").value;
-        const belgeNo = document.getElementById("evrakBelgeNo").value;
-        const aciklama = document.getElementById("evrakAciklama").value || (evrakTuru === 'satis' ? 'Vadeli Satış Faturası' : 'İade Faturası');
-
-        try {
-            await addDoc(collection(db, "transactions"), {
-                memberId: activeMemberId,
-                coopId: currentCoopId,
-                type: evrakTuru === 'satis' ? 'borc' : 'alacak', // Satışsa BORÇ, İadeyse ALACAK
-                category: 'Fatura',
-                description: aciklama,
-                amount: grandTotal,
-                date: new Date(tarih),
-                belgeNo: belgeNo,
-                items: items // Ürün detaylarını dizi olarak kaydediyoruz
-            });
-
-            bootstrap.Modal.getInstance(document.getElementById('evrakModal')).hide();
-            Swal.fire({ icon: 'success', title: 'Fatura İşlendi', timer: 1500, showConfirmButton: false });
-        } catch (error) {
-            console.error(error);
-            Swal.fire("Hata", "Kaydedilemedi: " + error.message, "error");
-        }
+        // HTML'e Yazdır (Para formatında)
+        if(document.getElementById("lblAraToplam")) 
+            document.getElementById("lblAraToplam").innerText = araToplam.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + " ₺";
+        
+        if(document.getElementById("lblKdvToplam")) 
+            document.getElementById("lblKdvToplam").innerText = toplamKdv.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + " ₺";
+            
+        if(document.getElementById("lblGenelToplam")) 
+            document.getElementById("lblGenelToplam").innerText = genelToplam.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + " ₺";
+            
+        // Eski id'yi de güncelleyelim (Eğer kodun başka yerinde kullanılıyorsa hata vermesin)
+        if(document.getElementById("evrakGenelToplam"))
+            document.getElementById("evrakGenelToplam").innerText = genelToplam.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + " ₺";
     }
 
-    // Detayları Görme Fonksiyonu
+   
+
     window.evrakDetayGoster = async function(docId) {
         const docRef = doc(db, "transactions", docId);
         const docSnap = await getDoc(docRef);
@@ -1321,10 +1335,11 @@
             tbody.innerHTML = "";
             
             items.forEach(item => {
+                // Burada Miktar ve Birimi yan yana gösteriyoruz: "50 Kg" gibi
                 tbody.innerHTML += `
                     <tr>
                         <td>${item.name}</td>
-                        <td class="text-center">${item.qty}</td>
+                        <td class="text-center fw-bold text-dark">${item.qty} ${item.unit || ''}</td>
                         <td class="text-end">${item.price} ₺</td>
                         <td class="text-end">%${item.taxRate}</td>
                         <td class="text-end fw-bold">${item.total.toFixed(2)} ₺</td>
@@ -1336,22 +1351,45 @@
         }
     }
 
+   // --- İŞLEM EKLEME FONKSİYONU (GÜNCELLENDİ - ÖDEME DAHİL) ---
     window.islemEkle = async function(islemTuru) {
-        // islemTuru: 'satis' (Borç Artırır) veya 'tahsilat' (Alacak Artırır)
-        const baslik = islemTuru === 'satis' ? 'Satış Gir (Borçlandır)' : 'Tahsilat / Alacak Ekle';
-        const renk = islemTuru === 'satis' ? '#dc2626' : '#166534';
+        // islemTuru: 'satis', 'tahsilat' veya 'odeme'
         
-        // SweetAlert ile Form Aç
+        let baslik, renk, kategoriler, kayitTipi;
+
+        if (islemTuru === 'satis') {
+            baslik = 'Hızlı Satış (Borçlandır)';
+            renk = '#dc2626'; // Kırmızı
+            kategoriler = '<option>Yem</option><option>Un</option><option>Kepek</option><option>Market</option>';
+            kayitTipi = 'borc';
+        } 
+        else if (islemTuru === 'odeme') {
+            // YENİ: ÖDEME YAPMA (Para Çıkışı)
+            baslik = 'Ödeme Yap (Para Çıkışı)';
+            renk = '#f97316'; // Turuncu
+            kategoriler = '<option>Eft Havale</option><option>Nakit Ödeme</option><option>Avans</option>';
+            kayitTipi = 'borc'; // Ödeme yapmak, üyenin alacağını azaltır (Borç hanesine yazılır)
+        }
+        else {
+            // TAHSİLAT (Para Girişi)
+            baslik = 'Tahsilat Al (Para Girişi)';
+            renk = '#166534'; // Yeşil
+            kategoriler = '<option>Nakit Tahsilat</option><option>Banka/Havale</option><option>Kredi Kartı</option>';
+            kayitTipi = 'alacak';
+        }
+
+        // SweetAlert Penceresi
         const { value: formValues } = await Swal.fire({
             title: baslik,
             html: `
-                <select id="swal-cat" class="form-select mb-3">
-                    ${islemTuru === 'satis' 
-                        ? '<option>Yem</option><option>Un</option><option>Kepek</option><option>Market</option>' 
-                        : '<option>Nakit Tahsilat</option><option>Banka/Havale</option><option>Süt Bedeli</option>'}
-                </select>
-                <input id="swal-amt" class="form-control mb-3" type="number" placeholder="Tutar (TL)">
-                <input id="swal-desc" class="form-control" placeholder="Açıklama (Opsiyonel)">
+                <label class="small fw-bold d-block text-start text-muted">İşlem Türü</label>
+                <select id="swal-cat" class="form-select mb-3">${kategoriler}</select>
+                
+                <label class="small fw-bold d-block text-start text-muted">Tutar (TL)</label>
+                <input id="swal-amt" class="form-control mb-3 fw-bold fs-5" type="number" placeholder="0.00">
+                
+                <label class="small fw-bold d-block text-start text-muted">Açıklama</label>
+                <input id="swal-desc" class="form-control" placeholder="Opsiyonel açıklama...">
             `,
             focusConfirm: false,
             showCancelButton: true,
@@ -1372,26 +1410,574 @@
                 await addDoc(collection(db, "transactions"), {
                     memberId: activeMemberId,
                     coopId: currentCoopId,
-                    type: islemTuru === 'satis' ? 'borc' : 'alacak', // borc veya alacak
+                    type: kayitTipi, // borc veya alacak
                     category: formValues.cat,
                     amount: Number(formValues.amt),
                     description: formValues.desc || formValues.cat,
                     date: new Date()
                 });
                 
-                Swal.fire({ icon: 'success', title: 'İşlendi', timer: 1000, showConfirmButton: false });
+                const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1000});
+                Toast.fire({ icon: 'success', title: 'İşlem Kaydedildi' });
+                
             } catch (error) {
                 console.error(error);
                 Swal.fire('Hata', error.message, 'error');
             }
         }
     }
+    window.islemSil = async function(id) {
+        // 1. Onay Sor
+        const result = await Swal.fire({
+            title: 'Bu işlemi silmek istiyor musun?',
+            text: "Bakiye yeniden hesaplanacak.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Evet, Sil',
+            cancelButtonText: 'Vazgeç'
+        });
+
+        // 2. Onaylandıysa Sil
+        if (result.isConfirmed) {
+            try {
+                await deleteDoc(doc(db, "transactions", id));
+                
+                // Başarılı Mesajı
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 1000
+                });
+                Toast.fire({ icon: 'success', title: 'İşlem Silindi' });
+                
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Hata", "Silinemedi: " + error.message, "error");
+            }
+        }
+    }
+    // 1. MODALI AÇMA FONKSİYONU (GÜNCELLENMİŞ - HATASIZ)
+    window.yeniEvrakModalAc = function() {
+        // Değişkeni sıfırla (Yeni kayıt modu)
+        duzenlenecekEvrakId = null;
+        
+        // Formu Temizle
+        if(document.getElementById("modalBaslik")) document.getElementById("modalBaslik").innerText = "Yeni Evrak Girişi";
+        document.getElementById("faturaSatirlari").innerHTML = "";
+        document.getElementById("evrakAciklama").value = "";
+        document.getElementById("evrakBelgeNo").value = "";
+        document.getElementById("evrakTarih").valueAsDate = new Date();
+        
+        // --- HATAYI ÇÖZEN KISIM BURASI ---
+        // Artık 'evrakGenelToplam' kutusu yok, onun yerine 'lblGenelToplam' var.
+        // Kodun patlamaması için kontrol ederek sıfırlıyoruz:
+        
+        if(document.getElementById("lblGenelToplam")) document.getElementById("lblGenelToplam").innerText = "0,00 ₺";
+        if(document.getElementById("lblAraToplam")) document.getElementById("lblAraToplam").innerText = "0,00 ₺";
+        if(document.getElementById("lblKdvToplam")) document.getElementById("lblKdvToplam").innerText = "0,00 ₺";
+        
+        // Ödeme kutuları varsa onları da sıfırla
+        if(document.getElementById("inpOdenenTutar")) document.getElementById("inpOdenenTutar").value = "";
+        if(document.getElementById("lblKalanBakiye")) document.getElementById("lblKalanBakiye").innerText = "0,00 ₺";
+
+        // Buton yazısını düzelt
+        if(document.getElementById("evrakKaydetBtn")) document.getElementById("evrakKaydetBtn").innerText = "KAYDET"; 
+
+        // İlk boş satırı ekle
+        if(typeof satirEkle === 'function') {
+            satirEkle();
+        }
+        
+        // Modalı Göster
+        new bootstrap.Modal(document.getElementById('evrakModal')).show();
+    }
+
+   window.islemDuzenle = async function(id) {
+        try {
+            const docRef = doc(db, "transactions", id);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) { Swal.fire("Hata", "Kayıt bulunamadı", "error"); return; }
+            const veri = docSnap.data();
+
+            if (veri.items && veri.items.length > 0) {
+                duzenlenecekEvrakId = id;
+                document.getElementById("evrakTuru").value = (veri.type === 'borc') ? 'satis' : 'iade';
+                
+                const dateObj = veri.date.toDate();
+                const yyyy = dateObj.getFullYear();
+                const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const dd = String(dateObj.getDate()).padStart(2, '0');
+                document.getElementById("evrakTarih").value = `${yyyy}-${mm}-${dd}`;
+                document.getElementById("evrakBelgeNo").value = veri.belgeNo || "";
+                document.getElementById("evrakAciklama").value = veri.description || "";
+                
+                const tbody = document.getElementById("faturaSatirlari");
+                tbody.innerHTML = "";
+
+                // BİRİMLER LİSTESİ (Tekrar buraya yazıyoruz ki seçilebilsin)
+                const birimlerHtml = `
+                    <option value="Adet">Adet</option><option value="Kg">Kg</option><option value="Ton">Ton</option>
+                    <option value="Litre">Litre</option><option value="Çuval">Çuval</option><option value="Koli">Koli</option>
+                    <option value="Paket">Paket</option><option value="Metre">Metre</option>
+                `;
+
+                veri.items.forEach(item => {
+                    const rowId = Date.now() + Math.random().toString(16).slice(2);
+                    const tr = document.createElement("tr");
+                    tr.id = `row-${rowId}`;
+                    tr.innerHTML = `
+                        <td><input type="text" class="form-control form-control-sm item-name" value="${item.name}"></td>
+                        <td><input type="number" class="form-control form-control-sm item-qty" value="${item.qty}" min="1" oninput="satirHesapla('${rowId}')"></td>
+                        <td>
+                            <select class="form-select form-select-sm item-unit">
+                                ${birimlerHtml}
+                            </select>
+                        </td>
+                        <td><input type="number" class="form-control form-control-sm item-price" value="${item.price}" oninput="satirHesapla('${rowId}')"></td>
+                        <td>
+                            <select class="form-select form-select-sm item-tax" onchange="satirHesapla('${rowId}')">
+                                <option value="0" ${item.taxRate == 0 ? 'selected' : ''}>0%</option>
+                                <option value="1" ${item.taxRate == 1 ? 'selected' : ''}>1%</option>
+                                <option value="10" ${item.taxRate == 10 ? 'selected' : ''}>10%</option>
+                                <option value="20" ${item.taxRate == 20 ? 'selected' : ''}>20%</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-control form-control-sm item-tax-amt" disabled value="0.00"></td>
+                        <td><input type="text" class="form-control form-control-sm fw-bold item-total" disabled value="${item.total}"></td>
+                        <td class="text-center"><button class="btn btn-sm text-danger" onclick="this.closest('tr').remove(); genelToplamHesapla();"><i class="fa-solid fa-times"></i></button></td>
+                    `;
+                    tbody.appendChild(tr);
+                    
+                    // KAYITLI BİRİMİ SEÇİLİ YAP
+                    tr.querySelector('.item-unit').value = item.unit || 'Adet';
+                    
+                    satirHesapla(rowId);
+                });
+
+                if(document.getElementById("modalBaslik")) document.getElementById("modalBaslik").innerText = "Faturayı Düzenle";
+                document.getElementById("evrakKaydetBtn").innerText = "GÜNCELLE";
+                new bootstrap.Modal(document.getElementById('evrakModal')).show();
+            } else {
+                basitIslemDuzenle(id, veri);
+            }
+        } catch (error) { console.error(error); Swal.fire("Hata", error.message, "error"); }
+    }
     
+
+// 1. SATIR EKLEME (KOD + BİRİM DÜZELTİLDİ)
+    window.satirEkle = function() {
+        const tbody = document.getElementById("faturaSatirlari");
+        const rowId = Date.now() + Math.random().toString(16).slice(2);
+        
+        // Ürün Listesini Hazırla (Kod ve Birim verisini sakla)
+        let options = '<option value="">Ürün Seçiniz...</option>';
+        allProducts.forEach(p => {
+            options += `<option value="${p.id}" data-code="${p.code || ''}" data-price="${p.sellPrice}" data-name="${p.name}" data-unit="${p.unit || 'Adet'}">${p.name}</option>`;
+        });
+
+        // Birim Seçenekleri
+        const birimler = `
+            <option value="Adet">Adet</option>
+            <option value="Kg">Kg</option>
+            <option value="Ton">Ton</option>
+            <option value="Litre">Litre</option>
+            <option value="Çuval">Çuval</option>
+            <option value="Koli">Koli</option>
+            <option value="Paket">Paket</option>
+            <option value="Metre">Metre</option>
+        `;
+
+        const tr = document.createElement("tr");
+        tr.id = `row-${rowId}`;
+        
+        // Sütun Sıralaması Başlık ile Aynı Olmalı!
+        tr.innerHTML = `
+            <td>
+                <input type="text" class="form-control form-control-sm item-code bg-light fw-bold text-dark" placeholder="Kod" readonly tabindex="-1">
+            </td>
+            
+            <td>
+                <select class="form-select form-select-sm item-select" onchange="urunSecildi(this, '${rowId}')">
+                    ${options}
+                </select>
+                <input type="hidden" class="item-name">
+                <input type="hidden" class="item-prod-id"> 
+            </td>
+            
+            <td>
+                <input type="number" class="form-control form-control-sm item-qty fw-bold" value="1" min="1" oninput="satirHesapla('${rowId}')">
+            </td>
+
+            <td>
+                <select class="form-select form-select-sm item-unit">
+                    ${birimler}
+                </select>
+            </td>
+
+            <td>
+                <input type="number" class="form-control form-control-sm item-price" placeholder="0.00" oninput="satirHesapla('${rowId}')">
+            </td>
+
+            <td>
+                <select class="form-select form-select-sm item-tax" onchange="satirHesapla('${rowId}')">
+                    <option value="0">0%</option>
+                    <option value="1">1%</option>
+                    <option value="10" selected>10%</option>
+                    <option value="20">20%</option>
+                </select>
+            </td>
+
+            <td><input type="text" class="form-control form-control-sm item-tax-amt bg-white" disabled value="0.00"></td>
+            
+            <td><input type="text" class="form-control form-control-sm fw-bold item-total bg-white" disabled value="0.00"></td>
+            
+            <td class="text-center">
+                <button class="btn btn-sm text-danger" onclick="this.closest('tr').remove(); genelToplamHesapla();">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    // 2. ÜRÜN SEÇİLİNCE (KOD VE BİRİM OTOMATİK GELSİN)
+    window.urunSecildi = function(selectEl, rowId) {
+        const option = selectEl.options[selectEl.selectedIndex];
+        
+        // Data özelliklerini al
+        const code = option.getAttribute('data-code') || ""; 
+        const price = option.getAttribute('data-price') || 0;
+        const name = option.getAttribute('data-name') || "";
+        const unit = option.getAttribute('data-unit') || "Adet"; // Ürünün kayıtlı birimi
+        const prodId = selectEl.value;
+
+        const row = document.getElementById(`row-${rowId}`);
+        
+        // İlgili kutuları doldur
+        row.querySelector('.item-code').value = code;       // Kodu yaz
+        row.querySelector('.item-price').value = price;     // Fiyatı yaz
+        row.querySelector('.item-name').value = name;       // Adı sakla
+        row.querySelector('.item-prod-id').value = prodId;  // ID'yi sakla
+        
+        // Birimi otomatik seç
+        row.querySelector('.item-unit').value = unit;
+
+        satirHesapla(rowId); 
+    }
+
+    // 3. EVRAKI KAYDET (YENİ SÜTUNLARI DAHİL ET)
+    window.evrakiKaydet = async function() {
+        const items = [];
+        let grandTotal = 0;
+        
+        document.querySelectorAll('#faturaSatirlari tr').forEach(row => {
+            const name = row.querySelector('.item-name').value;
+            const prodId = row.querySelector('.item-prod-id') ? row.querySelector('.item-prod-id').value : null; 
+            
+            // Yeni alanları alıyoruz
+            const code = row.querySelector('.item-code').value; 
+            const unit = row.querySelector('.item-unit').value;
+            
+            const qty = row.querySelector('.item-qty').value;
+            const price = row.querySelector('.item-price').value;
+            const tax = row.querySelector('.item-tax').value;
+            const total = row.querySelector('.item-total').value;
+            
+            if(name) { 
+                items.push({ 
+                    code: code,
+                    name: name,
+                    productId: prodId,
+                    qty: Number(qty),
+                    unit: unit, // Birimi kaydet
+                    price: Number(price), 
+                    taxRate: Number(tax), 
+                    total: Number(total) 
+                });
+                grandTotal += Number(total);
+            }
+        });
+
+        if(items.length === 0) { Swal.fire("Hata", "En az bir ürün girmelisiniz!", "warning"); return; }
+
+        const evrakTuru = document.getElementById("evrakTuru").value; 
+        const tarih = document.getElementById("evrakTarih").value;
+        const belgeNo = document.getElementById("evrakBelgeNo").value;
+        const aciklama = document.getElementById("evrakAciklama").value || (evrakTuru === 'satis' ? 'Vadeli Satış Faturası' : 'İade Faturası');
+        const odenenTutar = Number(document.getElementById("inpOdenenTutar").value) || 0;
+
+        const faturaVerisi = {
+            memberId: activeMemberId,
+            coopId: currentCoopId,
+            type: evrakTuru === 'satis' ? 'borc' : 'alacak',
+            category: 'Fatura',
+            description: aciklama,
+            amount: grandTotal,
+            date: new Date(tarih),
+            belgeNo: belgeNo,
+            items: items
+        };
+
+        try {
+            if (duzenlenecekEvrakId) {
+                await updateDoc(doc(db, "transactions", duzenlenecekEvrakId), faturaVerisi);
+                Swal.fire({ icon: 'success', title: 'Fatura Güncellendi', timer: 1500, showConfirmButton: false });
+            } else {
+                await addDoc(collection(db, "transactions"), faturaVerisi);
+                
+                // Satışsa stoktan düş
+                if(evrakTuru === 'satis') {
+                    for (const item of items) {
+                        if(item.productId) {
+                            const p = allProducts.find(x => x.id === item.productId);
+                            if(p) {
+                                const yeniStok = Number(p.stock) - Number(item.qty);
+                                const pRef = doc(db, "products", item.productId);
+                                updateDoc(pRef, { stock: yeniStok }); 
+                            }
+                        }
+                    }
+                }
+
+                // Peşinat varsa tahsilat kes
+                if(odenenTutar > 0 && evrakTuru === 'satis') {
+                    await addDoc(collection(db, "transactions"), {
+                        memberId: activeMemberId,
+                        coopId: currentCoopId,
+                        type: 'alacak',
+                        category: 'Nakit Tahsilat',
+                        description: `Fatura Peşinatı (${belgeNo || 'Belgesiz'})`,
+                        amount: odenenTutar,
+                        date: new Date(tarih)
+                    });
+                }
+
+                Swal.fire({ icon: 'success', title: 'Kaydedildi', timer: 1500, showConfirmButton: false });
+            }
+            bootstrap.Modal.getInstance(document.getElementById('evrakModal')).hide();
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Hata", "Kaydedilemedi: " + error.message, "error");
+        }
+    }
+
+    // Basit işlemler (Nakit vb.) için eski düzenleme penceresi
+    async function basitIslemDuzenle(id, veri) {
+         const { value: formValues } = await Swal.fire({
+                title: 'Kaydı Düzenle',
+                html: `
+                    <label class="small fw-bold d-block text-start text-muted">Tutar (TL)</label>
+                    <input id="edit-amt" class="form-control mb-3 fw-bold" type="number" value="${veri.amount}">
+                    <label class="small fw-bold d-block text-start text-muted">Açıklama</label>
+                    <input id="edit-desc" class="form-control" type="text" value="${veri.description}">
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Güncelle',
+                preConfirm: () => {
+                    return {
+                        amt: document.getElementById('edit-amt').value,
+                        desc: document.getElementById('edit-desc').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                await updateDoc(doc(db, "transactions", id), {
+                    amount: Number(formValues.amt),
+                    description: formValues.desc
+                });
+                Swal.fire({ icon: 'success', title: 'Güncellendi', timer: 1000, showConfirmButton: false });
+            }
+    }
+    // --- STOK YÖNETİMİ DEĞİŞKENLERİ ---
+    let allProducts = [];
+
+    // --- SAYFA YÜKLENİNCE STOKLARI DİNLE ---
+    function stoklariDinle() {
+        // Sadece kendi kooperatifinin ürünlerini getir
+        const q = query(collection(db, "products"), where("coopId", "==", currentCoopId));
+        
+        onSnapshot(q, (snapshot) => {
+            allProducts = [];
+            const tbody = document.getElementById("stockTableBody");
+            if(tbody) tbody.innerHTML = "";
+
+            snapshot.forEach(doc => {
+                let p = doc.data();
+                p.id = doc.id;
+                allProducts.push(p);
+
+                // Tabloya Ekle
+                // Stok azaldıysa (Örn: 10'un altı) kırmızı yakalım
+                const stokDurumu = p.stock < 10 ? 'text-danger fw-bold' : 'text-dark';
+                const row = `
+                    <tr>
+                        <td><div class="fw-bold">${p.name}</div></td>
+                        <td><span class="badge bg-light text-secondary border">${p.category}</span></td>
+                        <td class="text-center ${stokDurumu} fs-5">${p.stock} <small class="fs-6 text-muted">${p.unit}</small></td>
+                        <td class="text-end fw-bold">${p.sellPrice} ₺</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-light border" onclick="urunDuzenle('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-sm btn-light border text-danger" onclick="urunSil('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                if(tbody) tbody.innerHTML += row;
+            });
+        });
+    }
+
+    // Bu fonksiyonu "onAuthStateChanged" içinde, "sirketBilgileriniDinle"nin altına ekle:
+    // stoklariDinle();  <-- Bunu unutma!
+
+    // --- ÜRÜN EKLEME / GÜNCELLEME ---
+    window.yeniUrunModalAc = function() {
+        document.getElementById("productForm").reset();
+        document.getElementById("prodId").value = "";
+        new bootstrap.Modal(document.getElementById('productModal')).show();
+    }
+
+    window.stokDegis = function(miktar) {
+        const inp = document.getElementById("prodStock");
+        let val = Number(inp.value) || 0;
+        val += miktar;
+        if(val < 0) val = 0;
+        inp.value = val;
+    }
+// --- ÜRÜN KAYDETME (KOD DAHİL) ---
+    document.getElementById("productForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("prodId").value;
+        const data = {
+            coopId: currentCoopId,
+            code: document.getElementById("prodCode").value || "", // YENİ: Kod eklendi
+            name: document.getElementById("prodName").value,
+            category: document.getElementById("prodCat").value,
+            unit: document.getElementById("prodUnit").value,
+            buyPrice: Number(document.getElementById("prodBuy").value),
+            sellPrice: Number(document.getElementById("prodSell").value),
+            stock: Number(document.getElementById("prodStock").value)
+        };
+
+        try {
+            if(id) {
+                await updateDoc(doc(db, "products", id), data);
+                Swal.fire({icon:'success', title:'Güncellendi', timer:1000, showConfirmButton:false});
+            } else {
+                await addDoc(collection(db, "products"), data);
+                Swal.fire({icon:'success', title:'Ürün Eklendi', timer:1000, showConfirmButton:false});
+            }
+            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+        } catch (error) {
+            console.error(error);
+        }
+    });
+
+    // --- ÜRÜN DÜZENLEME (KODU GETİRİR) ---
+    window.urunDuzenle = function(id) {
+        const p = allProducts.find(x => x.id === id);
+        if(!p) return;
+        document.getElementById("prodId").value = p.id;
+        document.getElementById("prodCode").value = p.code || ""; // YENİ: Kodu kutuya yaz
+        document.getElementById("prodName").value = p.name;
+        document.getElementById("prodCat").value = p.category;
+        document.getElementById("prodUnit").value = p.unit;
+        document.getElementById("prodBuy").value = p.buyPrice;
+        document.getElementById("prodSell").value = p.sellPrice;
+        document.getElementById("prodStock").value = p.stock;
+        new bootstrap.Modal(document.getElementById('productModal')).show();
+    }
+    
+    window.urunSil = async function(id) {
+        if((await Swal.fire({title:'Silinsin mi?', icon:'warning', showCancelButton:true})).isConfirmed) {
+            await deleteDoc(doc(db, "products", id));
+        }
+    }
 </script>
+<div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Ürün Kartı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+    <form id="productForm">
+        <input type="hidden" id="prodId">
+        
+        <div class="row g-2 mb-3">
+            <div class="col-4">
+                <label class="form-label small fw-bold">Ürün Kodu</label>
+                <input type="text" class="form-control" id="prodCode" placeholder="Örn: YEM01">
+            </div>
+            <div class="col-8">
+                <label class="form-label small fw-bold">Ürün Adı</label>
+                <input type="text" class="form-control" id="prodName" placeholder="Örn: 21 Protein Süt Yemi" required>
+            </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label small fw-bold">Kategori</label>
+                <select class="form-select" id="prodCat">
+                    <option>Yem</option>
+                    <option>Un</option>
+                    <option>Kepek</option>
+                    <option>Gübre</option>
+                    <option>Akaryakıt</option>
+                    <option>Diğer</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="form-label small fw-bold">Birim</label>
+                <select class="form-select" id="prodUnit">
+                    <option>Adet (Çuval)</option>
+                    <option>Kg</option>
+                    <option>Litre</option>
+                </select>
+            </div>
+        </div>
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label small fw-bold">Alış Fiyatı</label>
+                <input type="number" class="form-control" id="prodBuy" placeholder="0.00">
+            </div>
+            <div class="col-6">
+                <label class="form-label small fw-bold">Satış Fiyatı</label>
+                <input type="number" class="form-control" id="prodSell" placeholder="0.00">
+            </div>
+        </div>
+        <div class="mb-3 bg-light p-3 rounded border">
+            <label class="form-label small fw-bold text-primary">Stok Girişi (Adet/Kg)</label>
+            <div class="input-group">
+                <button class="btn btn-outline-secondary" type="button" onclick="stokDegis(-1)"><i class="fa-solid fa-minus"></i></button>
+                <input type="number" class="form-control text-center fw-bold" id="prodStock" value="0">
+                <button class="btn btn-outline-secondary" type="button" onclick="stokDegis(1)"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <small class="text-muted">* Yeni mal geldiğinde burayı artırın.</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-100 fw-bold">KAYDET</button>
+    </form>
+</div>
+        </div>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="modal fade" id="evrakModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl modal-dialog-scrollable"> <div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold text-primary"><i class="fa-solid fa-file-invoice me-2"></i>Yeni Evrak Girişi</h5>
+               <h5 class="modal-title fw-bold text-primary" id="modalBaslik"><i class="fa-solid fa-file-invoice me-2"></i>Yeni Evrak Girişi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body bg-light">
@@ -1427,16 +2013,13 @@
                         <div class="table-responsive">
                             <table class="table table-bordered mb-0 small" id="faturaTablosu">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 25%">Ürün / Hizmet Adı</th>
-                                        <th style="width: 10%">Miktar</th>
-                                        <th style="width: 15%">Birim Fiyat</th>
-                                        <th style="width: 10%">KDV %</th>
-                                        <th style="width: 15%">KDV Tutarı</th>
-                                        <th style="width: 15%">Toplam (KDV Dahil)</th>
-                                        <th style="width: 5%">Sil</th>
-                                    </tr>
-                                </thead>
+    <tr>
+        <th style="width: 10%">Ürün Kodu</th> <th style="width: 25%">Ürün / Hizmet Adı</th> <th style="width: 10%">Miktar</th> <th style="width: 12%">Birim</th> <th style="width: 15%">Birim Fiyat</th> <th style="width: 10%">KDV %</th>
+        <th style="width: 12%">KDV Tutarı</th>
+        <th style="width: 15%">Toplam</th>
+        <th style="width: 5%">Sil</th>
+    </tr>
+</thead>
                                 <tbody id="faturaSatirlari">
                                     </tbody>
                                 <tfoot>
@@ -1451,18 +2034,31 @@
                             </table>
                         </div>
                     </div>
-                    <div class="card-footer bg-white text-end">
-                        <div class="d-inline-block text-end">
-                            <small class="text-muted d-block">GENEL TOPLAM</small>
-                            <span class="fs-4 fw-bold text-dark" id="evrakGenelToplam">0,00 ₺</span>
-                        </div>
-                    </div>
-                </div>
+                    <div class="card-footer bg-white">
+    <div class="row justify-content-end">
+        <div class="col-md-6 col-lg-4">
+            <table class="table table-sm table-borderless text-end mb-0" style="font-size: 0.9rem;">
+                <tr>
+                    <td class="text-secondary">Ara Toplam (KDV Hariç):</td>
+                    <td class="fw-bold text-dark" id="lblAraToplam">0,00 ₺</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary">Toplam KDV:</td>
+                    <td class="fw-bold text-danger" id="lblKdvToplam">0,00 ₺</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="fw-bold text-dark fs-5 align-middle">GENEL TOPLAM:</td>
+                    <td class="fw-bold text-dark fs-4" id="lblGenelToplam">0,00 ₺</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
 
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-primary px-4 fw-bold" onclick="evrakiKaydet()">KAYDET</button>
+                <button type="button" class="btn btn-primary px-4 fw-bold" id="evrakKaydetBtn" onclick="evrakiKaydet()">KAYDET</button>
             </div>
         </div>
     </div>
