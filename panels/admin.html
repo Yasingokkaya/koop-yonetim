@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
         --primary-color: #0f766e;
@@ -84,19 +84,7 @@
         display: flex; flex-direction: column;
     }
 
-    /* --- ÜST KISIM (HEADER) AYARLARI --- */
-
-    .admin-header {
-        background: var(--primary-gradient);
-        /* Üstten 20px: Başlığı yukarı yaklaştırdık.
-           Alttan 50px: Kartların tutunacağı payı bıraktık.
-           Yani toplam yükseklik azaldı.
-        */
-        padding: 20px 30px 50px 30px; 
-        color: white;
-        position: relative;
-        z-index: 1;
-    }
+    
     
     .header-title h2 { 
         font-weight: 800; margin: 0; font-size: 1.6rem; /* Font biraz küçüldü */
@@ -113,17 +101,22 @@
         font-size: 0.85rem;
     }
 
-    /* --- KARTLARI YUKARI ÇEKME AYARI (HATA DÜZELTİLDİ) --- */
-    .content-wrapper {
-        /* Header'ın alt boşluğu 50px iken, kartları sadece 25px yukarı çekiyoruz.
-           Böylece arada 25px güvenli mesafe kalıyor. Yazıya değme şansı yok.
-        */
-        margin-top: -25px; 
-        padding: 0 30px 30px 30px;
-        position: relative;
-        z-index: 10;
-    }
-    /* ----------------------------------------------------- */
+   /* 1. Header'ın alt boşluğunu azaltıyoruz */
+.admin-header {
+    background: var(--primary-gradient);
+    padding: 20px 30px 20px 30px; /* Alt boşluk 50px'den 20px'e düştü */
+    color: white;
+    position: relative;
+    z-index: 1;
+}
+
+/* 2. Kartları yukarı çeken eksi değeri siliyoruz, aşağı itiyoruz */
+.content-wrapper {
+    margin-top: 20px; /* Eksi (-) kalktı, 20px boşluk verildi */
+    padding: 0 30px 30px 30px;
+    position: relative;
+    z-index: 10;
+}
 
     .card { 
         border: none; border-radius: 16px; background: white;
@@ -391,7 +384,14 @@
     flex-shrink: 0;            /* Daralınca ikon ezilmesin */
     margin-bottom: 0;          /* Alt boşluk kaldırıldı */
 }
-
+/* Modalı en öne zorla */
+#sutHesaplaModal {
+    z-index: 10000 !important;
+}
+/* Arka plan karartmasını da öne al */
+.modal-backdrop {
+    z-index: 9999 !important;
+}
 /* Sağ tarafa hafif ok işareti (Süsleme) */
 .quick-action-btn::after {
     content: '\f054'; /* FontAwesome sağ ok */
@@ -559,6 +559,23 @@
     font-size: 0.85rem;
     height: 100%;
 }
+/* Süt Yönetimi alanını öne çıkar */
+#milk-management {
+    position: relative;
+    z-index: 50 !important; /* Diğer her şeyin önüne geç */
+}
+
+/* Header ve Sidebar'ın butonun üstüne binmesini engelle */
+.admin-header {
+    z-index: 1 !important; /* Arkada kalsın */
+}
+
+/* Butonun kendisine tıklamayı garanti et */
+#milk-management button {
+    position: relative;
+    z-index: 100 !important;
+    cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -570,13 +587,22 @@
     
     <div class="d-flex flex-column flex-grow-1 mt-4">
         <a class="nav-link active" onclick="switchTab('dashboard', this)">
-            <i class="fa-solid fa-chart-pie" style="width:20px"></i> Genel Durum
+            <i class="fa-solid fa-chart-pie" style="width:20px"></i> Ana Sayfa
         </a>
+        <a class="nav-link" onclick="switchTab('reports', this)">
+    <i class="fa-solid fa-chart-line" style="width:20px"></i> Dashboard
+</a>
         <a class="nav-link" onclick="switchTab('members', this)">
             <i class="fa-solid fa-users" style="width:20px"></i> <span id="lblMenuMembers">Üye İşlemleri</span>
         </a>
         <a class="nav-link" onclick="switchTab('stocks', this)">
     <i class="fa-solid fa-boxes-stacked" style="width:20px"></i> Stok Yönetimi
+</a>
+<a class="nav-link" onclick="switchTab('milk-management', this)">
+    <i class="fa-solid fa-cow" style="width:20px"></i> Süt Yönetimi
+</a>
+<a class="nav-link" onclick="switchTab('advanced-reports', this)">
+    <i class="fa-solid fa-file-contract" style="width:20px"></i> Detaylı Raporlar
 </a>
         <a class="nav-link" onclick="switchTab('settings', this)">
             <i class="fa-solid fa-sliders" style="width:20px"></i> Ayarlar
@@ -631,7 +657,204 @@
                 </div>
             </div>
         </div>
+<div id="reports" class="content-section hidden-section">
+    
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="small fw-bold text-muted">Başlangıç Tarihi</label>
+                    <input type="date" class="form-control" id="reportStartDate">
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold text-muted">Bitiş Tarihi</label>
+                    <input type="date" class="form-control" id="reportEndDate">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary-custom w-100" onclick="raporlariGetir()">
+                        <i class="fa-solid fa-filter me-2"></i> ANALİZ ET
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fff 0%, #f1f5f9 100%);">
+                <div class="card-body text-center">
+                    <h6 class="text-muted text-uppercase small fw-bold">Toplam Toplanan Süt</h6>
+                    <h3 class="fw-bold text-primary mb-0" id="repTotalMilk">0 Lt</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fff 0%, #fff7ed 100%);">
+                <div class="card-body text-center">
+                    <h6 class="text-muted text-uppercase small fw-bold">Ortalama (Günlük)</h6>
+                    <h3 class="fw-bold text-warning mb-0" id="repAvgMilk">0 Lt</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%);">
+                <div class="card-body text-center">
+                    <h6 class="text-muted text-uppercase small fw-bold">En Verimli Bölge</h6>
+                    <h3 class="fw-bold text-success mb-0" id="repBestVillage">-</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-dark"><i class="fa-solid fa-chart-area me-2 text-primary"></i>Günlük Süt Toplama Grafiği</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="milkTrendChart" style="max-height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-dark"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Bölgesel Dağılım</h6>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="villagePieChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="advanced-reports" class="content-section hidden-section">
+    
+    <div id="reports-main-menu">
+        <div class="row g-4">
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-effect">
+                    <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
+                        <h6 class="fw-bold text-dark m-0"><i class="fa-solid fa-cow me-2 text-warning"></i>SÜT RAPORLARI</h6>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="openReport('rep-milk-member')">
+                            <div>
+                                <span class="fw-bold text-dark small">Müşteri Süt Ekstresi</span>
+                                <small class="d-block text-muted" style="font-size:0.7rem">Kişi bazlı tarih aralıklı döküm</small>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-muted small"></i>
+                        </button>
+                        <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="Swal.fire('Bilgi','Bölge raporu hazırlanıyor.','info')">
+                            <div>
+                                <span class="fw-bold text-dark small">Bölge Bazlı Analiz</span>
+                                <small class="d-block text-muted" style="font-size:0.7rem">Hangi köy ne kadar verimli?</small>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-muted small"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-effect">
+                    <div class="card-header bg-success bg-opacity-10 border-0 py-3">
+                        <h6 class="fw-bold text-dark m-0"><i class="fa-solid fa-wallet me-2 text-success"></i>FİNANS RAPORLARI</h6>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="Swal.fire('Bilgi','Satış raporları hazırlanıyor.','info')">
+                            <div>
+                                <span class="fw-bold text-dark small">Satış Raporları</span>
+                                <small class="d-block text-muted" style="font-size:0.7rem">Yem, un vb. satış dökümleri</small>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-muted small"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-effect">
+                    <div class="card-header bg-info bg-opacity-10 border-0 py-3">
+                        <h6 class="fw-bold text-dark m-0"><i class="fa-solid fa-boxes-stacked me-2 text-info"></i>STOK RAPORLARI</h6>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="Swal.fire('Bilgi','Stok raporu hazırlanıyor.','info')">
+                            <div>
+                                <span class="fw-bold text-dark small">Stok Durum Raporu</span>
+                                <small class="d-block text-muted" style="font-size:0.7rem">Mevcut envanter listesi</small>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-muted small"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="rep-milk-member" class="sub-report d-none">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeReport()">
+                <i class="fa-solid fa-arrow-left text-primary"></i>
+            </button>
+            <div>
+                <h5 class="m-0 fw-bold">Müşteri Süt Ekstresi</h5>
+                <small class="text-muted">Seçilen üyenin tarih aralığındaki süt dökümü</small>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm p-4 mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="small fw-bold text-muted">Üye Seçiniz</label>
+                    <select class="form-select" id="repFilterMember">
+                        <option value="">Tüm Üyeler</option>
+                        </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Başlangıç</label>
+                    <input type="date" class="form-control" id="repDateStart">
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Bitiş</label>
+                    <input type="date" class="form-control" id="repDateEnd">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary-custom w-100" onclick="musteriSutRaporuGetir()">
+                        <i class="fa-solid fa-search me-2"></i> GETİR
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive bg-white rounded shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Tarih</th>
+                        <th>Üye Adı Soyadı</th>
+                        <th class="text-center">Dönem</th>
+                        <th class="text-end pe-4">Miktar (Lt)</th>
+                    </tr>
+                </thead>
+                <tbody id="repMilkTableBody">
+                    <tr><td colspan="4" class="text-center p-5 text-muted">Lütfen yukarıdan kriter seçip arama yapınız.</td></tr>
+                </tbody>
+                <tfoot class="bg-light fw-bold" style="border-top: 2px solid #e2e8f0;">
+                    <tr>
+                        <td colspan="3" class="text-end pe-3 py-3">TOPLAM SÜT:</td>
+                        <td class="text-end pe-4 text-primary fs-5" id="repMilkTotal">0 Lt</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    
+</div>
         <div id="members" class="content-section hidden-section">
             <div class="card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
@@ -648,6 +871,7 @@
                         <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addMemberModal" id="btnAddMember">
                             <i class="fa-solid fa-plus me-1"></i> Yeni
                         </button>
+                       
                     </div>
                 </div>
 
@@ -667,7 +891,7 @@
                 </div>
             </div>
         </div>
-<div id="stocks" class="content-section hidden-section">
+        <div id="stocks" class="content-section hidden-section">
     <div class="card p-4 border-0 shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
@@ -682,16 +906,90 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
-    <tr>
-        <th>Ürün Adı</th>
-        <th>Kategori</th>
-        <th class="text-center">Mevcut Stok</th>
-        <th class="text-end">Birim Fiyat (Satış)</th>
-        <th class="text-end">İşlem</th>
-    </tr>
-</thead>
+                    <tr>
+                        <th>Ürün Adı</th>
+                        <th>Kategori</th>
+                        <th class="text-center">Mevcut Stok</th>
+                        <th class="text-end">Birim Fiyat (Satış)</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
                 <tbody id="stockTableBody">
                     </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="milk-management" class="content-section hidden-section">
+    <div class="row g-4">
+        
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);">
+                <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="bg-white p-3 rounded-circle shadow-sm mb-3 text-warning">
+                        <i class="fa-solid fa-calculator fa-3x"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Dönemsel Hesaplama</h4>
+                    <p class="text-muted small mb-4">
+                        Belirlenen tarih aralığındaki toplanan sütleri hesaplayıp, üyelerin cari hesabına "Alacak" olarak işler.
+                    </p>
+                    <button class="btn btn-warning w-100 fw-bold py-3 rounded-3 shadow-sm text-dark" 
+        onclick="sutHesaplamaModalAc()">
+    <i class="fa-solid fa-play me-2"></i> HESAPLAMA BAŞLAT
+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-circle-info text-primary me-2"></i>Nasıl Çalışır?</h5>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item bg-transparent px-0">
+                            <i class="fa-solid fa-check text-success me-2"></i>
+                            <strong>Adım 1:</strong> Şoförler sahada sütleri toplar.
+                        </li>
+                        <li class="list-group-item bg-transparent px-0">
+                            <i class="fa-solid fa-check text-success me-2"></i>
+                            <strong>Adım 2:</strong> Siz buradan tarih aralığı (Örn: 1-15 Kasım) ve Litre Fiyatı girersiniz.
+                        </li>
+                        <li class="list-group-item bg-transparent px-0">
+                            <i class="fa-solid fa-check text-success me-2"></i>
+                            <strong>Adım 3:</strong> Sistem herkesin litresini fiyatla çarpıp bakiyesine ekler.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 fw-bold text-dark">
+                <i class="fa-solid fa-list-check me-2 text-primary"></i>Son Süt Girişleri
+            </h6>
+            <button class="btn btn-sm btn-light border" onclick="sutListesiniGetir()">
+                <i class="fa-solid fa-rotate me-1"></i> Yenile
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Üretici</th>
+                        <th>Şoför/Giren</th>
+                        <th class="text-center">Dönem</th>
+                        <th class="text-center">Miktar</th>
+                        <th class="text-end">Durum</th>
+                        <th class="text-end">Sil</th>
+                    </tr>
+                </thead>
+                <tbody id="milkTableBody">
+                    <tr><td colspan="7" class="text-center p-4 text-muted">Yükleniyor...</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -1005,7 +1303,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script type="module">
-   import { auth, db, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy, limit } from "../js/firebase-config.js";
+  import { auth, db, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy, limit, writeBatch, getDocs } from "../js/firebase-config.js";
 
     let currentCoopId = null;
     let allMembers = [];
@@ -1271,7 +1569,168 @@ function ayarlarListesiniCiz() {
             await updateDoc(ref, { villages: arrayUnion(yeniAd) });
         }
     }
+// --- GRAFİK DEĞİŞKENLERİ ---
+    let trendChart = null;
+    let pieChart = null;
 
+    // Menü geçiş fonksiyonunu (switchTab) bul ve içine şu 'else if' bloğunu ekle:
+    // Mevcut kodunuzda "if(tabId==='milk-management')" satırının altına ekleyin.
+    /*
+       // --- DASHBOARD KISMI ---
+        if(tabId === 'reports') {
+            t = "Dashboard & Analiz"; 
+            
+            // Tarih filtreleri boşsa otomatik son 1 ayı doldur
+            if(!document.getElementById("reportStartDate").value) {
+                const bugun = new Date();
+                const birAyOnce = new Date();
+                birAyOnce.setDate(bugun.getDate() - 30);
+                document.getElementById("reportEndDate").valueAsDate = bugun;
+                document.getElementById("reportStartDate").valueAsDate = birAyOnce;
+            }
+            // Verileri getir (Fonksiyon tanımlıysa)
+            if(typeof raporlariGetir === 'function') raporlariGetir();
+        }
+    */
+    // (Yukarıdaki kısmı switchTab fonksiyonuna entegre etmeyi unutmayın, aşağıda tam halini vereceğim)
+
+
+    // --- RAPORLARI GETİR FONKSİYONU ---
+    window.raporlariGetir = async function() {
+        const startVal = document.getElementById("reportStartDate").value;
+        const endVal = document.getElementById("reportEndDate").value;
+
+        if(!startVal || !endVal) { Swal.fire("Uyarı","Lütfen tarih aralığı seçiniz.","warning"); return; }
+
+        const startDate = new Date(startVal);
+        startDate.setHours(0,0,0,0);
+        
+        const endDate = new Date(endVal);
+        endDate.setHours(23,59,59,999);
+
+        Swal.fire({title: 'Analiz Ediliyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+        try {
+            // Süt Kayıtlarını Çek
+            const q = query(
+                collection(db, "milk_records"),
+                where("coopId", "==", currentCoopId),
+                where("date", ">=", startDate),
+                where("date", "<=", endDate),
+                orderBy("date", "asc")
+            );
+
+            const snapshot = await getDocs(q);
+            
+            // --- VERİ İŞLEME ---
+            let totalLiters = 0;
+            let daysMap = {};    // Günlük toplamlar: {'01.12': 500, '02.12': 600}
+            let villageMap = {}; // Üyenin köyüne göre toplamlar
+
+            // Köy bilgisini bulmak için üyeleri ID ile eşleştirelim
+            // (allMembers dizisi zaten hafızada var)
+            
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const miktar = Number(d.liters);
+                totalLiters += miktar;
+
+                // 1. Günlük Gruplama
+                const dateKey = d.date.toDate().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit'});
+                if(!daysMap[dateKey]) daysMap[dateKey] = 0;
+                daysMap[dateKey] += miktar;
+
+                // 2. Bölgesel Gruplama
+                // Üyenin köyünü bul
+                const member = allMembers.find(m => m.id === d.memberId);
+                const koyAdi = member ? member.koy : "Bilinmeyen";
+                
+                if(!villageMap[koyAdi]) villageMap[koyAdi] = 0;
+                villageMap[koyAdi] += miktar;
+            });
+
+            // --- KARTLARI DOLDUR ---
+            document.getElementById("repTotalMilk").innerText = totalLiters.toLocaleString('tr-TR') + " Lt";
+            
+            // Gün Sayısı
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
+            const avg = (totalLiters / diffDays).toFixed(0);
+            document.getElementById("repAvgMilk").innerText = avg + " Lt";
+
+            // En İyi Köy
+            let bestVillage = "-";
+            let maxV = 0;
+            for (const [k, v] of Object.entries(villageMap)) {
+                if(v > maxV) { maxV = v; bestVillage = k; }
+            }
+            document.getElementById("repBestVillage").innerText = bestVillage;
+
+
+            // --- GRAFİKLERİ ÇİZ ---
+            grafikleriCiz(daysMap, villageMap);
+
+            Swal.close();
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Hata", "Rapor oluşturulamadı: "+error.message, "error");
+        }
+    }
+
+    function grafikleriCiz(daysMap, villageMap) {
+        // 1. Çizgi Grafik (Trend)
+        const ctxTrend = document.getElementById('milkTrendChart').getContext('2d');
+        
+        // Eskiyi sil
+        if(trendChart) trendChart.destroy();
+
+        trendChart = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: Object.keys(daysMap),
+                datasets: [{
+                    label: 'Günlük Toplanan Süt (Lt)',
+                    data: Object.values(daysMap),
+                    borderColor: '#0f766e',
+                    backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3, // Eğrisel çizgiler
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // 2. Pasta Grafik (Bölgeler)
+        const ctxPie = document.getElementById('villagePieChart').getContext('2d');
+        
+        if(pieChart) pieChart.destroy();
+
+        pieChart = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(villageMap),
+                datasets: [{
+                    data: Object.values(villageMap),
+                    backgroundColor: [
+                        '#0e7490', '#0f766e', '#15803d', '#f59e0b', '#dc2626', '#7e22ce'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
     const searchInput = document.getElementById("searchInput");
     if(searchInput) {
         searchInput.addEventListener("input", (e) => {
@@ -1340,19 +1799,163 @@ function ayarlarListesiniCiz() {
     document.getElementById("logoutBtn").addEventListener("click", async()=>{ 
         await signOut(auth); window.location.href="../index.html"; 
     });
-
-    window.switchTab = function(tabId, el) { 
+window.switchTab = function(tabId, el) { 
+        // 1. Tüm sayfaları gizle
         document.querySelectorAll('.content-section').forEach(e=>e.classList.add('hidden-section')); 
+        
+        // 2. Seçilen sayfayı aç
         document.getElementById(tabId).classList.remove('hidden-section');
+        
+        // 3. Menüdeki aktifliği değiştir
         document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active'));
         if(el) el.classList.add('active');
         
+        // 4. Başlığı Ayarla
         let t = "Genel Durum";
+        
         if(tabId==='members') t = window.firmaTuru ==='sahis' ? "Cari İşlemleri" : "Üye İşlemleri";
+        if(tabId==='stocks') t = "Stok Yönetimi";
         if(tabId==='settings') t = "Ayarlar";
+        if(tabId==='milk-management') {
+            t = "Süt Toplama & Hesaplama";
+            if(typeof sutListesiniGetir === 'function') sutListesiniGetir(); 
+        }
+        if(tabId === 'advanced-reports') {
+        t = "Rapor Merkezi"; // Sayfa başlığı
+    }
+        // --- YENİ EKLENEN KISIM ---
+        if(tabId==='reports') {
+            t = "Raporlar & Analiz";
+            // Tarih kutuları boşsa otomatik son 1 ayı ayarla
+            if(!document.getElementById("reportStartDate").value) {
+                const bugun = new Date();
+                const birAyOnce = new Date();
+                birAyOnce.setDate(bugun.getDate() - 30); // Son 30 gün
+                document.getElementById("reportEndDate").valueAsDate = bugun;
+                document.getElementById("reportStartDate").valueAsDate = birAyOnce;
+            }
+            // Sayfa açılır açılmaz raporu getir
+            if(typeof raporlariGetir === 'function') raporlariGetir();
+        }
+        // --------------------------
+
         document.getElementById('page-title').innerText = t;
     }
+// --- RAPOR MERKEZİ FONKSİYONLARI ---
 
+    // Menüden alt rapora geçiş
+    window.openReport = function(divId) {
+        document.getElementById("reports-main-menu").classList.add("d-none"); // Kartları gizle
+        document.querySelectorAll(".sub-report").forEach(el => el.classList.add("d-none")); // Diğerlerini gizle
+        
+        const target = document.getElementById(divId);
+        if(target) {
+            target.classList.remove("d-none"); // Hedefi aç
+            
+            // Tarihleri otomatik doldur (Son 30 gün)
+            if(!document.getElementById("repDateStart").value) {
+                const bugun = new Date();
+                const birAyOnce = new Date();
+                birAyOnce.setDate(bugun.getDate() - 30);
+                document.getElementById("repDateEnd").valueAsDate = bugun;
+                document.getElementById("repDateStart").valueAsDate = birAyOnce;
+            }
+
+            // Süt raporuysa üye listesini doldur
+            if(divId === 'rep-milk-member') {
+                raporUyeListesiDoldur();
+            }
+        }
+    }
+
+    // Alt rapordan menüye dönüş
+    window.closeReport = function() {
+        document.querySelectorAll(".sub-report").forEach(el => el.classList.add("d-none"));
+        document.getElementById("reports-main-menu").classList.remove("d-none");
+    }
+
+    // Üye Selectbox Doldurma
+    function raporUyeListesiDoldur() {
+        const select = document.getElementById("repFilterMember");
+        if(select.options.length > 1) return; // Zaten doluysa elleme
+        
+        // Alfabetik sırala
+        const siraliUyeler = [...allMembers].sort((a,b) => a.ad.localeCompare(b.ad));
+        
+        siraliUyeler.forEach(m => {
+            const opt = document.createElement("option");
+            opt.value = m.id;
+            opt.text = `${m.ad} ${m.soyad} (${m.koy})`;
+            select.appendChild(opt);
+        });
+    }
+
+    // Raporu Çek ve Tabloya Bas
+    window.musteriSutRaporuGetir = async function() {
+        const memId = document.getElementById("repFilterMember").value;
+        const sDate = document.getElementById("repDateStart").value;
+        const eDate = document.getElementById("repDateEnd").value;
+
+        if(!sDate || !eDate) { Swal.fire("Uyarı", "Tarih aralığı seçiniz.", "warning"); return; }
+
+        const startDate = new Date(sDate); startDate.setHours(0,0,0,0);
+        const endDate = new Date(eDate); endDate.setHours(23,59,59,999);
+
+        Swal.showLoading();
+
+        try {
+            // Firebase Sorgusu
+            const q = query(
+                collection(db, "milk_records"),
+                where("coopId", "==", currentCoopId),
+                where("date", ">=", startDate),
+                where("date", "<=", endDate),
+                orderBy("date", "desc")
+            );
+
+            const snapshot = await getDocs(q);
+            const tbody = document.getElementById("repMilkTableBody");
+            tbody.innerHTML = "";
+            
+            let total = 0;
+            let count = 0;
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                
+                // JS tarafında üye filtresi (Index hatası almamak için)
+                if(memId && d.memberId !== memId) return;
+
+                total += Number(d.liters);
+                count++;
+
+                const dateStr = d.date.toDate().toLocaleDateString('tr-TR');
+                const donem = d.period === 'sabah' 
+                    ? '<span class="badge bg-warning text-dark"><i class="fa-solid fa-sun me-1"></i>Sabah</span>' 
+                    : '<span class="badge bg-primary"><i class="fa-solid fa-moon me-1"></i>Akşam</span>';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="ps-4 fw-bold text-secondary">${dateStr}</td>
+                        <td>${d.memberName}</td>
+                        <td class="text-center">${donem}</td>
+                        <td class="text-end pe-4 fw-bold fs-6">${d.liters} Lt</td>
+                    </tr>
+                `;
+            });
+
+            if(count === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-5 text-muted fw-bold">Bu kriterlere uygun kayıt bulunamadı.</td></tr>';
+            }
+            
+            document.getElementById("repMilkTotal").innerText = total.toLocaleString('tr-TR') + " Lt";
+            Swal.close();
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Hata", "Veri çekilemedi: " + error.message, "error");
+        }
+    }
     window.openSubSetting = function(id) {
         document.getElementById('settings-main-menu').classList.add('d-none');
         document.getElementById(id).classList.remove('d-none');
@@ -1391,6 +1994,197 @@ function ayarlarListesiniCiz() {
         // Verileri Çekmeye Başla
         hareketleriDinle(id);
     }
+    window.sutHesaplamaModalAc = function() {
+        console.log("1. Fonksiyon tetiklendi.");
+
+        // 1. Modalı HTML içinde bul
+        const modalEl = document.getElementById('sutHesaplaModal');
+        if(!modalEl) {
+            alert("HATA: 'sutHesaplaModal' kimlikli pencere HTML'de bulunamadı!");
+            return;
+        }
+
+        // 2. Tarihleri Ayarla (Son 7 gün)
+        try {
+            const bugun = new Date();
+            const yediGunOnce = new Date();
+            yediGunOnce.setDate(bugun.getDate() - 7);
+
+            const dateStart = document.getElementById("calcStartDate");
+            const dateEnd = document.getElementById("calcEndDate");
+            
+            if(dateStart && dateEnd) {
+                dateEnd.valueAsDate = bugun;
+                dateStart.valueAsDate = yediGunOnce;
+            }
+            
+            // Fiyatı Temizle
+            if(document.getElementById("calcPrice")) {
+                document.getElementById("calcPrice").value = "";
+            }
+
+            // Açıklamayı Güncelle (Varsa fonksiyonu çalıştır)
+            if(typeof otomatikAciklamaGuncelle === 'function') {
+                otomatikAciklamaGuncelle();
+            }
+        } catch(e) {
+            console.error("Tarih ayarlama hatası:", e);
+        }
+
+        // 3. Modalı Güvenli Şekilde Aç (Bootstrap 5)
+        // 'new bootstrap.Modal' yerine 'getOrCreateInstance' kullanıyoruz ki çakışma olmasın.
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+        
+        console.log("2. Modal aç komutu gönderildi.");
+    }
+
+    // Tarih değişince açıklamayı güncelle
+    document.getElementById("calcStartDate").addEventListener("change", otomatikAciklamaGuncelle);
+    document.getElementById("calcEndDate").addEventListener("change", otomatikAciklamaGuncelle);
+
+    function otomatikAciklamaGuncelle() {
+        const s = document.getElementById("calcStartDate").value;
+        const e = document.getElementById("calcEndDate").value;
+        if(s && e) {
+            // Tarih formatını güzelleştir (YYYY-MM-DD -> DD.MM)
+            const sFormat = s.split("-").reverse().slice(0,2).join(".");
+            const eFormat = e.split("-").reverse().slice(0,2).join(".");
+            document.getElementById("calcDesc").value = `${sFormat} - ${eFormat} Tarihli Süt Bedeli`;
+        }
+    }
+
+    // --- HESAPLAMA VE KAYDETME İŞLEMİ ---
+    document.getElementById("sutHesapForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const startVal = document.getElementById("calcStartDate").value;
+        const endVal = document.getElementById("calcEndDate").value;
+        const price = Number(document.getElementById("calcPrice").value);
+        const desc = document.getElementById("calcDesc").value;
+
+        if (price <= 0) { Swal.fire("Hata", "Lütfen geçerli bir fiyat girin.", "warning"); return; }
+
+        // Tarih Nesnelerini Oluştur (Saat ayarı önemli)
+        const startDate = new Date(startVal);
+        startDate.setHours(0, 0, 0, 0); // Günün başı
+
+        const endDate = new Date(endVal);
+        endDate.setHours(23, 59, 59, 999); // Günün sonu
+
+        // Kullanıcıya Onay Sor (Özet Bilgiyle)
+        const confirm = await Swal.fire({
+            title: 'Onaylıyor musunuz?',
+            html: `
+                <div class="text-start">
+                    <p><strong>Tarih:</strong> ${startVal} / ${endVal}</p>
+                    <p><strong>Fiyat:</strong> ${price} TL</p>
+                    <p class="text-danger small">Bu işlem, belirtilen tarihlerdeki <u>henüz ödenmemiş</u> sütleri hesaplayıp üyelerin cari hesabına alacak olarak ekleyecektir.</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Evet, İşlemi Başlat',
+            confirmButtonColor: '#198754'
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        // Yükleniyor...
+        Swal.fire({title: 'İşleniyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+        try {
+             // 1. Firebase Batch (Toplu İşlem) Hazırla
+             // Not: Firebase batch limiti 500 işlemdir. Çok büyük veride chunk yapmak gerekir ama şimdilik basit tutalım.
+             const batch = writeBatch(db);
+             
+             // 2. Süt Kayıtlarını Çek
+             const q = query(
+                collection(db, "milk_records"),
+                where("coopId", "==", currentCoopId),
+                where("date", ">=", startDate),
+                where("date", "<=", endDate)
+                // where("isProcessed", "!=", true) // Bu sorgu bazen index hatası verebilir, JS ile filtrelemek daha güvenli şimdilik
+             );
+
+             const snapshot = await getDocs(q);
+             
+             if (snapshot.empty) {
+                 Swal.fire("Bilgi", "Bu tarih aralığında kayıt bulunamadı.", "info");
+                 return;
+             }
+
+             // 3. Verileri Grupla (Üye Bazlı Topla)
+             let memberTotals = {}; // { "uyeId": {liters: 0, docs: []} }
+
+             snapshot.forEach(doc => {
+                 const data = doc.data();
+                 // Eğer zaten işlendiyse (isProcessed: true) atla!
+                 if (data.isProcessed === true) return;
+
+                 if (!memberTotals[data.memberId]) {
+                     memberTotals[data.memberId] = { 
+                         liters: 0, 
+                         docs: [], 
+                         name: data.memberName 
+                     };
+                 }
+                 memberTotals[data.memberId].liters += Number(data.liters);
+                 memberTotals[data.memberId].docs.push(doc.id);
+             });
+
+             // Eğer işlenecek kayıt kalmadıysa
+             if (Object.keys(memberTotals).length === 0) {
+                 Swal.fire("Bilgi", "Seçilen tarih aralığındaki tüm kayıtlar zaten hesaplanmış.", "info");
+                 return;
+             }
+
+             // 4. Batch'e Ekle
+             let islemSayisi = 0;
+
+             for (const [memId, val] of Object.entries(memberTotals)) {
+                 if (val.liters > 0) {
+                     const totalAmount = val.liters * price;
+
+                     // A. Cari Hareketi Oluştur (Transaction)
+                     const transRef = doc(collection(db, "transactions"));
+                     batch.set(transRef, {
+                         memberId: memId,
+                         coopId: currentCoopId,
+                         type: 'alacak', // Para girişi (Alacak)
+                         category: 'Süt Bedeli',
+                         description: `${desc} (${val.liters} Lt x ${price} TL)`,
+                         amount: totalAmount,
+                         date: new Date(), // İşlem tarihi bugün
+                         items: [] // Detay yok
+                     });
+
+                     // B. Süt Kayıtlarını "İşlendi" Yap (milk_records update)
+                     val.docs.forEach(docId => {
+                         const milkRef = doc(db, "milk_records", docId);
+                         batch.update(milkRef, { isProcessed: true });
+                     });
+                     
+                     islemSayisi++;
+                 }
+             }
+
+             // 5. Veritabanına Yaz
+             await batch.commit();
+             
+             // Modalı kapat ve bilgi ver
+             bootstrap.Modal.getInstance(document.getElementById('sutHesaplaModal')).hide();
+             Swal.fire("Başarılı", `${islemSayisi} üyenin süt bedeli hesaplandı ve cariye işlendi.`, "success");
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Hata", "İşlem sırasında bir sorun oluştu: " + error.message, "error");
+        }
+    });
+
+    // --- IMPORT KISMINA EKLENECEK ---
+    // Eğer writeBatch import edilmemişse, en üstteki import satırına 'writeBatch' eklemeyi unutma!
+    // Örn: import { ..., writeBatch } from "...firebase-firestore.js";
 
     // 2. Detaydan Listeye Geri Dönüş (GÜNCELLENDİ)
     window.listeyeDon = function() {
@@ -2303,6 +3097,71 @@ window.evrakiKaydet = async function() {
             await deleteDoc(doc(db, "products", id));
         }
     }
+    // --- SÜT LİSTESİNİ ÇEKME FONKSİYONU ---
+    window.sutListesiniGetir = function() {
+        if(!currentCoopId) return;
+
+        // Son 50 kaydı getir (Tarihe göre tersten sırala)
+        const q = query(
+            collection(db, "milk_records"), 
+            where("coopId", "==", currentCoopId),
+            orderBy("date", "desc"),
+            limit(50)
+        );
+
+        onSnapshot(q, (snapshot) => {
+            const tbody = document.getElementById("milkTableBody");
+            if(!tbody) return; 
+            
+            tbody.innerHTML = "";
+
+            if(snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Henüz süt girişi yapılmamış.</td></tr>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const dateObj = data.date?.toDate();
+                
+                const tarih = dateObj ? dateObj.toLocaleDateString('tr-TR') : '-';
+                const saat = dateObj ? dateObj.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '';
+
+                let donemBadge = data.period === 'sabah' 
+                    ? '<span class="badge bg-warning text-dark"><i class="fa-regular fa-sun me-1"></i>Sabah</span>'
+                    : '<span class="badge bg-primary"><i class="fa-regular fa-moon me-1"></i>Akşam</span>';
+
+                let durum = data.isProcessed 
+                    ? '<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Hesaplandı</span>'
+                    : '<span class="badge bg-light text-secondary border">Bekliyor</span>';
+
+                const tr = `
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">${tarih}</div>
+                            <small class="text-muted">${saat}</small>
+                        </td>
+                        <td><div class="fw-bold text-dark">${data.memberName}</div></td>
+                        <td class="text-muted small"><i class="fa-solid fa-truck-fast me-1"></i>Driver</td>
+                        <td class="text-center">${donemBadge}</td>
+                        <td class="text-center"><span class="fs-5 fw-bold text-dark">${data.liters}</span> <small class="text-muted">Lt</small></td>
+                        <td class="text-end">${durum}</td>
+                        <td class="text-end">
+                            ${!data.isProcessed ? `<button class="btn btn-sm btn-light text-danger border" onclick="sutKaydiSil('${doc.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += tr;
+            });
+        });
+    }
+
+   window.sutKaydiSil = async function(id) {
+         if((await Swal.fire({title:'Silinsin mi?', text:'Bu süt kaydı silinecek.', icon:'warning', showCancelButton:true})).isConfirmed) {
+            await deleteDoc(doc(db, "milk_records", id));
+            Swal.fire({toast:true, position:'top-end', icon:'success', title:'Silindi', timer:1000, showConfirmButton:false});
+        }
+    }
 </script>
 <div class="modal fade" id="productModal" tabindex="-1">
     <div class="modal-dialog">
@@ -2542,6 +3401,52 @@ window.evrakiKaydet = async function() {
                 </div>
             </div>
 
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="sutHesaplaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-calculator me-2"></i>Dönemsel Süt Hesapla</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small">
+                    <i class="fa-solid fa-info-circle me-1"></i> 
+                    Seçilen tarih aralığındaki <b>işlenmemiş</b> süt kayıtlarını toplar ve üyelerin cari hesabına "Alacak" olarak ekler.
+                </div>
+
+                <form id="sutHesapForm">
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="fw-bold small text-muted">Başlangıç Tarihi</label>
+                            <input type="date" class="form-control" id="calcStartDate" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="fw-bold small text-muted">Bitiş Tarihi</label>
+                            <input type="date" class="form-control" id="calcEndDate" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted">Litre Fiyatı (TL)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control fs-5 fw-bold text-primary" id="calcPrice" placeholder="0.00" step="0.01" required>
+                            <span class="input-group-text">₺</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted">Açıklama (Otomatik Oluşur)</label>
+                        <input type="text" class="form-control text-muted" id="calcDesc" placeholder="Örn: 01-07 Kasım Süt Bedeli" readonly>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-dark fw-bold py-2">HESAPLA VE CARİYE İŞLE</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
