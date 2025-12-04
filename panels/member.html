@@ -36,26 +36,58 @@
         .balance-title { font-size: 0.75rem; opacity: 0.9; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; }
         .balance-amount { font-size: 2.6rem; font-weight: 800; line-height: 1; margin: 8px 0; letter-spacing: -1px;}
 
-       /* YENİ HIZLI İŞLEM KARTLARI (ADMİN STİLİ) */
+      /* KOMPAKT VE ŞIK KARTLAR */
         .quick-card {
-            border: none; border-radius: 16px; color: white;
-            cursor: pointer; position: relative; overflow: hidden;
-            height: 110px; /* Mobilde yükseklik */
-            display: flex; flex-direction: column; 
-            justify-content: center; align-items: center;
+            border: none;
+            border-radius: 18px; /* Köşeler ideal yuvarlaklıkta */
+            color: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            height: 100px; /* YÜKSEKLİK AZALTILDI (125px -> 100px) */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12); /* Gölge yumuşatıldı */
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        .quick-card:active { transform: scale(0.95); }
         
-        /* Arka plan silik ikonu */
-        .quick-card i.bg-icon {
-            position: absolute; right: -10px; bottom: -10px;
-            font-size: 3.5rem; opacity: 0.15; transform: rotate(-20deg);
+        /* Tıklama Efekti */
+        .quick-card:active { 
+            transform: scale(0.96); 
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
         }
-        .quick-card h6 { font-weight: 700; margin-top: 8px; font-size: 0.85rem; margin-bottom: 0; }
 
+        /* Arka Plan İkonu (Süsleme) */
+        .quick-card i.bg-icon {
+            position: absolute;
+            right: -10px;
+            bottom: -10px;
+            font-size: 3.5rem; /* Süsleme ikonu küçültüldü */
+            opacity: 0.15;
+            transform: rotate(-15deg);
+            z-index: 0;
+        }
+
+        /* Ana İkon */
+        .quick-card i.fa-2x {
+            font-size: 1.8rem; /* Ana ikon boyutu dengelendi */
+            margin-bottom: 6px; /* Yazı ile arası yakınlaştırıldı */
+            z-index: 1;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        /* Kart Yazısı */
+        .quick-card h6 {
+            font-weight: 700;
+            font-size: 0.85rem; /* Yazı boyutu kibarlaştırıldı */
+            margin: 0;
+            z-index: 1;
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
         /* ALT MENÜ */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 75px;
@@ -77,6 +109,7 @@
             background: white; z-index: 9999; display: flex;
             align-items: center; justify-content: center; flex-direction: column;
         }
+
     </style>
 </head>
 <body>
@@ -102,18 +135,19 @@
             </div>
         </div>
 
-        <div class="wallet-card">
-            <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
+        <div class="wallet-card" style="padding: 15px 20px;"> <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
+                
                 <div>
-                    <div class="balance-title" style="opacity: 0.8; margin-bottom: 5px;">ÜRETİCİ BİLGİ SİSTEMİ</div>
-                    <div class="fs-1 fw-bold" id="lblMemberName" style="line-height: 1.2;">Hoşgeldiniz</div>
+                    <div class="balance-title" style="opacity: 0.8; margin-bottom: 2px; font-size: 0.65rem;">ÜRETİCİ BİLGİ SİSTEMİ</div>
+                    <div class="fw-bold text-white" id="lblMemberName" style="font-size: 1.4rem; line-height: 1.1;">Hoşgeldiniz</div>
                 </div>
                 
                 <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
                      onclick="cikisYap()" 
-                     style="width: 45px; height: 45px; cursor: pointer;">
-                    <i class="fa-solid fa-right-from-bracket text-white fs-5"></i>
+                     style="width: 38px; height: 38px; cursor: pointer; flex-shrink: 0;">
+                    <i class="fa-solid fa-right-from-bracket text-white" style="font-size: 0.9rem;"></i>
                 </div>
+
             </div>
         </div>
 
@@ -150,19 +184,34 @@
             </div>
         </div>
 
-        <div class="px-3 mt-4">
-            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+       <div class="px-3 mt-4 mb-4">
+            
+            <h6 class="fw-bold text-secondary small ps-1 mb-2">AYLIK PERFORMANS</h6>
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 18px;">
                 <div class="card-body p-3">
-                    <h6 class="fw-bold text-dark small mb-3">Süt Grafiği</h6>
-                    <div style="height: 200px;"> 
-                        <canvas id="milkChart"></canvas>
+                    <div class="d-flex justify-content-between align-items-end mb-2">
+                        <div>
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">Geçen Aya Göre</small>
+                            <span class="fw-bold text-dark" id="lblPerfText">Hesaplanıyor...</span>
+                        </div>
+                        <div class="fw-bold text-primary" id="lblPerfPercent">%0</div>
+                    </div>
+                    <div class="progress" style="height: 10px; border-radius: 10px; background-color: #e2e8f0;">
+                        <div id="progressBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%; border-radius: 10px;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2" style="font-size: 0.7rem;">
+                        <span class="text-muted">Geçen Ay: <span id="lblPrevMonthTotal" class="fw-bold text-dark">0</span> Lt</span>
+                        <span class="text-muted">Bu Ay: <span id="lblCurrMonthTotal" class="fw-bold text-dark">0</span> Lt</span>
                     </div>
                 </div>
             </div>
+
+            <h6 class="fw-bold text-secondary small ps-1 mb-2">GÜNLÜK AKIŞ (Son Kayıtlar)</h6>
+            <div class="d-flex gap-2 overflow-auto pb-2" id="dailySlider" style="white-space: nowrap; -webkit-overflow-scrolling: touch;">
+                </div>
+
         </div>
     </div>
-    
-
     <div id="page-milk" style="display: none;">
         <div class="bg-white px-3 pt-3 pb-4 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;">
             <h5 class="fw-bold text-dark m-0 mb-3 ps-1">Süt Geçmişim</h5>
@@ -179,7 +228,46 @@
         </div>
         <div class="px-3 pb-3" id="milkList"></div>
     </div>
+<div id="page-history" style="display: none;">
+        <div class="bg-white px-3 pt-3 pb-4 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark m-0 ps-1">Yıllık Özet</h5>
+                <select id="yearFilter" class="form-select form-select-sm border-0 bg-light fw-bold text-primary shadow-sm" style="width: 100px;">
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                </select>
+            </div>
+            
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; border-radius: 20px;">
+                <div class="card-body d-flex justify-content-between align-items-center px-4 py-3">
+                    <div>
+                        <div class="small opacity-75 fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">YILLIK GENEL TOPLAM</div>
+                        <div class="display-5 fw-bold"><span id="lblYearlyTotal">0</span> <span class="fs-4">Lt</span></div>
+                    </div>
+                    <i class="fa-solid fa-calendar-check fa-2x text-white opacity-25"></i>
+                </div>
+            </div>
+        </div>
 
+        <div class="px-3 pb-5">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                        <thead class="bg-light border-bottom">
+                            <tr class="text-secondary text-uppercase small text-center">
+                                <th class="py-3 text-start ps-3">Ay</th>
+                                <th class="text-primary fw-bold">Akşam</th>
+                                <th class="text-warning fw-bold">Sabah</th>
+                                <th class="text-dark fw-bold pe-3 text-end">Toplam</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yearListBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="page-profile" style="display: none;" class="p-3">
         <h4 class="fw-bold text-dark mb-4">Profil & Ayarlar</h4>
         <div class="card border-0 shadow-sm mb-4 text-center p-4" style="border-radius: 20px;">
@@ -223,22 +311,20 @@
             </div>
         </div>
 
-        <button onclick="cikisYap()" class="btn btn-danger bg-opacity-10 text-danger border-0 w-100 py-3 fw-bold rounded-4 mb-4">
-            <i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap
-        </button>
+        
         
         <div class="text-center text-muted small mb-5 opacity-50">
             KoopSistem v1.0
         </div>
     </div>
 
-    <div class="bottom-nav">
+   <div class="bottom-nav">
         <button class="nav-item active" id="nav-home" onclick="sayfaDegistir('page-home', this)">
             <i class="fa-solid fa-house"></i> <span>Ana Sayfa</span>
         </button>
         
-        <button class="nav-item" id="nav-milk" onclick="sayfaDegistir('page-milk', this)">
-            <i class="fa-solid fa-cow"></i> <span>Geçmiş</span>
+        <button class="nav-item" id="nav-milk" onclick="sayfaDegistir('page-history', this)">
+            <i class="fa-solid fa-clock-rotate-left"></i> <span>Geçmiş</span>
         </button>
         
         <button class="nav-item" id="nav-profile" onclick="sayfaDegistir('page-profile', this)">
@@ -326,7 +412,7 @@
             });
         }
 
-        // SÜT VERİLERİNİ ÇEKME
+      // SÜT VERİLERİNİ ÇEKME
         function sutleriDinle(uid) {
             const q = query(
                 collection(db, "milk_records"),
@@ -336,7 +422,84 @@
 
             onSnapshot(q, (snapshot) => {
                 globalMilkSnapshot = snapshot; // Veriyi hafızaya al
-                verileriSuzVeYazdir(snapshot); // İlk açılışta süz ve yaz
+                
+                // 1. Ana Sayfa (Günlük/Aylık) güncelle
+                verileriSuzVeYazdir(snapshot); 
+                
+                // 2. Geçmiş Sayfası (Yıllık Özet) güncelle -- YENİ EKLENEN
+                gecmisSayfayiGuncelle(snapshot);
+            });
+        }
+        // --- YENİ: GEÇMİŞ SAYFASI İÇİN YILLIK ÖZET ---
+        function gecmisSayfayiGuncelle(snapshot) {
+            const selectedYear = document.getElementById('yearFilter').value; // Örn: "2025"
+            let monthsData = {};
+            let yearlyTotal = 0;
+
+            // 12 Ay İçin Boş Veri Oluştur
+            for(let i=0; i<12; i++) {
+                monthsData[i] = { sabah: 0, aksam: 0, total: 0 };
+            }
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const recordDate = d.date.toDate();
+                const recordYear = recordDate.getFullYear().toString();
+                
+                // Sadece seçili yılın verilerini al
+                if(recordYear === selectedYear) {
+                    const monthIndex = recordDate.getMonth(); // 0 = Ocak, 11 = Aralık
+                    const miktar = Number(d.liters);
+
+                    if(d.period === 'sabah') monthsData[monthIndex].sabah += miktar;
+                    else monthsData[monthIndex].aksam += miktar;
+                    
+                    monthsData[monthIndex].total += miktar;
+                    yearlyTotal += miktar;
+                }
+            });
+
+            // Yıllık Toplamı Yaz
+            document.getElementById("lblYearlyTotal").innerText = yearlyTotal.toLocaleString('tr-TR');
+
+            // Tabloyu Doldur
+            const tbody = document.getElementById("yearListBody");
+            let html = "";
+            const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
+            // Aylar ters sırada değil, Ocak'tan Aralık'a (veya tam tersi) sıralanabilir. Genelde tabloda Ocak en üstte durur.
+            for(let i=0; i<12; i++) {
+                // Eğer o ay hiç veri yoksa "-" koyalım, varsa sayıyı yazalım
+                const row = monthsData[i];
+                // Sadece verisi olan ayları mı gösterelim yoksa hepsini mi? Hepsini göstermek tablo bütünlüğü için iyidir.
+                // İsteğe bağlı: if(row.total === 0) continue; // Boş ayları gizlemek isterseniz bu satırı açın.
+
+                const aksamVal = row.aksam > 0 ? row.aksam : '-';
+                const sabahVal = row.sabah > 0 ? row.sabah : '-';
+                const totalVal = row.total > 0 ? `<span class="badge bg-dark rounded-pill">${row.total}</span>` : '-';
+
+                html += `
+                <tr>
+                    <td class="ps-3 fw-bold text-secondary">${monthNames[i]}</td>
+                    <td class="text-center text-primary bg-primary bg-opacity-10 fw-bold">${aksamVal}</td>
+                    <td class="text-center text-warning bg-warning bg-opacity-10 fw-bold">${sabahVal}</td>
+                    <td class="text-end pe-3 fw-bold">${totalVal}</td>
+                </tr>
+                `;
+            }
+            tbody.innerHTML = html;
+        }
+
+        // Yıl Filtresi Değişince Çalışacak Kod
+        const yearSelect = document.getElementById('yearFilter');
+        if(yearSelect) {
+            // Şimdiki yılı varsayılan seç
+            yearSelect.value = new Date().getFullYear();
+            
+            yearSelect.addEventListener('change', () => {
+                if(globalMilkSnapshot) {
+                    gecmisSayfayiGuncelle(globalMilkSnapshot);
+                }
             });
         }
 
@@ -387,7 +550,7 @@
             });
 
             // 1. Grafiği Güncelle
-            grafigiGuncelle(totalsByDate, selectedMonth);
+            paneliGuncelle(snapshot, selectedMonth, aylikToplam);
 
             // 2. Listeyi Güncelle
             const listDiv = document.getElementById("milkList");
@@ -438,7 +601,116 @@
             const lblMonthly = document.getElementById("lblMonthlyMilk");
             if(lblMonthly) lblMonthly.innerText = aylikToplam.toLocaleString('tr-TR');
         }
+// ESKİ grafigiGuncelle fonksiyonunu tamamen silebilirsiniz.
+        // YERİNE BU FONKSİYONU EKLEYİN:
 
+        function paneliGuncelle(snapshot, selectedMonth, currentMonthTotal) {
+            // 1. ÖNCEKİ AYI BUL VE HESAPLA
+            const [year, month] = selectedMonth.split('-').map(Number);
+            // Bir önceki ayı hesapla (Ocak ise bir önceki yılın Aralığına git)
+            const prevDate = new Date(year, month - 2, 1); 
+            const prevMonthStr = prevDate.toISOString().slice(0, 7); // Örn: "2025-11"
+            
+            let prevMonthTotal = 0;
+            let dailyRecords = []; // Slider için kayıtlar
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const rDate = d.date.toDate();
+                const rMonthStr = rDate.toISOString().slice(0, 7);
+                const dayKey = rDate.toLocaleDateString('tr-TR', {day:'numeric', month:'short'});
+                
+                // Önceki ay toplamı
+                if(rMonthStr === prevMonthStr) {
+                    prevMonthTotal += Number(d.liters);
+                }
+
+                // Slider için SADECE SEÇİLİ AYIN verilerini topla
+                if(rMonthStr === selectedMonth) {
+                   // Aynı gün varsa üstüne ekle (Sabah+Akşam birleşsin diye)
+                   let existing = dailyRecords.find(x => x.dayKey === dayKey);
+                   if(existing) {
+                       existing.total += Number(d.liters);
+                       if(d.period === 'sabah') existing.sabah += Number(d.liters);
+                       else existing.aksam += Number(d.liters);
+                   } else {
+                       dailyRecords.push({
+                           dateObj: rDate,
+                           dayKey: dayKey,
+                           fullDate: rDate.toLocaleDateString('tr-TR', {weekday:'short'}),
+                           total: Number(d.liters),
+                           sabah: d.period === 'sabah' ? Number(d.liters) : 0,
+                           aksam: d.period === 'aksam' ? Number(d.liters) : 0
+                       });
+                   }
+                }
+            });
+
+            // --- PERFORMANS KARTINI GÜNCELLE ---
+            document.getElementById("lblPrevMonthTotal").innerText = prevMonthTotal;
+            document.getElementById("lblCurrMonthTotal").innerText = currentMonthTotal;
+
+            let percent = 0;
+            let barWidth = 0;
+            let textDurum = "Veri Yok";
+
+            if (prevMonthTotal > 0) {
+                // Yüzde hesapla
+                const diff = currentMonthTotal - prevMonthTotal;
+                percent = Math.round((diff / prevMonthTotal) * 100);
+                
+                // Bar doluluk oranı (Max %100 olsun diye sınırladık)
+                barWidth = Math.min(Math.round((currentMonthTotal / prevMonthTotal) * 100), 100);
+                
+                if(currentMonthTotal >= prevMonthTotal) {
+                    textDurum = "Geçen ayı geçtiniz!";
+                    document.getElementById("lblPerfPercent").className = "fw-bold text-success";
+                    document.getElementById("lblPerfPercent").innerText = `+${percent}%`;
+                    document.getElementById("progressBar").className = "progress-bar bg-success";
+                } else {
+                    textDurum = "Geçen ayın gerisinde";
+                    document.getElementById("lblPerfPercent").className = "fw-bold text-danger";
+                    document.getElementById("lblPerfPercent").innerText = `${percent}%`;
+                    document.getElementById("progressBar").className = "progress-bar bg-warning";
+                }
+            } else {
+                // Önceki ay veri yoksa
+                textDurum = "Geçmiş veri yok";
+                barWidth = 100; 
+                document.getElementById("lblPerfPercent").innerText = "-";
+            }
+            
+            document.getElementById("lblPerfText").innerText = textDurum;
+            document.getElementById("progressBar").style.width = `${barWidth}%`;
+
+
+            // --- SLIDER (YATAY KARTLAR) GÜNCELLE ---
+            // Tarihe göre yeniden eskiye sırala
+            dailyRecords.sort((a,b) => b.dateObj - a.dateObj);
+            
+            const sliderDiv = document.getElementById("dailySlider");
+            let sliderHtml = "";
+
+            if(dailyRecords.length === 0) {
+                sliderHtml = `<div class="text-muted small w-100 text-center py-3">Bu ay için henüz kayıt yok.</div>`;
+            } else {
+                dailyRecords.forEach(rec => {
+                    sliderHtml += `
+                    <div class="card border-0 shadow-sm" style="min-width: 130px; border-radius: 16px; background-color: #fff;">
+                        <div class="card-body p-2 text-center">
+                            <span class="badge bg-light text-secondary mb-1" style="font-weight: normal;">${rec.fullDate}</span>
+                            <h6 class="fw-bold text-dark m-0 mb-1" style="font-size: 0.9rem;">${rec.dayKey}</h6>
+                            <div class="fw-bold text-primary fs-5 mb-1">${rec.total} Lt</div>
+                            <div style="font-size: 0.65rem;" class="text-muted opacity-75">
+                                <span>S: ${rec.sabah}</span> | <span>A: ${rec.aksam}</span>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+            }
+            sliderDiv.innerHTML = sliderHtml;
+        }
         // GRAFİK GÜNCELLEME (Seçilen ayın günlerine göre)
         function grafigiGuncelle(totalsByDate, selectedMonth) {
             const labels = [];
@@ -485,17 +757,24 @@
             }
         }
 
-        // SAYFA GEÇİŞLERİ
+        // SAYFA GEÇİŞLERİ (GÜNCELLENDİ)
         window.sayfaDegistir = function(sayfaId, element) {
+            // Tüm sayfaları gizle
             document.getElementById("page-home").style.display = "none";
             document.getElementById("page-milk").style.display = "none";
+            document.getElementById("page-history").style.display = "none"; // Yeni eklenen
             document.getElementById("page-profile").style.display = "none";
+            
+            // İstenen sayfayı aç
             document.getElementById(sayfaId).style.display = "block";
-            document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-            if(element) element.classList.add("active");
+            
+            // Menü aktifliğini ayarla
+            if(element) {
+                document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+                element.classList.add("active");
+            }
             window.scrollTo(0, 0);
         }
-
         // ÇIKIŞ YAP
         window.cikisYap = async function() {
             Swal.fire({
