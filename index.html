@@ -3,161 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kooperatif Platformu - Giriş</title>
+    <title>KoopSistemi - Güvenli Giriş</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        /* Arka Plan Görseli */
+        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; }
         .bg-image {
-            background-image: url('https://images.unsplash.com/photo-1625246333195-58197bd47d19?q=80&w=1920&auto=format&fit=crop');
-            height: 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            position: relative;
+            /* Yeni ve çalışan bir tarla görseli */
+            background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1920&auto=format&fit=crop');
+            height: 100%; background-position: center; background-size: cover; position: relative;
         }
-
-        /* Arka planı karartma katmanı (Yazılar okunsun diye) */
         .bg-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 50, 20, 0.7); /* Koyu yeşil tonlu filtre */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 50, 20, 0.75);
+            display: flex; align-items: center; justify-content: center;
         }
-
-        /* Giriş Kartı Tasarımı */
         .login-card {
-            width: 100%;
-            max-width: 400px;
-            padding: 40px;
+            width: 100%; max-width: 400px; padding: 40px;
             background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            text-align: center;
+            border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center;
         }
-
         .logo-area {
-            width: 80px;
-            height: 80px;
-            background-color: #198754; /* Kooperatif Yeşili */
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 35px;
-            margin: 0 auto 20px auto;
+            width: 90px; height: 90px; background-color: #198754; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 40px; margin: 0 auto 20px auto; box-shadow: 0 10px 20px rgba(25, 135, 84, 0.3);
         }
-
         .btn-custom {
-            background-color: #198754;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
+            background-color: #198754; color: white; padding: 14px;
+            border-radius: 12px; font-weight: 700; font-size: 16px; transition: all 0.3s;
         }
-
-        .btn-custom:hover {
-            background-color: #146c43;
-            transform: translateY(-2px);
-        }
-
-        /* Yükleniyor animasyonu gizli başlasın */
-        .loading-spinner {
-            display: none;
-        }
+        .btn-custom:hover { background-color: #146c43; transform: translateY(-2px); }
+        .loading-spinner { display: none; }
     </style>
 </head>
 <body>
 
 <div class="bg-image">
     <div class="bg-overlay">
-        
         <div class="login-card">
-            <div class="logo-area">
-                <i class="fa-solid fa-wheat-awn"></i>
-            </div>
-            
+            <div class="logo-area"><i class="fa-solid fa-wheat-awn"></i></div>
             <h4 class="mb-1 fw-bold text-dark">KoopSistemi</h4>
-            <p class="text-muted mb-4">Yönetim Paneli Girişi</p>
+            <p class="text-muted mb-4 small">Üretici & Yönetim Girişi</p>
 
             <form id="loginForm">
                 <div class="mb-3 text-start">
-                    <label class="form-label small fw-bold text-secondary">E-Posta Adresi</label>
+                    <label class="form-label small fw-bold text-secondary">Cep Telefonu</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="fa-regular fa-envelope text-muted"></i></span>
-                        <input type="email" class="form-control border-start-0" placeholder="ornek@kooperatif.com" required>
+                        <span class="input-group-text bg-white border-end-0 fw-bold text-muted">+90</span>
+                       <input type="text" id="loginPhone" class="form-control border-start-0 fw-bold" placeholder="Telefon veya E-Posta" maxlength="50" required>
                     </div>
+                    <div class="form-text x-small">Başında '0' olmadan giriniz (Örn: 5321234567)</div>
                 </div>
 
                 <div class="mb-4 text-start">
                     <label class="form-label small fw-bold text-secondary">Şifre</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
-                        <input type="password" class="form-control border-start-0" placeholder="••••••••" required>
+                        <input type="password" id="loginPass" class="form-control border-start-0" placeholder="••••••••" required>
                     </div>
                 </div>
 
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-custom border-0" id="loginBtn">
-                        <span class="btn-text">GÜVENLİ GİRİŞ</span>
+                        <span class="btn-text">GİRİŞ YAP</span>
                         <div class="spinner-border spinner-border-sm loading-spinner" role="status"></div>
                     </button>
                 </div>
             </form>
 
-            <div class="mt-4 text-muted small">
+            <div class="mt-4 text-muted small opacity-75">
                 &copy; 2025 Kooperatif Yönetim Platformu
             </div>
         </div>
-
     </div>
 </div>
-
 <script type="module">
-    // Beyin dosyamızı (auth.js) çağırıyoruz
-    import { sistemGiris } from './js/auth.js';
+        import { sistemGiris } from './js/auth.js';
 
-    // Form gönderildiğinde (Butona basıldığında) çalışacak kod
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // Sayfanın yenilenmesini durdur
-        
-        // Kutulardaki verileri al
-        const email = document.querySelector('input[type="email"]').value;
-        const password = document.querySelector('input[type="password"]').value;
-        
-        const btn = document.getElementById('loginBtn');
-        const btnText = document.querySelector('.btn-text');
-        const spinner = document.querySelector('.loading-spinner');
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let phone = document.getElementById('loginPhone').value.trim();
+            const password = document.getElementById('loginPass').value;
+            
+            // Eğer kullanıcı yöneticiyse ve email girdiyse izin ver, değilse telefon kontrolü yap
+            if (!phone.includes('@')) {
+                // Telefon temizliği
+                phone = phone.replace(/\s/g, '');
+                if (phone.startsWith('0')) phone = phone.substring(1);
 
-        // Butonu "Yükleniyor..." moduna al
-        btnText.style.display = 'none';
-        spinner.style.display = 'inline-block';
-        btn.disabled = true;
+                if(phone.length !== 10 || isNaN(phone)) {
+                    alert("Lütfen telefon numaranızı başında 0 olmadan, 10 hane olarak giriniz.\nÖrn: 5321234567");
+                    return;
+                }
+            }
 
-        // auth.js içindeki giriş fonksiyonunu çalıştır
-        sistemGiris(email, password).then(() => {
-            // İşlem bittiğinde (başarılı veya hatalı) butonu eski haline getir
-            btnText.style.display = 'inline-block';
-            spinner.style.display = 'none';
-            btn.disabled = false;
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.querySelector('.btn-text');
+            const spinner = document.querySelector('.loading-spinner');
+
+            btnText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+            btn.disabled = true;
+
+            sistemGiris(phone, password).finally(() => {
+                btnText.style.display = 'inline-block';
+                spinner.style.display = 'none';
+                btn.disabled = false;
+            });
         });
-    });
-</script>
+    </script>
 
-</body>
+    <div style="position:fixed; bottom:20px; right:20px; z-index:9999;">
+        <button onclick="sistemiKur()" class="btn btn-danger fw-bold shadow-lg p-3 rounded-pill">
+            <i class="fa-solid fa-gear fa-spin me-2"></i> SİSTEMİ KUR (ADMIN)
+        </button>
+    </div>
+
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { setDoc, doc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        window.sistemiKur = async () => {
+            // 1. Bilgileri İste
+            const email = prompt("Yeni Admin Email Adresi:", "admin@demo.com");
+            if(!email) return;
+            const password = prompt("Yeni Admin Şifresi (En az 6 haneli):", "123456");
+            if(!password) return;
+            const sirketAdi = prompt("Kooperatif Adı:", "Örnek Kooperatif");
+
+            try {
+                // 2. Önce 'cooperatives' koleksiyonuna şirket oluştur
+                const sirketRef = await addDoc(collection(db, "cooperatives"), {
+                    ad: sirketAdi,
+                    villages: ["Merkez", "Yaylaköy", "Dağköyü"], // Örnek rotalar
+                    isTaxInclusive: false,
+                    deviationLimit: 50,
+                    createdAt: new Date()
+                });
+                console.log("Şirket oluşturuldu ID:", sirketRef.id);
+
+                // 3. Firebase Auth üzerinde kullanıcı oluştur (Giriş yapabilmesi için)
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                console.log("Auth kullanıcısı oluşturuldu UID:", user.uid);
+
+                // 4. KRİTİK ADIM: Firestore 'users' koleksiyonuna yetki yaz
+                // Belge ID'si olarak user.uid kullanıyoruz ki eşleşsin.
+                await setDoc(doc(db, "users", user.uid), {
+                    email: email,
+                    role: 'admin',         // Bu kişiyi yönetici yapıyoruz
+                    coopId: sirketRef.id,  // Oluşturduğumuz şirkete bağlıyoruz
+                    createdAt: new Date()
+                });
+
+                alert(`✅ KURULUM BAŞARILI!\n\nEmail: ${email}\nŞifre: ${password}\n\nBu bilgilerle giriş yapabilirsiniz.`);
+                
+            } catch (error) {
+                console.error(error);
+                if(error.code === 'auth/email-already-in-use') {
+                    alert("HATA: Bu email zaten kullanılıyor. Başka bir email deneyin veya Firebase Console'dan kullanıcıyı silin.");
+                } else {
+                    alert("HATA OLUŞTU:\n" + error.message);
+                }
+            }
+        }
+    </script>
+    </body>
 </html>

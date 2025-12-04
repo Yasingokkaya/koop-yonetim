@@ -1,9 +1,31 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
-    getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, 
-    onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove, 
-    orderBy, limit, writeBatch 
+    getAuth, 
+    onAuthStateChanged, 
+    signOut, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword,
+    updatePassword 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import { 
+    getFirestore, 
+    doc, 
+    getDoc, 
+    setDoc, 
+    collection, 
+    addDoc, 
+    query, 
+    where, 
+    getDocs, 
+    onSnapshot, 
+    deleteDoc, 
+    updateDoc, 
+    arrayUnion, 
+    arrayRemove, 
+    orderBy, 
+    limit, 
+    writeBatch 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -20,11 +42,27 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// writeBatch ve getDocs ARTIK BURADA DIŞARI AKTARILIYOR
 export { 
     app, auth, db, 
-    onAuthStateChanged, signOut, signInWithEmailAndPassword,
-    doc, getDoc, collection, addDoc, query, where, getDocs, 
-    onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove, 
-    orderBy, limit, writeBatch 
+    onAuthStateChanged, 
+    signOut, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword,
+    updatePassword,
+    doc, 
+    getDoc, 
+    setDoc, 
+    collection, 
+    addDoc, 
+    query, 
+    where, 
+    getDocs, 
+    onSnapshot, 
+    deleteDoc, 
+    updateDoc, 
+    arrayUnion, 
+    arrayRemove, 
+    orderBy, 
+    limit, 
+    writeBatch 
 };

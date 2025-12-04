@@ -1,3 +1,538 @@
-<h1 style="color:green; text-align:center; margin-top:50px;">
-    BURASI ÜYE PANELİ (GİRİŞ BAŞARILI!)
-</h1>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Üretici Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#0f766e">
+    <style>
+        /* GENEL AYARLAR */
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            padding-bottom: 90px;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        /* CÜZDAN KARTI */
+        .wallet-card {
+            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+            color: white; border-radius: 24px; padding: 25px;
+            margin: 20px 20px 10px 20px;
+            box-shadow: 0 15px 30px rgba(15, 118, 110, 0.25);
+            position: relative; overflow: hidden;
+        }
+        .wallet-card::after {
+            content: '\f555'; font-family: "Font Awesome 6 Free"; font-weight: 900;
+            position: absolute; right: -20px; bottom: -40px;
+            font-size: 9rem; opacity: 0.08; transform: rotate(-20deg);
+        }
+        .balance-title { font-size: 0.75rem; opacity: 0.9; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; }
+        .balance-amount { font-size: 2.6rem; font-weight: 800; line-height: 1; margin: 8px 0; letter-spacing: -1px;}
+
+       /* YENİ HIZLI İŞLEM KARTLARI (ADMİN STİLİ) */
+        .quick-card {
+            border: none; border-radius: 16px; color: white;
+            cursor: pointer; position: relative; overflow: hidden;
+            height: 110px; /* Mobilde yükseklik */
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .quick-card:active { transform: scale(0.95); }
+        
+        /* Arka plan silik ikonu */
+        .quick-card i.bg-icon {
+            position: absolute; right: -10px; bottom: -10px;
+            font-size: 3.5rem; opacity: 0.15; transform: rotate(-20deg);
+        }
+        .quick-card h6 { font-weight: 700; margin-top: 8px; font-size: 0.85rem; margin-bottom: 0; }
+
+        /* ALT MENÜ */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px;
+            background: white; border-top-left-radius: 20px; border-top-right-radius: 20px;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.06); display: flex; justify-content: space-around;
+            align-items: center; z-index: 1050; padding-bottom: 10px;
+        }
+        .nav-item {
+            background: none; border: none; text-align: center; color: #94a3b8;
+            font-size: 0.75rem; font-weight: 600; width: 33%;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .nav-item i { font-size: 1.5rem; transition: transform 0.2s; }
+        .nav-item.active { color: #0f766e; }
+        .nav-item.active i { transform: translateY(-4px); }
+
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 9999; display: flex;
+            align-items: center; justify-content: center; flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner-border text-primary mb-3" role="status"></div>
+        <div class="fw-bold text-muted">Verileriniz Yükleniyor...</div>
+    </div>
+<div id="page-home">
+        
+       <div class="px-3 pt-3">
+            <div class="bg-white border border-2 border-primary p-3 rounded-4 shadow-lg d-flex justify-content-between align-items-center" 
+                 style="background: linear-gradient(to right, #ffffff, #f0f9ff);">
+                
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" 
+                         style="width: 48px; height: 48px; font-size: 1.3rem;">
+                        <i class="fa-solid fa-calendar-days"></i> </div>
+                    <div>
+                        <small class="text-primary d-block fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Seçili Dönem</small>
+                        <span class="fw-bolder text-dark fs-5" id="lblSelectedMonth">Bu Ay</span>
+                    </div>
+                </div>
+                
+                <input type="month" id="monthFilter" 
+                       class="form-control border-primary bg-white fw-bold text-end text-primary shadow-sm" 
+                       style="width: 150px; cursor: pointer; height: 48px; font-size: 1rem;">
+            </div>
+        </div>
+
+        <div class="wallet-card">
+            <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
+                <div>
+                    <div class="balance-title" style="opacity: 0.8; margin-bottom: 5px;">ÜRETİCİ BİLGİ SİSTEMİ</div>
+                    <div class="fs-1 fw-bold" id="lblMemberName" style="line-height: 1.2;">Hoşgeldiniz</div>
+                </div>
+                
+                <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
+                     onclick="cikisYap()" 
+                     style="width: 45px; height: 45px; cursor: pointer;">
+                    <i class="fa-solid fa-right-from-bracket text-white fs-5"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-3 mt-3">
+            <div class="row g-2"> 
+                
+                <div class="col-4">
+                    <div class="quick-card" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);"
+                         onclick="sayfaDegistir('page-milk', document.getElementById('nav-milk'))">
+                        <i class="bg-icon fa-solid fa-cow"></i>
+                        <i class="fa-solid fa-cow fa-2x mb-1"></i>
+                        <h6>Sütlerim</h6>
+                    </div>
+                </div>
+
+                <div class="col-4">
+                    <div class="quick-card" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);"
+                         onclick="Swal.fire('Bilgi','Detaylı hesap dökümü yakında eklenecek.','info')">
+                        <i class="bg-icon fa-solid fa-wallet"></i>
+                        <i class="fa-solid fa-wallet fa-2x mb-1"></i>
+                        <h6>Hesap</h6>
+                    </div>
+                </div>
+
+                <div class="col-4">
+                    <div class="quick-card" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);"
+                         onclick="window.open('https://wa.me/905000000000', '_blank')">
+                        <i class="bg-icon fa-brands fa-whatsapp"></i>
+                        <i class="fa-brands fa-whatsapp fa-2x mb-1"></i>
+                        <h6>Destek</h6>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="px-3 mt-4">
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold text-dark small mb-3">Süt Grafiği</h6>
+                    <div style="height: 200px;"> 
+                        <canvas id="milkChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <div id="page-milk" style="display: none;">
+        <div class="bg-white px-3 pt-3 pb-4 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;">
+            <h5 class="fw-bold text-dark m-0 mb-3 ps-1">Süt Geçmişim</h5>
+            
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border-radius: 20px;">
+                <div class="card-body d-flex justify-content-between align-items-center px-4 py-3">
+                    <div>
+                        <div class="small opacity-75 fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">BU AY TOPLANAN</div>
+                        <div class="display-5 fw-bold"><span id="lblMonthlyMilk">0</span> <span class="fs-4">Lt</span></div>
+                    </div>
+                    <i class="fa-solid fa-cow fa-2x text-white opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="px-3 pb-3" id="milkList"></div>
+    </div>
+
+    <div id="page-profile" style="display: none;" class="p-3">
+        <h4 class="fw-bold text-dark mb-4">Profil & Ayarlar</h4>
+        <div class="card border-0 shadow-sm mb-4 text-center p-4" style="border-radius: 20px;">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <h5 class="fw-bold m-0" id="profName">-</h5>
+            <small class="text-muted" id="profVillage">-</small>
+        </div>
+
+        <h6 class="text-muted small fw-bold ps-2 mb-2">KİŞİSEL BİLGİLER</h6>
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px; overflow: hidden;">
+            <div class="list-group list-group-flush">
+                <div class="list-group-item p-3 d-flex align-items-center">
+                    <div class="icon-box bg-light text-secondary me-3"><i class="fa-solid fa-phone"></i></div>
+                    <div>
+                        <small class="text-muted d-block" style="font-size:0.7rem">Telefon</small>
+                        <span class="fw-bold text-dark" id="profPhone">-</span>
+                    </div>
+                </div>
+                <div class="list-group-item p-3 d-flex align-items-center">
+                    <div class="icon-box bg-light text-secondary me-3"><i class="fa-solid fa-id-card"></i></div>
+                    <div>
+                        <small class="text-muted d-block" style="font-size:0.7rem">TC Kimlik</small>
+                        <span class="fw-bold text-dark" id="profTc">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h6 class="text-muted small fw-bold ps-2 mb-2">HESAP AYARLARI</h6>
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px; overflow: hidden;">
+            <div class="list-group list-group-flush">
+                <button onclick="sifreDegistir()" class="list-group-item list-group-item-action p-3 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-warning bg-opacity-10 text-warning me-3"><i class="fa-solid fa-key"></i></div>
+                        <span class="fw-bold text-dark">Şifremi Değiştir</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-muted small"></i>
+                </button>
+            </div>
+        </div>
+
+        <button onclick="cikisYap()" class="btn btn-danger bg-opacity-10 text-danger border-0 w-100 py-3 fw-bold rounded-4 mb-4">
+            <i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap
+        </button>
+        
+        <div class="text-center text-muted small mb-5 opacity-50">
+            KoopSistem v1.0
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item active" id="nav-home" onclick="sayfaDegistir('page-home', this)">
+            <i class="fa-solid fa-house"></i> <span>Ana Sayfa</span>
+        </button>
+        
+        <button class="nav-item" id="nav-milk" onclick="sayfaDegistir('page-milk', this)">
+            <i class="fa-solid fa-cow"></i> <span>Geçmiş</span>
+        </button>
+        
+        <button class="nav-item" id="nav-profile" onclick="sayfaDegistir('page-profile', this)">
+            <i class="fa-solid fa-user"></i> <span>Profil</span>
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script type="module">
+        import { updatePassword, auth, db, signOut, onAuthStateChanged, doc, getDoc, collection, query, where, orderBy, limit, onSnapshot } from "../js/firebase-config.js";
+
+        let currentMemberId = null;
+        let currentCoopId = null;
+        let globalMilkSnapshot = null; // Verileri hafızada tutmak için
+
+        // 1. Sayfa Açılınca Tarihi "Bu Ay" Yap
+        const dateInput = document.getElementById('monthFilter');
+        const now = new Date();
+        const currentMonthStr = now.toISOString().slice(0, 7); // Örn: "2023-12"
+        if(dateInput) {
+            dateInput.value = currentMonthStr;
+            
+            // Tarih değişince verileri tekrar süz
+            dateInput.addEventListener('change', () => {
+                if(globalMilkSnapshot) {
+                    verileriSuzVeYazdir(globalMilkSnapshot);
+                }
+            });
+        }
+
+        // 2. Kullanıcı Giriş Kontrolü
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if(userData.role !== 'member') {
+                        Swal.fire("Hata", "Yetkisiz giriş.", "error");
+                        signOut(auth);
+                        return;
+                    }
+                    currentCoopId = userData.coopId;
+                    currentMemberId = userData.relatedMemberId || user.uid;
+                    uyeBilgileriniGetir(currentMemberId);
+                }
+            } else {
+                window.location.href = "../index.html";
+            }
+        });
+
+        async function uyeBilgileriniGetir(uid) {
+            let memberDoc = await getDoc(doc(db, "members", uid));
+            if(memberDoc.exists()) {
+                const mData = memberDoc.data();
+                // Karttaki İsim
+                const lblMem = document.getElementById("lblMemberName");
+                if(lblMem) lblMem.innerText = `Sn. ${mData.ad} ${mData.soyad}`;
+                
+                // Profil Sayfası Bilgileri
+                document.getElementById("profName").innerText = `${mData.ad} ${mData.soyad}`;
+                document.getElementById("profVillage").innerText = mData.koy || "-";
+                document.getElementById("profPhone").innerText = mData.telefon || "-";
+                document.getElementById("profTc").innerText = mData.tc || "-";
+            }
+            bakiyeyiDinle(uid); // Bakiye her zaman "Genel Toplam"dır
+            sutleriDinle(uid);  // Sütler tarihe göre değişir
+            document.getElementById("loader").style.display = "none";
+        }
+
+        // BAKİYE HESAPLAMA (Ekranda Gizli, Arka Planda Çalışır)
+        function bakiyeyiDinle(uid) {
+            const q = query(collection(db, "transactions"), where("memberId", "==", uid));
+            onSnapshot(q, (snapshot) => {
+                let totalAlacak = 0; let totalBorc = 0;
+                snapshot.forEach(doc => {
+                    const t = doc.data();
+                    const amount = Number(t.amount);
+                    if(t.type === 'alacak') totalAlacak += amount;
+                    else totalBorc += amount;
+                });
+                // Bakiye hesaplandı ama ekrana yazdırmıyoruz (istek üzerine)
+                console.log("Güncel Bakiye:", totalAlacak - totalBorc);
+            });
+        }
+
+        // SÜT VERİLERİNİ ÇEKME
+        function sutleriDinle(uid) {
+            const q = query(
+                collection(db, "milk_records"),
+                where("memberId", "==", uid),
+                orderBy("date", "desc")
+            );
+
+            onSnapshot(q, (snapshot) => {
+                globalMilkSnapshot = snapshot; // Veriyi hafızaya al
+                verileriSuzVeYazdir(snapshot); // İlk açılışta süz ve yaz
+            });
+        }
+
+        // --- YENİ FİLTRELEME VE YAZDIRMA FONKSİYONU ---
+        function verileriSuzVeYazdir(snapshot) {
+            const selectedMonth = document.getElementById('monthFilter').value; // "2023-12"
+            
+            // Etiketi Güncelle (Örn: Aralık 2023)
+            const dateObj = new Date(selectedMonth);
+            const monthName = dateObj.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+            document.getElementById("lblSelectedMonth").innerText = monthName;
+
+            let groupedData = {};
+            let totalsByDate = {}; 
+            let aylikToplam = 0;
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                
+                // --- TARİH FİLTRESİ ---
+                const recordDate = d.date.toDate(); 
+                const recordMonthStr = recordDate.toISOString().slice(0, 7); // "2023-12"
+
+                // Eğer kayıt tarihi, seçilen aya EŞİT DEĞİLSE bu kaydı geç
+                if (recordMonthStr !== selectedMonth) return;
+                // ----------------------
+
+                const dateKey = recordDate.toLocaleDateString('en-CA');
+
+                if(!groupedData[dateKey]) {
+                    groupedData[dateKey] = {
+                        dateObj: recordDate,
+                        sabah: 0,
+                        aksam: 0,
+                        total: 0
+                    };
+                }
+
+                const miktar = Number(d.liters);
+                if(d.period === 'sabah') groupedData[dateKey].sabah += miktar;
+                else groupedData[dateKey].aksam += miktar;
+                groupedData[dateKey].total += miktar;
+                
+                aylikToplam += miktar;
+
+                if(!totalsByDate[dateKey]) totalsByDate[dateKey] = 0;
+                totalsByDate[dateKey] += miktar;
+            });
+
+            // 1. Grafiği Güncelle
+            grafigiGuncelle(totalsByDate, selectedMonth);
+
+            // 2. Listeyi Güncelle
+            const listDiv = document.getElementById("milkList");
+            if(listDiv) {
+                const rows = Object.values(groupedData).sort((a,b) => b.dateObj - a.dateObj);
+                
+                // Tablo Başlangıcı
+                let html = `
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                            <thead class="bg-light border-bottom">
+                                <tr class="text-secondary text-uppercase small">
+                                    <th class="ps-4 py-3">Tarih</th>
+                                    <th class="text-center text-primary fw-bold">Akşam</th>
+                                    <th class="text-center text-warning fw-bold">Sabah</th>
+                                    <th class="text-end pe-4 text-dark fw-bold">Toplam</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+                if(rows.length === 0) {
+                    html += `<tr><td colspan="4" class="text-center py-5 text-muted">Bu ayda kayıt bulunamadı.</td></tr>`;
+                } else {
+                    rows.forEach(row => {
+                        const dateStr = row.dateObj.toLocaleDateString('tr-TR', {day:'numeric', month:'short'});
+                        const dayName = row.dateObj.toLocaleDateString('tr-TR', {weekday:'short'});
+                        
+                        html += `
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark">${dateStr}</div>
+                                <small class="text-muted" style="font-size:0.75rem">${dayName}</small>
+                            </td>
+                            <td class="text-center fw-bold text-primary bg-primary bg-opacity-10">${row.aksam || '-'}</td>
+                            <td class="text-center fw-bold text-warning bg-warning bg-opacity-10">${row.sabah || '-'}</td>
+                            <td class="text-end pe-4">
+                                <span class="badge bg-dark text-white rounded-pill">${row.total} Lt</span>
+                            </td>
+                        </tr>`;
+                    });
+                }
+                html += `</tbody></table></div></div>`;
+                listDiv.innerHTML = html;
+            }
+
+            // 3. Aylık Toplam Kartını Güncelle
+            const lblMonthly = document.getElementById("lblMonthlyMilk");
+            if(lblMonthly) lblMonthly.innerText = aylikToplam.toLocaleString('tr-TR');
+        }
+
+        // GRAFİK GÜNCELLEME (Seçilen ayın günlerine göre)
+        function grafigiGuncelle(totalsByDate, selectedMonth) {
+            const labels = [];
+            const dataValues = [];
+            
+            // Seçilen ayın kaç gün çektiğini bul
+            const [year, month] = selectedMonth.split('-');
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            for(let i=1; i<=daysInMonth; i++) {
+                const dayStr = String(i).padStart(2, '0');
+                const key = `${selectedMonth}-${dayStr}`;
+                
+                labels.push(i); 
+                dataValues.push(totalsByDate[key] || 0);
+            }
+
+            if(window.myMilkChart) window.myMilkChart.destroy();
+            const ctx = document.getElementById('milkChart');
+            if(ctx) {
+                window.myMilkChart = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{ 
+                            label: 'Litre', 
+                            data: dataValues, 
+                            backgroundColor: '#ea580c', 
+                            borderRadius: 3,
+                            barThickness: 'flex', 
+                            maxBarThickness: 15
+                        }]
+                    },
+                    options: {
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            x: { grid: { display: false }, ticks: { font: {size: 10} } }, 
+                            y: { beginAtZero: true, grid: { borderDash: [5, 5] } } 
+                        }
+                    }
+                });
+            }
+        }
+
+        // SAYFA GEÇİŞLERİ
+        window.sayfaDegistir = function(sayfaId, element) {
+            document.getElementById("page-home").style.display = "none";
+            document.getElementById("page-milk").style.display = "none";
+            document.getElementById("page-profile").style.display = "none";
+            document.getElementById(sayfaId).style.display = "block";
+            document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+            if(element) element.classList.add("active");
+            window.scrollTo(0, 0);
+        }
+
+        // ÇIKIŞ YAP
+        window.cikisYap = async function() {
+            Swal.fire({
+                title: 'Çıkış?', text: "Oturumu kapatmak istiyor musunuz?", icon: 'question',
+                showCancelButton: true, confirmButtonText: 'Evet, Çık', confirmButtonColor: '#d33'
+            }).then(async (result) => {
+                if (result.isConfirmed) { await signOut(auth); window.location.href = "../index.html"; }
+            });
+        }
+
+        // ŞİFRE DEĞİŞTİR
+        window.sifreDegistir = async function() {
+             const { value: formValues } = await Swal.fire({
+                title: 'Şifre Değiştir',
+                html: '<input id="swal-pass1" class="form-control mb-2" placeholder="Yeni Şifre" type="password">' +
+                      '<input id="swal-pass2" class="form-control" placeholder="Yeni Şifre (Tekrar)" type="password">',
+                focusConfirm: false, showCancelButton: true, confirmButtonText: 'Güncelle',
+                preConfirm: () => { return [document.getElementById('swal-pass1').value, document.getElementById('swal-pass2').value] }
+            });
+
+            if (formValues) {
+                const [p1, p2] = formValues;
+                if(p1.length < 6) return Swal.fire('Hata', 'En az 6 karakter olmalı.', 'warning');
+                if(p1 !== p2) return Swal.fire('Hata', 'Şifreler uyuşmuyor.', 'error');
+                try {
+                    await updatePassword(auth.currentUser, p1);
+                    Swal.fire('Başarılı', 'Şifre güncellendi.', 'success');
+                } catch (e) {
+                    Swal.fire('Hata', e.message, 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

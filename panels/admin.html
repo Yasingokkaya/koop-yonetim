@@ -47,7 +47,22 @@
         display: flex; align-items: center; gap: 10px;
         border-bottom: 1px solid rgba(255,255,255,0.1);
     }
+/* Tablo taşmasını engellemek için */
+.table-responsive {
+    overflow-x: auto; /* Gerekirse kaydır */
+    padding-bottom: 5px; /* Alt scrollbarın tabloya yapışmasını engelle */
+}
 
+/* Sadece PC ekranında scrollbarı gizle (Mobilde kalsın) */
+@media (min-width: 992px) {
+    .table-responsive::-webkit-scrollbar {
+        height: 4px; /* Çok ince yap */
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1; 
+        border-radius: 10px;
+    }
+}
     .nav-link { 
         color: rgba(255,255,255,0.9);
         padding: 12px 20px; 
@@ -59,11 +74,11 @@
         display: flex; align-items: center; gap: 12px;
     }
     
-    .nav-link:hover {
-        background-color: rgba(255,255,255,0.15);
-        color: white;
-        transform: translateX(5px);
-    }
+   .nav-link:hover {
+    background-color: rgba(255,255,255,0.15);
+    color: white;
+    /* transform satırı silindi */
+}
     
     .nav-link.active {
         background: white;
@@ -197,10 +212,8 @@
     border-left: 4px solid transparent;
 }
 .member-row:hover {
-    background-color: #f8fafc;
-    transform: translateX(5px);
+    background-color: #eff6ff; /* Hafif mavi arka plan */
     border-left-color: var(--primary-color);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
 
 /* 2. Offcanvas (Sağdan Açılan Panel) Özelleştirme */
@@ -611,6 +624,8 @@
 
 .quick-card h6 { font-weight: 700; margin-top: 10px; font-size: 1.1rem; }
 .quick-card small { opacity: 0.9; font-size: 0.8rem; }
+
+
 </style>
 </head>
 <body>
@@ -627,9 +642,21 @@
         <a class="nav-link" onclick="switchTab('reports', this)">
     <i class="fa-solid fa-chart-line" style="width:20px"></i> Dashboard
 </a>
-        <a class="nav-link" onclick="switchTab('members', this)">
-            <i class="fa-solid fa-users" style="width:20px"></i> <span id="lblMenuMembers">Üye İşlemleri</span>
+
+<a class="nav-link" data-bs-toggle="collapse" href="#menuCari" role="button" aria-expanded="true" aria-controls="menuCari">
+    <i class="fa-solid fa-users-gear" style="width:20px"></i> Müşteri & Tedarikçi
+</a>
+
+<div class="collapse show" id="menuCari">
+    <div class="bg-white bg-opacity-10 rounded mx-2 mt-1 mb-2 overflow-hidden">
+        <a class="nav-link ps-4" style="font-size: 0.9rem; cursor: pointer;" onclick="cariTabDegistir('musteri', this)">
+            <i class="fa-solid fa-user-tag text-warning" style="width:20px"></i> Müşteri Listesi
         </a>
+        <a class="nav-link ps-4" style="font-size: 0.9rem; cursor: pointer;" onclick="cariTabDegistir('tedarikci', this)">
+            <i class="fa-solid fa-truck-field text-info" style="width:20px"></i> Tedarikçi Listesi
+        </a>
+    </div>
+</div>
         <a class="nav-link" onclick="switchTab('stocks', this)">
     <i class="fa-solid fa-boxes-stacked" style="width:20px"></i> Stok Yönetimi
 </a>
@@ -981,14 +1008,16 @@
                 <div class="table-responsive">
                     <table class="table table-custom table-hover">
                         <thead>
-                            <tr>
-                                <th>Sıra</th>
-                                <th id="thName">Ad Soyad</th>
-                                <th>Bölge / Köy</th>
-                                <th>Telefon</th>
-                                <th class="text-end">İşlem</th>
-                            </tr>
-                        </thead>
+    <tr class="table-light text-secondary" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+        <th style="width: 60px;" class="text-center">Sıra</th>
+        <th>Ad Soyad / Unvan</th>
+        <th>TC / Vergi No</th>
+        <th class="text-center">Tip</th>
+        <th>Bölge / Köy</th>
+        <th>Telefon</th>
+        <th class="text-end pe-4">İşlemler</th>
+    </tr>
+</thead>
                         <tbody id="memberTableBody"></tbody>
                     </table>
                 </div>
@@ -1241,8 +1270,7 @@
         </div>
 
         <div id="account-detail-page" class="content-section hidden-section">
-            
-            <button class="btn btn-primary-custom shadow mb-4 mt-4 px-4 rounded-pill fw-bold" onclick="listeyeDon()">
+            <button class="btn btn-primary-custom shadow mb-3 mt-2 px-4 rounded-pill fw-bold" onclick="listeyeDon()">
     <i class="fa-solid fa-arrow-left me-2"></i> LİSTEYE DÖN
 </button>
 <div class="account-header-card">
@@ -1407,7 +1435,7 @@
 
 <script type="module">
   import { auth, db, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy, limit, writeBatch, getDocs } from "../js/firebase-config.js";
-
+    let aktifCariTipi = 'musteri';
     let currentCoopId = null;
     let allMembers = [];
     let villageList = [];
@@ -1556,56 +1584,50 @@ function ayarlarListesiniCiz() {
         }
     }
 
-    // Tabloları Çiz
-    function canliUyeDinle() {
-        const q = query(collection(db, "members"), where("coopId", "==", currentCoopId));
-        onSnapshot(q, (snapshot) => {
-            allMembers = [];
-            snapshot.forEach((doc) => { let d = doc.data(); d.id = doc.id; allMembers.push(d); });
-            allMembers.sort((a,b) => (Number(a.sira) || 999) - (Number(b.sira) || 999));
-            
-            tabloyuCiz(allMembers);
-            
-            const dashTotal = document.getElementById("dashTotalMember");
-            if(dashTotal) dashTotal.innerText = allMembers.length;
-        });
-    }
+    
 
-   function tabloyuCiz(data) {
-        const tbody = document.getElementById("memberTableBody");
-        if(!tbody) return;
-        tbody.innerHTML = "";
-        
-        if (data.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='5' class='text-center text-muted py-4'>Kayıt bulunamadı.</td></tr>";
-            return;
-        }
-
-        data.forEach(uye => {
-            // member-row class'ı eklendi
-            const row = `
-                <tr class="member-row">
-                    <td><span class="badge bg-white text-secondary border shadow-sm">${uye.sira || '-'}</span></td>
-                    <td>
-                        <div class="fw-bold text-dark">${uye.ad} ${uye.soyad}</div>
-                        <small class="text-muted" style="font-size:0.75rem">${uye.tc || 'TC Yok'}</small>
-                    </td>
-                    <td><span class="badge bg-light text-dark border">${uye.koy}</span></td>
-                    <td class="text-muted small">${uye.telefon}</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-primary-custom me-1 shadow-sm" onclick="hesapAc('${uye.id}')">
-                            <i class="fa-solid fa-chevron-right"></i> Detay
-                        </button>
-                        <button class="btn btn-sm btn-light border" onclick="uyeDuzenle('${uye.id}')"><i class="fa-solid fa-pen text-muted"></i></button>
-                    </td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
+   // Global değişken allMembers zaten var, onu kullanıyoruz.
+function canliUyeDinle() {
+    const q = query(collection(db, "members"), where("coopId", "==", currentCoopId));
+    onSnapshot(q, (snapshot) => {
+        allMembers = [];
+        snapshot.forEach((doc) => { 
+            let d = doc.data(); 
+            d.id = doc.id; 
+            // Eğer veritabanında "tip" yoksa (eski kayıtlar) varsayılan "musteri" kabul et
+            if(!d.tip) d.tip = 'musteri'; 
+            allMembers.push(d); 
         });
         
-        const recCount = document.getElementById("recordCount");
-        if(recCount) recCount.innerText = `${data.length} cari hesap listelendi`;
-    }
+        // Sıralama
+        allMembers.sort((a,b) => (Number(a.sira) || 999) - (Number(b.sira) || 999));
+        
+        // Veri geldiğinde ekrana, o an hangi menü seçiliyse onu çiz
+        listeyiFiltreleVeCiz();
+        
+        const dashTotal = document.getElementById("dashTotalMember");
+        if(dashTotal) dashTotal.innerText = allMembers.length;
+    });
+}
+
+// YENİ FONKSİYON: Listeyi o anki seçime göre filtreleyip çizer
+function listeyiFiltreleVeCiz() {
+    // Sadece aktif tipe uyanları al (musteri ise musterileri, tedarikci ise tedarikcileri)
+    const filtrelenmisListe = allMembers.filter(uye => uye.tip === aktifCariTipi);
+    
+    // Arama kutusu doluysa onun içinde de ara
+    const aramaMetni = document.getElementById("searchInput").value.toLowerCase();
+    const finalListe = filtrelenmisListe.filter(m => 
+        m.ad.toLowerCase().includes(aramaMetni) || 
+        m.soyad.toLowerCase().includes(aramaMetni)
+    );
+
+    tabloyuCiz(finalListe);
+    
+    // Kayıt sayısını güncelle
+    const recCount = document.getElementById("recordCount");
+    if(recCount) recCount.innerText = `${finalListe.length} kayıt listelendi`;
+}
     // Fonksiyonlar (Sil, Ekle, Düzenle)
     window.limitKaydet = async function() {
         const val = document.getElementById("sapmaInput").value;
@@ -1834,14 +1856,14 @@ function ayarlarListesiniCiz() {
             }
         });
     }
+
     const searchInput = document.getElementById("searchInput");
-    if(searchInput) {
-        searchInput.addEventListener("input", (e) => {
-            const val = e.target.value.toLowerCase();
-            const filt = allMembers.filter(m => m.ad.toLowerCase().includes(val) || m.soyad.toLowerCase().includes(val));
-            tabloyuCiz(filt);
-        });
-    }
+if(searchInput) {
+    searchInput.addEventListener("input", (e) => {
+        // Tekrar filtreleme fonksiyonunu çağırıyoruz, o zaten input değerine bakıyor
+        listeyiFiltreleVeCiz();
+    });
+}
 
     // Üye Ekleme / Düzenleme
     let duzenlenecekId = null; 
@@ -1857,6 +1879,7 @@ function ayarlarListesiniCiz() {
                 koy: document.getElementById("uyeKoy").value,
                 telefon: document.getElementById("uyeTel").value,
                 coopId: currentCoopId,
+                tip: aktifCariTipi,
                 ...(duzenlenecekId ? {} : { kayitTarihi: new Date() }) 
             };
 
@@ -1888,7 +1911,7 @@ function ayarlarListesiniCiz() {
         document.getElementById("lblModalTitle").innerText = "Kaydı Düzenle";
         new bootstrap.Modal(document.getElementById('addMemberModal')).show();
     }
-
+  
     function formuTemizle() {
         document.getElementById("addMemberForm").reset();
         duzenlenecekId = null;
@@ -1944,6 +1967,23 @@ window.switchTab = function(tabId, el) {
 
         document.getElementById('page-title').innerText = t;
     }
+    window.cariTabDegistir = function(tip, element) {
+    // 1. Tipi güncelle (musteri veya tedarikci)
+    aktifCariTipi = tip;
+
+    // 2. Sayfayı 'members' olarak aç (Mevcut yapıyı kullanıyoruz)
+    switchTab('members', element);
+
+    // 3. Başlığı ve Butonu Güncelle
+    const baslik = (tip === 'musteri') ? 'Müşteri Listesi' : 'Tedarikçi Listesi';
+    document.getElementById('lblListTitle').innerText = baslik;
+    
+    // Yeni Ekle butonunun metnini güncelle
+    document.getElementById('btnAddMember').innerHTML = `<i class="fa-solid fa-plus me-1"></i> Yeni ${tip === 'musteri' ? 'Müşteri' : 'Tedarikçi'}`;
+
+    // 4. Listeyi hemen filtrele ve çiz
+    listeyiFiltreleVeCiz();
+}
 // --- RAPOR MERKEZİ FONKSİYONLARI ---
 
     // Menüden alt rapora geçiş
@@ -2071,32 +2111,107 @@ window.switchTab = function(tabId, el) {
     
     let activeMemberId = null; 
 
-  // 1. Listeden Detaya Geçiş (GÜNCELLENDİ)
-    window.hesapAc = async function(id) {
-        activeMemberId = id;
-        const uye = allMembers.find(m => m.id === id);
+window.hesapAc = async function(id) {
+    activeMemberId = id;
+    const uye = allMembers.find(m => m.id === id);
 
-        // İsim ve Başlıkları Doldur
-        document.getElementById("detailName").innerText = `${uye.ad} ${uye.soyad}`;
-        document.getElementById("detailPhone").innerText = `${uye.koy} • ${uye.telefon || 'Tel Yok'}`;
+    // İsim ve Başlıkları Doldur
+    document.getElementById("detailName").innerText = `${uye.ad} ${uye.soyad}`;
+    document.getElementById("detailPhone").innerText = `${uye.koy} • ${uye.telefon || 'Tel Yok'}`;
 
-        // SAYFA DEĞİŞTİRME MANTIĞI:
-        // 1. Tüm sayfaları gizle
-        document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden-section'));
-        
-        // 2. !!! YENİ EKLENEN KISIM: Üstteki Genel Başlığı (Header) Gizle !!!
-        document.querySelector('.admin-header').classList.add('d-none');
-        
-        // 3. Sadece Detay Sayfasını Aç
-        const detailPage = document.getElementById('account-detail-page');
-        detailPage.classList.remove('hidden-section');
-        
-        // Header gizlendiği için buton tavana yapışmasın diye üstten boşluk verelim
-        detailPage.classList.add('pt-4'); 
+    // SAYFA DEĞİŞTİRME MANTIĞI:
+    document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden-section'));
+    document.querySelector('.admin-header').classList.add('d-none');
+    
+    const detailPage = document.getElementById('account-detail-page');
+    detailPage.classList.remove('hidden-section');
+    
+    // NOT: detailPage.classList.add('pt-4'); satırını BURADAN SİLDİK.
 
-        // Verileri Çekmeye Başla
-        hareketleriDinle(id);
+    // Verileri Çekmeye Başla
+    hareketleriDinle(id);
+}
+    function tabloyuCiz(data) {
+    const tbody = document.getElementById("memberTableBody");
+    if(!tbody) return;
+    tbody.innerHTML = "";
+    
+    if (data.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7' class='text-center text-muted py-5'><i class='fa-solid fa-inbox fa-2x mb-3 opacity-25'></i><br>Kayıt bulunamadı.</td></tr>";
+        return;
     }
+
+    data.forEach(uye => {
+        // 1. Tip Rozeti
+        let tipBadge = '';
+        if(uye.tip === 'tedarikci') {
+            tipBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3">TEDARİKÇİ</span>';
+        } else {
+            tipBadge = '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3">MÜŞTERİ</span>';
+        }
+
+        // 2. SIRA NO (Canlı Renk ve Gradyan)
+        // Mavi tonlarında canlı bir daire içine beyaz yazı
+        const siraNoHtml = `
+            <div class="d-flex align-items-center justify-content-center mx-auto text-white fw-bold rounded-circle shadow-sm" 
+                 style="width: 35px; height: 35px; font-size: 0.9rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                ${uye.sira || '-'}
+            </div>
+        `;
+
+        // 3. Tablo Satırı
+        const row = `
+            <tr class="member-row align-middle border-bottom hover-shadow transition-all" style="height: 60px;">
+                <td class="text-center">${siraNoHtml}</td>
+                
+                <td>
+                    <div class="fw-bold text-dark fs-6">${uye.ad} ${uye.soyad}</div>
+                </td>
+
+                <td>
+                    <span class="font-monospace text-secondary fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
+                        ${uye.tc || '<span class="text-muted opacity-50">-</span>'}
+                    </span>
+                </td>
+
+                <td class="text-center">${tipBadge}</td>
+
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="fa-solid fa-location-dot text-danger opacity-50 me-2 small"></i>
+                        <span class="text-dark fw-medium">${uye.koy}</span>
+                    </div>
+                </td>
+
+                <td>
+                    <span class="text-muted small fw-bold">${uye.telefon || ''}</span>
+                </td>
+
+                <td class="text-end pe-3">
+                    <div class="d-flex justify-content-end gap-2">
+                        
+                        <button class="btn btn-sm btn-primary-custom shadow-sm d-flex align-items-center gap-2 px-3" onclick="hesapAc('${uye.id}')">
+                            <i class="fa-solid fa-chevron-right" style="font-size: 0.8rem;"></i> Detay
+                        </button>
+
+                        <button class="btn btn-sm btn-light text-secondary border shadow-sm" onclick="uyeDuzenle('${uye.id}')" title="Düzenle" style="width: 35px; height: 35px; border-radius: 8px;">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+
+                        <button class="btn btn-sm btn-light text-danger border shadow-sm" onclick="uyeSil('${uye.id}')" title="Sil" style="width: 35px; height: 35px; border-radius: 8px;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+    
+    // Alt kısımdaki toplam sayısını güncelle
+    const recCount = document.getElementById("recordCount");
+    if(recCount) recCount.innerText = `${data.length} kayıt listelendi`;
+}
     window.sutHesaplamaModalAc = function() {
         console.log("1. Fonksiyon tetiklendi.");
 
@@ -2306,90 +2421,194 @@ window.switchTab = function(tabId, el) {
         let t = window.firmaTuru === 'sahis' ? "Cari İşlemleri" : "Üye İşlemleri";
         document.getElementById('page-title').innerText = t;
     }
+// MEVCUT hareketleriDinle FONKSİYONUNU BUL VE BUNUNLA DEĞİŞTİR
+function hareketleriDinle(memId) {
+    const q = query(
+        collection(db, "transactions"), 
+        where("memberId", "==", memId),
+        orderBy("date", "asc") 
+    );
 
- // MEVCUT hareketleriDinle FONKSİYONUNU BUL VE BUNUNLA DEĞİŞTİR
-    function hareketleriDinle(memId) {
-        const q = query(
-            collection(db, "transactions"), 
-            where("memberId", "==", memId),
-            orderBy("date", "asc") 
-        );
+    onSnapshot(q, (snapshot) => {
+        const tbody = document.getElementById("detailTableBody");
+        if(!tbody) return;
+        tbody.innerHTML = "";
 
-        onSnapshot(q, (snapshot) => {
-            const tbody = document.getElementById("detailTableBody");
-            if(!tbody) return;
-            tbody.innerHTML = "";
+        if(snapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Henüz işlem yok.</td></tr>';
+            // Bakiyeleri sıfırla
+            if(document.getElementById("detailBorc")) document.getElementById("detailBorc").innerText = "0 ₺";
+            if(document.getElementById("detailAlacak")) document.getElementById("detailAlacak").innerText = "0 ₺";
+            if(document.getElementById("detailBalance")) document.getElementById("detailBalance").innerText = "0 ₺";
+            return;
+        }
 
-            if(snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Henüz işlem yok.</td></tr>';
-                if(document.getElementById("detailBorc")) document.getElementById("detailBorc").innerText = "0 ₺";
-                if(document.getElementById("detailAlacak")) document.getElementById("detailAlacak").innerText = "0 ₺";
-                if(document.getElementById("detailBalance")) document.getElementById("detailBalance").innerText = "0 ₺";
-                return;
+        let kumuletifBakiye = 0; 
+        let toplamBorc = 0;
+        let toplamAlacak = 0;
+        
+        snapshot.forEach(doc => {
+            const t = doc.data();
+            const miktar = Number(t.amount); 
+            const belgeNo = t.belgeNo || doc.id.substring(0,6).toUpperCase();
+            const dateObj = t.date?.toDate();
+            const tarih = dateObj ? dateObj.toLocaleDateString('tr-TR') : '-';
+            
+            let borcSutunu = "-";
+            let alacakSutunu = "-";
+            
+            // --- HESAPLAMA MANTIĞI ---
+            if (t.type === 'borc') {
+                // Borç İşlemi (Satış) -> Bakiyeyi Artırır
+                kumuletifBakiye += miktar;
+                toplamBorc += miktar;
+                borcSutunu = `<span class="text-danger fw-bold">${miktar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</span>`;
+            } else {
+                // Alacak İşlemi (Tahsilat) -> Bakiyeyi Azaltır
+                kumuletifBakiye -= miktar;
+                toplamAlacak += miktar;
+                alacakSutunu = `<span class="text-success fw-bold">${miktar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</span>`;
             }
 
-            let kumuletifBakiye = 0; 
-            let toplamBorc = 0;
-            let toplamAlacak = 0;
-            
-            snapshot.forEach(doc => {
-                const t = doc.data();
-                const miktar = Number(t.amount); // Bu artık GENEL TOPLAM
-                const belgeNo = t.belgeNo || doc.id.substring(0,6).toUpperCase();
-                const dateObj = t.date?.toDate();
-                const tarih = dateObj ? dateObj.toLocaleDateString('tr-TR') : '-';
-                
-                let borcSutunu = "-";
-                let alacakSutunu = "-";
-                
-                // Evrak tipine göre bakiye hesabı
-                if (t.type === 'borc') {
-                    kumuletifBakiye += miktar;
-                    toplamBorc += miktar;
-                    borcSutunu = `<span class="text-borc">${miktar.toLocaleString('tr-TR')} ₺</span>`;
-                } else {
-                    kumuletifBakiye -= miktar;
-                    toplamAlacak += miktar;
-                    alacakSutunu = `<span class="text-alacak">${miktar.toLocaleString('tr-TR')} ₺</span>`;
-                }
+            // --- YENİ: DİNAMİK BAKİYE GÖRÜNÜMÜ (A) / (B) ---
+            let bakiyeGorunum = "";
+            let bakiyeClass = "";
 
-                // EĞER BU BİR DETAYLI EVRAK İSE GÖZ İKONU KOY
-                let detayBtn = '';
-                if(t.items && t.items.length > 0) {
-                    // Veriyi butona string olarak gömmek yerine ID ile çekeceğiz
-                    detayBtn = `<button class="btn btn-sm btn-light border text-primary me-1" title="İçeriği Gör" onclick="evrakDetayGoster('${doc.id}')"><i class="fa-solid fa-eye"></i></button>`;
-                }
+            if (kumuletifBakiye > 0) {
+                // Müşteri Borçlu (B) - Kırmızı
+                bakiyeClass = "text-danger fw-bold";
+                bakiyeGorunum = `${kumuletifBakiye.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (B)`;
+            } else if (kumuletifBakiye < 0) {
+                // Müşteri Alacaklı (A) - Yeşil (Mutlak değerini gösteriyoruz)
+                bakiyeClass = "text-success fw-bold";
+                bakiyeGorunum = `${Math.abs(kumuletifBakiye).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (A)`;
+            } else {
+                // Bakiye Sıfır - Nötr
+                bakiyeClass = "text-dark fw-bold";
+                bakiyeGorunum = "0,00 ₺";
+            }
+            // ------------------------------------------------
 
-                const tr = `
-                    <tr>
-                        <td class="fw-bold text-secondary">${tarih}</td>
-                        <td class="hide-mobile"><span class="badge bg-light text-secondary border">#${belgeNo}</span></td>
-                        <td>
-                            <div class="fw-bold text-dark">${t.description || 'Evrak'}</div>
-                            <small class="text-muted" style="font-size:0.7rem">${t.items ? t.items.length + ' Kalem Ürün' : t.category}</small>
-                        </td>
-                        <td class="text-end bg-light bg-opacity-25">${borcSutunu}</td>
-                        <td class="text-end bg-light bg-opacity-25">${alacakSutunu}</td>
-                        <td class="text-end"><span class="text-bakiye">${kumuletifBakiye.toLocaleString('tr-TR')} ₺</span></td>
-                        <td class="text-end" style="min-width: 120px;">
-    ${detayBtn}
-    <button class="btn btn-sm btn-light border text-primary me-1" onclick="islemDuzenle('${doc.id}')" title="Düzenle">
-        <i class="fa-solid fa-pen"></i>
-    </button>
-    <button class="btn btn-sm btn-light border text-danger" onclick="islemSil('${doc.id}')" title="Sil">
-        <i class="fa-solid fa-trash"></i>
-    </button>
-</td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML('afterbegin', tr);
-            });
+            // Detay Butonu Kontrolü
+            let detayBtn = '';
+            if(t.items && t.items.length > 0) {
+                detayBtn = `<button class="btn btn-sm btn-light border text-primary me-1" title="İçeriği Gör" onclick="evrakDetayGoster('${doc.id}')"><i class="fa-solid fa-eye"></i></button>`;
+            }
 
-            if(document.getElementById("detailBorc")) document.getElementById("detailBorc").innerText = toplamBorc.toLocaleString('tr-TR') + " ₺";
-            if(document.getElementById("detailAlacak")) document.getElementById("detailAlacak").innerText = toplamAlacak.toLocaleString('tr-TR') + " ₺";
-            if(document.getElementById("detailBalance")) document.getElementById("detailBalance").innerText = kumuletifBakiye.toLocaleString('tr-TR') + " ₺";
+            const tr = `
+                <tr class="align-middle">
+                    <td class="fw-bold text-secondary">${tarih}</td>
+                    <td class="hide-mobile"><span class="badge bg-light text-secondary border">#${belgeNo}</span></td>
+                    <td>
+                        <div class="fw-bold text-dark">${t.description || 'Evrak'}</div>
+                        <small class="text-muted" style="font-size:0.75rem">${t.items ? t.items.length + ' Kalem Ürün' : t.category}</small>
+                    </td>
+                    <td class="text-end bg-light bg-opacity-25">${borcSutunu}</td>
+                    <td class="text-end bg-light bg-opacity-25">${alacakSutunu}</td>
+                    
+                    <td class="text-end bg-white" style="font-size:1.05rem;">
+                        <span class="${bakiyeClass}">${bakiyeGorunum}</span>
+                    </td>
+
+                    <td class="text-end" style="min-width: 120px;">
+                        ${detayBtn}
+                        <button class="btn btn-sm btn-light border text-secondary me-1" onclick="islemDuzenle('${doc.id}')" title="Düzenle">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light border text-danger" onclick="islemSil('${doc.id}')" title="Sil">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('afterbegin', tr); // En yeni tarih en üstte dursun isterseniz 'afterbegin', tarih sırası bozulmasın derseniz 'beforeend' yapın. (Genelde muhasebede tarih sırası önemlidir, o yüzden sıralamayı query'de yapıp buraya 'beforeend' yapmak daha doğrudur ama tabloyu tersten dizmek isterseniz 'afterbegin' kullanın)
+             // DÜZELTME: Veritabanından tarih sırasıyla geliyor (Eskiden yeniye). 
+             // Yürüyen bakiye mantığı bozulmasın diye burayı `beforeend` yapıyorum (Eskiden yeniye alt alta).
+             // Eğer en son işlemi en üstte görmek isterseniz yürüyen bakiye hesabı karışır. Muhasebede genelde üstten aşağı tarih akar.
         });
-    }
+        
+        // Döngü bittiği için düzeltme: 'afterbegin' yerine 'beforeend' kullanmalıyız ki bakiye doğru ilerlesin
+        tbody.innerHTML = ""; // Temizle
+        let tempBakiye = 0;
+
+        snapshot.forEach(doc => {
+             const t = doc.data();
+             const miktar = Number(t.amount); 
+             const belgeNo = t.belgeNo || doc.id.substring(0,6).toUpperCase();
+             const dateObj = t.date?.toDate();
+             const tarih = dateObj ? dateObj.toLocaleDateString('tr-TR') : '-';
+             
+             let borcSutunu = "-";
+             let alacakSutunu = "-";
+             
+             if (t.type === 'borc') {
+                 tempBakiye += miktar;
+                 borcSutunu = `<span class="text-danger fw-bold">${miktar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</span>`;
+             } else {
+                 tempBakiye -= miktar;
+                 alacakSutunu = `<span class="text-success fw-bold">${miktar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</span>`;
+             }
+
+             let bakiyeGorunum = "";
+             let bakiyeClass = "";
+             if (tempBakiye > 0) {
+                 bakiyeClass = "text-danger fw-bold";
+                 bakiyeGorunum = `${tempBakiye.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (B)`;
+             } else if (tempBakiye < 0) {
+                 bakiyeClass = "text-success fw-bold";
+                 bakiyeGorunum = `${Math.abs(tempBakiye).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (A)`;
+             } else {
+                 bakiyeClass = "text-dark fw-bold";
+                 bakiyeGorunum = "0,00 ₺";
+             }
+
+            let detayBtn = '';
+            if(t.items && t.items.length > 0) {
+                detayBtn = `<button class="btn btn-sm btn-light border text-primary me-1" title="İçeriği Gör" onclick="evrakDetayGoster('${doc.id}')"><i class="fa-solid fa-eye"></i></button>`;
+            }
+
+             const tr = `
+                 <tr class="align-middle">
+                     <td class="fw-bold text-secondary">${tarih}</td>
+                     <td class="hide-mobile"><span class="badge bg-light text-secondary border">#${belgeNo}</span></td>
+                     <td>
+                         <div class="fw-bold text-dark">${t.description || 'Evrak'}</div>
+                         <small class="text-muted" style="font-size:0.75rem">${t.items ? t.items.length + ' Kalem Ürün' : t.category}</small>
+                     </td>
+                     <td class="text-end bg-light bg-opacity-25">${borcSutunu}</td>
+                     <td class="text-end bg-light bg-opacity-25">${alacakSutunu}</td>
+                     <td class="text-end bg-white" style="font-size:1.05rem;">
+                         <span class="${bakiyeClass}">${bakiyeGorunum}</span>
+                     </td>
+                     <td class="text-end" style="min-width: 120px;">
+                         ${detayBtn}
+                         <button class="btn btn-sm btn-light border text-secondary me-1" onclick="islemDuzenle('${doc.id}')" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
+                         <button class="btn btn-sm btn-light border text-danger" onclick="islemSil('${doc.id}')" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                     </td>
+                 </tr>
+             `;
+             tbody.innerHTML += tr; // Listenin sonuna ekle (Tarih akışı)
+        });
+
+        // Üst Bilgi Kartlarını Güncelle
+        if(document.getElementById("detailBorc")) document.getElementById("detailBorc").innerText = toplamBorc.toLocaleString('tr-TR') + " ₺";
+        if(document.getElementById("detailAlacak")) document.getElementById("detailAlacak").innerText = toplamAlacak.toLocaleString('tr-TR') + " ₺";
+        
+        // Karttaki Büyük Bakiyeyi de (A)/(B) formatına çevirelim
+        const headerBalance = document.getElementById("detailBalance");
+        if(headerBalance) {
+             if (kumuletifBakiye > 0) {
+                headerBalance.innerText = `${kumuletifBakiye.toLocaleString('tr-TR')} ₺ (B)`;
+                headerBalance.classList.remove("text-success");
+                headerBalance.classList.add("text-white"); // Header zaten renkli, beyaz kalsın
+             } else if (kumuletifBakiye < 0) {
+                headerBalance.innerText = `${Math.abs(kumuletifBakiye).toLocaleString('tr-TR')} ₺ (A)`;
+             } else {
+                headerBalance.innerText = "0 ₺";
+             }
+        }
+    });
+}
 
     
 
