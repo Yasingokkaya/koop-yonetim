@@ -827,20 +827,19 @@
                 }
             }
         }
-        // --- HESAP EKSTRESİ İŞLEMLERİ ---
-
-    // 1. Sayfayı Aç
+        // 1. Sayfayı Aç (GÜNCELLENDİ: ARTIK GÜNCEL AY GELİYOR)
     window.hesapEkstresiAc = function() {
-        // Varsayılan olarak geçen ayı seç (Çünkü bu ay bitmediği için hesaplanmamış olabilir)
         const d = new Date();
-        d.setMonth(d.getMonth() - 1); // 1 ay geri git
+        // d.setMonth(d.getMonth() - 1); // BU SATIRI İPTAL ETTİK (Artık güncel ay geliyor)
+        
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         
         const filter = document.getElementById("accMonthFilter");
-        if(!filter.value) filter.value = `${yyyy}-${mm}`; // Eğer boşsa doldur
+        // Her açılışta güncel ayı seçmesi için kontrolü kaldırdık, direkt atıyoruz:
+        filter.value = `${yyyy}-${mm}`; 
         
-        sayfaDegistir('page-account', null); // "Hesap" için bir nav-item yok, null veriyoruz
+        sayfaDegistir('page-account', null); 
         
         ekstreGetir(); // Veriyi çek
     }
@@ -848,19 +847,94 @@
     // Tarih değişince tekrar çek
     document.getElementById("accMonthFilter").addEventListener("change", ekstreGetir);
 
-// 2. Veriyi Çek ve Ekrana Bas (YENİ TABLO YAPISI)
-    async function ekstreGetir() {
-        
+async function ekstreGetir() {
         const selectedPeriod = document.getElementById("accMonthFilter").value; 
         const container = document.getElementById("account-content");
         
-        container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><div class="mt-2 small text-muted">Geçmiş dönem hesaplanıyor...</div></div>';
 
         try {
+            // 1. MEVCUT DÖNEMİ ÇEK (Örn: Aralık)
             const docId = `${currentMemberId}_${selectedPeriod}`;
             const docRef = doc(db, "monthly_statements", docId);
             const docSnap = await getDoc(docRef);
 
+            // 2. ÖNCEKİ DÖNEMİ BUL VE DETAYLI HESAPLA (Örn: Kasım)
+            let [yil, ay] = selectedPeriod.split('-').map(Number);
+            let prevDate = new Date(yil, ay - 2, 1); 
+            let prevKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
+            let prevDocId = `${currentMemberId}_${prevKey}`;
+            
+            const prevDocSnap = await getDoc(doc(db, "monthly_statements", prevDocId));
+
+            // --- OTOMATİK DEVİR HESAPLAMA (Veritabanındaki toplama güvenme, yeniden hesapla) ---
+            let activeDevirBakiye = 0;
+
+            if(prevDocSnap.exists()) {
+                const pData = prevDocSnap.data();
+                
+                // A. Önceki Ayın Devrini Al
+                let pDevir = pData.devirBakiye || 0;
+                
+                // B. Önceki Ayın Sütlerini Topla
+                let pSutToplami = 0;
+                if(pData.sutListesi) {
+                    pData.sutListesi.forEach(item => pSutToplami += Number(item.tutar || item.amount || 0));
+                }
+
+                // C. Önceki Ayın Satışlarını Topla
+                let pSatisToplami = 0;
+                if(pData.satisListesi) {
+                    pData.satisListesi.forEach(item => pSatisToplami += Number(item.amount || 0));
+                }
+
+                // D. Önceki Ayın Nakit Hareketlerini Topla
+                let pGiren = 0, pCikan = 0;
+                if(pData.nakitListesi) {
+                    pData.nakitListesi.forEach(item => {
+                        if(item.type === 'alacak') pGiren += Number(item.amount || 0);
+                        else pCikan += Number(item.amount || 0);
+                    });
+                }
+
+                // E. Devir Yönünü Ayarla (Negatif: Alacak, Pozitif: Borç)
+                // Sistemimizde:
+                // Alacaklar (Giriş) = Süt + NakitGiriş
+                // Borçlar (Çıkış) = Satış + NakitÇıkış
+                // Devir Mantığı: pDevir < 0 ise Alacak, > 0 ise Borç.
+
+                let pGenelAlacak = pSutToplami + pGiren;
+                let pGenelBorc = pSatisToplami + pCikan;
+
+                if(pDevir < 0) pGenelAlacak += Math.abs(pDevir); // Devir alacaksa alacaklara ekle
+                else pGenelBorc += pDevir; // Devir borçsa borçlara ekle
+
+                // F. Sonucu Bul (Alacak - Borç)
+                // Pozitif çıkarsa Alacaklıyız demektir.
+                // ANCAK: Bizim devirBakiye mantığımızda Alacak genellikle NEGATİF saklanıyor olabilir.
+                // KODUN Geri kalanına uyumlu olması için:
+                // Eğer Sonuç (Alacak - Borç) > 0 ise -> Kullanıcı Alacaklı -> Bunu Devir olarak nasıl gösterelim?
+                // Aşağıdaki koda göre:
+                // activeDevirBakiye < 0 ise ALACAKLI
+                // activeDevirBakiye > 0 ise BORÇLU
+                
+                let netSonuc = pGenelAlacak - pGenelBorc;
+                
+                // Eğer Net Sonuç Pozitifse (Paramız var), bunu sisteme ALACAK (Negatif) olarak tanıtacağız
+                // Eğer Net Sonuç Negatifse (Borcumuz var), bunu sisteme BORÇ (Pozitif) olarak tanıtacağız
+                // ÇÜNKÜ: Aşağıdaki kodda "devirBakiye < 0 -> Alacak" mantığı kurulu.
+                
+                if(netSonuc > 0) activeDevirBakiye = -Math.abs(netSonuc); // Alacak
+                else activeDevirBakiye = Math.abs(netSonuc); // Borç
+
+            } else {
+                // Önceki ay yoksa mevcut belgedeki manuel devri kullan
+                if(docSnap.exists()) {
+                    activeDevirBakiye = docSnap.data().devirBakiye || 0;
+                }
+            }
+
+            // --- VERİ KONTROLÜ ---
             if(!docSnap.exists()) {
                 container.innerHTML = `
                     <div class="text-center py-5 text-muted">
@@ -873,7 +947,7 @@
 
             const data = docSnap.data();
 
-            // RAKAM FORMATLAMA
+            // YARDIMCI FORMAT FONKSİYONLARI
             const fmt = (num) => Number(num).toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' ₺';
             const dateFmt = (ts) => {
                 if(!ts) return '-';
@@ -881,66 +955,63 @@
                 return ts; 
             };
 
-            // 1. DEVİR
-            let devirHtml = '';
-            let devirText = '';
-            let devirClass = '';
-            
-            if(data.devirBakiye > 0) {
-                devirText = `${fmt(data.devirBakiye)} BORÇLU`;
-                devirClass = 'bg-danger bg-opacity-10 text-danger border-danger';
-            } else if(data.devirBakiye < 0) {
-                devirText = `${fmt(Math.abs(data.devirBakiye))} ALACAKLI`;
-                devirClass = 'bg-success bg-opacity-10 text-success border-success';
-            } else {
-                devirText = '0,00 ₺ (BAKİYE YOK)';
-                devirClass = 'bg-light text-secondary';
-            }
-
-            devirHtml = `
-                <div class="card border mb-4 shadow-sm">
-                    <div class="card-body d-flex justify-content-between align-items-center p-3 ${devirClass}" style="border-radius: 0.375rem;">
-                        <span class="fw-bold text-dark">DÖNEM BAŞI DEVİR</span>
-                        <span class="fw-bold fs-5">${devirText}</span>
-                    </div>
-                </div>
-            `;
-
-            // 2. SÜT BEDELLERİ (TEK SATIR)
+            // --- 1. SÜT BEDELLERİ (BU AY) ---
             let sutRows = '';
+            let hesaplananSutToplami = 0; 
+
             if(data.sutListesi && data.sutListesi.length > 0) {
                 data.sutListesi.forEach(item => {
-                    const tarih = item.tarih || dateFmt(item.date);
-                    const aciklama = item.aciklama || item.desc || 'Süt';
-                    const aksam = item.aksam || 0;
-                    const sabah = item.sabah || 0;
+                    let ayAdi = 'Dönem';
+                    try {
+                        if(item.tarih) {
+                            const parts = item.tarih.split('.');
+                            if(parts.length === 3) {
+                                const d = new Date(parts[2], parts[1]-1, parts[0]);
+                                ayAdi = d.toLocaleDateString('tr-TR', { month: 'long' });
+                            }
+                        } else if(item.date && item.date.seconds) {
+                            ayAdi = new Date(item.date.seconds * 1000).toLocaleDateString('tr-TR', { month: 'long' });
+                        }
+                        ayAdi = ayAdi.charAt(0).toUpperCase() + ayAdi.slice(1);
+                    } catch (e) { ayAdi = item.tarih || '-'; }
+
+                    const aciklama = item.aciklama || item.desc || 'Süt Bedeli';
+                    const aksam = Number(item.aksam) || 0;
+                    const sabah = Number(item.sabah) || 0;
+                    const toplamLt = aksam + sabah;
                     const fiyat = item.fiyat || 0;
-                    const tutar = item.tutar || item.amount || 0;
+                    const tutar = Number(item.tutar || item.amount || 0);
+                    
+                    hesaplananSutToplami += tutar; 
 
                     sutRows += `
                         <tr>
-                            <td class="small fw-bold text-dark">${tarih}</td>
-                            <td class="small text-muted">${aciklama}</td>
+                            <td class="small fw-bold text-dark ps-3">${ayAdi}</td>
+                            <td class="small text-muted" style="font-size:0.75rem">${aciklama}</td>
                             <td class="text-center text-primary bg-primary bg-opacity-10 fw-bold">${aksam > 0 ? aksam : '-'}</td>
                             <td class="text-center text-warning bg-warning bg-opacity-10 fw-bold">${sabah > 0 ? sabah : '-'}</td>
+                            <td class="text-center fw-bold text-dark bg-secondary bg-opacity-10">${toplamLt}</td>
                             <td class="text-center text-muted small">${fmt(fiyat)}</td>
-                            <td class="text-end fw-bold text-success">${fmt(tutar)}</td>
+                            <td class="text-end fw-bold text-success pe-3">${fmt(tutar)}</td>
                         </tr>
                     `;
                 });
             } else {
-                sutRows = '<tr><td colspan="6" class="text-center text-muted small py-3">Bu dönem süt kaydı yok.</td></tr>';
+                sutRows = '<tr><td colspan="7" class="text-center text-muted small py-3">Bu dönem süt kaydı yok.</td></tr>';
             }
 
-           
-// --- 3. MAL/HİZMET ALIMLARI (REVİZE - AYRI MİKTAR SÜTUNU) ---
+            // --- 2. MAL/HİZMET ALIMLARI (BU AY) ---
             let satisRows = '';
+            let hesaplananSatisToplami = 0; 
+
             if(data.satisListesi && data.satisListesi.length > 0) {
                 data.satisListesi.forEach(item => {
                     const urunAdi = item.name;
                     const birimFiyat = item.price;
-                    // Miktar bilgisi artık ayrı bir hücrede (Örn: 10 Adet)
                     const miktar = item.qty ? `${item.qty} <small class="text-muted">${item.unit || ''}</small>` : '-';
+                    const tutar = Number(item.amount || 0);
+
+                    hesaplananSatisToplami += tutar;
 
                     satisRows += `
                         <tr>
@@ -950,19 +1021,18 @@
                             </td>
                             <td class="text-center align-middle fw-bold text-dark small">${miktar}</td>
                             <td class="text-end align-middle small text-muted">${fmt(birimFiyat)}</td>
-                            <td class="text-end align-middle fw-bold text-danger">-${fmt(item.amount)}</td>
+                            <td class="text-end align-middle fw-bold text-danger">-${fmt(tutar)}</td>
                         </tr>
                     `;
                 });
             } else {
-                // Sütun sayısı 5'e çıktığı için colspan=5 yaptık
                 satisRows = '<tr><td colspan="5" class="text-center text-muted small py-3">Bu dönem alışveriş yok.</td></tr>';
             }
 
-           // --- 4. NAKİT VE DİĞER HAREKETLER (GİREN / ÇIKAN FORMATI + TOPLAM) ---
+            // --- 3. NAKİT HAREKETLER (BU AY) ---
             let nakitRows = '';
-            let totalGiren = 0; // Toplam Giren (Tahsilat)
-            let totalCikan = 0; // Toplam Çıkan (Ödeme)
+            let totalGiren = 0; 
+            let totalCikan = 0; 
 
             if(data.nakitListesi && data.nakitListesi.length > 0) {
                 data.nakitListesi.forEach(item => {
@@ -971,11 +1041,9 @@
                     const miktar = Number(item.amount);
 
                     if (item.type === 'alacak') {
-                        // Tahsilat (Giren)
                         girenSutunu = `<span class="fw-bold text-dark">${fmt(miktar)}</span>`;
                         totalGiren += miktar;
                     } else {
-                        // Ödeme (Çıkan)
                         cikanSutunu = `<span class="fw-bold text-dark">${fmt(miktar)}</span>`;
                         totalCikan += miktar;
                     }
@@ -992,24 +1060,25 @@
             } else {
                 nakitRows = '<tr><td colspan="4" class="text-center text-muted small py-3">Bu dönem nakit hareket yok.</td></tr>';
             }
-// --- 6. DÖNEM SONU DETAYLI HESAPLAMA TABLOSU (GÖRSEL TASARIM) ---
 
-            // A) Değişkenleri Hazırla
+            // --- 4. DETAYLI HESAPLAMA (GÜNCELLENMİŞ DEVİR MANTIĞI İLE) ---
             let devirAlacak = 0;
             let devirBorc = 0;
             let devirSatiriAlacak = ''; 
             let devirSatiriBorc = '';
 
-            // Devir Yönünü Belirle (Negatif = Alacak, Pozitif = Borç)
-            if (data.devirBakiye < 0) {
-                devirAlacak = Math.abs(data.devirBakiye);
+            // activeDevirBakiye: Önceki aydan hesaplayarak bulduğumuz gerçek bakiye
+            if (activeDevirBakiye < 0) {
+                // Negatif ise Üye Alacaklı demektir
+                devirAlacak = Math.abs(activeDevirBakiye);
                 devirSatiriAlacak = `
                     <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
                         <span class="text-secondary small">Önceki Aydan Devir (Alacak)</span>
                         <span class="fw-bold text-dark">+ ${fmt(devirAlacak)}</span>
                     </div>`;
-            } else if (data.devirBakiye > 0) {
-                devirBorc = data.devirBakiye;
+            } else if (activeDevirBakiye > 0) {
+                // Pozitif ise Üye Borçlu demektir
+                devirBorc = activeDevirBakiye;
                 devirSatiriBorc = `
                     <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
                         <span class="text-secondary small">Önceki Aydan Devir (Borç)</span>
@@ -1017,91 +1086,75 @@
                     </div>`;
             }
 
-            // Genel Toplamları Hesapla
-            // Not: totalGiren ve totalCikan yukarıdaki döngülerden geliyor.
-            const tGiren = typeof totalGiren !== 'undefined' ? totalGiren : 0;
-            const tCikan = typeof totalCikan !== 'undefined' ? totalCikan : 0;
-            
-            const genelToplamAlacak = devirAlacak + Number(data.sutToplam) + tGiren;
-            const genelToplamBorc = devirBorc + Number(data.satisToplam) + tCikan;
+            // GENEL TOPLAMLAR (Devir Dahil)
+            const genelToplamAlacak = devirAlacak + hesaplananSutToplami + totalGiren;
+            const genelToplamBorc = devirBorc + hesaplananSatisToplami + totalCikan;
 
-            // B) HTML Tablosunu Oluştur (Resimdeki Tasarım)
+            // NET DURUM (Alacak - Borç)
+            const netDurum = genelToplamAlacak - genelToplamBorc;
+
             const detayTabloHtml = `
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white border-0 pt-4 pb-2">
                         <h6 class="fw-bold text-dark m-0">DÖNEM SONU HESAPLAMA DETAYI</h6>
                     </div>
                     <div class="card-body p-3 pt-0">
-                        
                         <div class="mb-4">
                             <h6 class="fw-bold text-success mb-3" style="font-size: 0.8rem;">+ ALACAKLAR (Giriş)</h6>
-                            
                             ${devirSatiriAlacak}
-
                             <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
                                 <span class="text-secondary small">Cari Ay Süt Bedelleri</span>
-                                <span class="fw-bold text-dark">+ ${fmt(data.sutToplam)}</span>
+                                <span class="fw-bold text-dark">+ ${fmt(hesaplananSutToplami)}</span>
                             </div>
-
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="text-secondary small">Cari Ay Yapılan Nakit Tahsilatlar</span>
-                                <span class="fw-bold text-dark">+ ${fmt(tGiren)}</span>
+                                <span class="fw-bold text-dark">+ ${fmt(totalGiren)}</span>
                             </div>
-
                             <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #d1e7dd;">
                                 <span class="fw-bold text-success small">TOPLAM ALACAK</span>
                                 <span class="fw-bold text-dark">${fmt(genelToplamAlacak)}</span>
                             </div>
                         </div>
-
                         <div>
                             <h6 class="fw-bold text-danger mb-3" style="font-size: 0.8rem;">- BORÇLAR (Çıkış)</h6>
-
                             ${devirSatiriBorc}
-
                             <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
                                 <span class="text-secondary small">Cari Ay Mal/Hizmet Satışları</span>
-                                <span class="fw-bold text-dark">- ${fmt(data.satisToplam)}</span>
+                                <span class="fw-bold text-dark">- ${fmt(hesaplananSatisToplami)}</span>
                             </div>
-
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="text-secondary small">Cari Ay Yapılan Ödemeler (Avans)</span>
-                                <span class="fw-bold text-dark">- ${fmt(tCikan)}</span>
+                                <span class="fw-bold text-dark">- ${fmt(totalCikan)}</span>
                             </div>
-
                             <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #f8d7da;">
                                 <span class="fw-bold text-danger small">TOPLAM BORÇ</span>
                                 <span class="fw-bold text-dark">${fmt(genelToplamBorc)}</span>
                             </div>
                         </div>
-
                     </div>
                 </div>
             `;
-// 7. SONUÇ BAKİYE KARTI
+
+            // --- 5. SONUÇ KARTI ---
             let sonucText = '';
-            let sonucRenk = ''; // Renk değişkenimiz bu
+            let sonucRenk = '';
             
-            if(data.sonucBakiye > 0) {
-                sonucText = `${fmt(data.sonucBakiye)} BORÇLUSUNUZ`;
-                sonucRenk = '#dc3545'; // Kırmızı
-            } else if(data.sonucBakiye < 0) {
-                sonucText = `${fmt(Math.abs(data.sonucBakiye))} ALACAKLISINIZ`;
-                sonucRenk = '#198754'; // Yeşil
+            if(netDurum > 0) {
+                sonucText = `${fmt(netDurum)} ALACAKLISINIZ`;
+                sonucRenk = '#198754'; 
+            } else if(netDurum < 0) {
+                sonucText = `${fmt(Math.abs(netDurum))} BORÇLUSUNUZ`;
+                sonucRenk = '#dc3545'; 
             } else {
                 sonucText = "HESAP KAPALI (0,00 ₺)";
-                sonucRenk = "#6c757d"; // Gri
+                sonucRenk = "#6c757d"; 
             }
 
-            // --- 7. RESİMDEKİ GİBİ ÜST DEVİR KARTI ---
+            // --- ÜST DEVİR KARTI (HESAPLANMIŞ DEVİR İLE) ---
             let ustDevirHtml = '';
-            
-            if (data.devirBakiye !== 0) {
-                // Borç mu Alacak mı?
-                const isBorc = data.devirBakiye > 0;
-                const devirTutar = Math.abs(data.devirBakiye);
-                
-                // Stil Ayarları:
+            if (activeDevirBakiye !== 0) {
+                const isBorc = activeDevirBakiye > 0;
+                const devirTutar = Math.abs(activeDevirBakiye);
                 const bgStyle = isBorc ? 'background-color: #fff3cd;' : 'background-color: #d1e7dd;';
                 const textClass = isBorc ? 'text-danger' : 'text-success';
                 const durumYazisi = isBorc ? 'BORÇLU' : 'ALACAKLI';
@@ -1116,7 +1169,6 @@
                     </div>
                 </div>`;
             } else {
-                // Bakiye Sıfır ise
                 ustDevirHtml = `
                 <div class="card border-0 mb-3 shadow-sm" style="border-radius: 12px;">
                     <div class="card-body d-flex justify-content-between align-items-center p-3 bg-light">
@@ -1126,9 +1178,8 @@
                 </div>`;
             }
 
-            // HTML ÇIKTISI
+            // --- 6. HTML BİRLEŞTİRME ---
             container.innerHTML = `
-                
                 ${ustDevirHtml}
 
                 <h6 class="fw-bold text-success mb-2 border-bottom pb-1 mt-2">1. SÜT BEDELLERİ</h6>
@@ -1137,19 +1188,20 @@
                         <table class="table table-sm table-striped mb-0 align-middle" style="font-size:0.8rem">
                             <thead class="table-light">
                                 <tr class="text-center">
-                                    <th class="text-start ps-2">Tarih</th>
+                                    <th class="text-start ps-3">Ay</th>
                                     <th class="text-start">Açıklama</th>
                                     <th>Akşam<br><small>(Lt)</small></th>
                                     <th>Sabah<br><small>(Lt)</small></th>
+                                    <th>Toplam<br><small>(Lt)</small></th>
                                     <th>Fiyat</th>
-                                    <th class="text-end pe-2">Tutar</th>
+                                    <th class="text-end pe-3">Tutar</th>
                                 </tr>
                             </thead>
                             <tbody>${sutRows}</tbody>
                             <tfoot class="bg-success bg-opacity-10 fw-bold">
                                 <tr>
-                                    <td colspan="5" class="text-end pe-2">SÜT TOPLAMI:</td>
-                                    <td class="text-end text-success pe-2">${fmt(data.sutToplam)}</td>
+                                    <td colspan="6" class="text-end pe-2">SÜT TUTAR TOPLAMI:</td>
+                                    <td class="text-end text-success pe-3">${fmt(hesaplananSutToplami)}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -1171,7 +1223,7 @@
                             <tbody>${satisRows}</tbody>
                             <tfoot class="bg-danger bg-opacity-10 fw-bold">
                                 <tr>
-                                    <td colspan="4" class="text-end pe-2">BORÇ TOPLAMI:</td> <td class="text-end text-danger">${fmt(data.satisToplam)}</td>
+                                    <td colspan="4" class="text-end pe-2">BORÇ TOPLAMI:</td> <td class="text-end text-danger">${fmt(hesaplananSatisToplami)}</td>
                                 </tr>
                             </tfoot>
                         </table>

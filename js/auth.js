@@ -1,14 +1,35 @@
-import { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, getDoc, doc, setDoc, collection, query, where, getDocs } from "./firebase-config.js";
+// VERSİYONLAR DÜZELTİLDİ: 10.7.1 (firebase-config.js ile aynı yapıldı)
+import { 
+    getFirestore, 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    doc, 
+    getDoc, 
+    setDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import { auth, db } from "./firebase-config.js";
 
 export async function sistemGiris(girdi, sifre) {
-    // 1. Girdiyi E-Posta formatına çevir
+    // 1. Girdiyi Temizle (Boşlukları sil)
+    girdi = girdi.trim();
+    sifre = sifre.trim();
+
+    // 2. E-Posta formatına çevir
     let email;
     let telefonNo = "";
 
     if (girdi.includes('@')) {
         email = girdi;
     } else {
-        // Telefon numarasını temizle
+        // Telefon numarasını temizle (Boşlukları al, başında 0 varsa sil)
         telefonNo = girdi.replace(/\s/g, '');
         if (telefonNo.startsWith('0')) telefonNo = telefonNo.substring(1);
         email = `${telefonNo}@koop.com`;
@@ -17,23 +38,27 @@ export async function sistemGiris(girdi, sifre) {
     try {
         console.log("Giriş deneniyor:", email);
         
-        // 2. ÖNCE GİRİŞ YAPMAYI DENE (Zaten şifresi varsa)
+        // 3. GİRİŞ YAPMAYI DENE
         await signInWithEmailAndPassword(auth, email, sifre);
         
-        // Giriş başarılıysa yönlendir
-        await yonlendir(auth.currentUser);
+        // Başarılıysa yönlendir
+        if(auth.currentUser) {
+            await yonlendir(auth.currentUser);
+        }
 
     } catch (error) {
-        console.log("Giriş hatası:", error.code);
+        console.error("Giriş Hatası Detayı:", error);
 
-        // --- KRİTİK NOKTA: KULLANICI YOKSA VE TELEFON İLE GİRİYORSA ---
+        // --- HATA ANALİZİ ---
+        
+        // Hata 1: Kullanıcı Auth'da Yok (Ama veritabanında olabilir - Üye Girişi)
         if ((error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') && !girdi.includes('@')) {
             
             console.log("Kullanıcı Auth'da yok, Üye listesi kontrol ediliyor...");
             
             // Members tablosunda bu telefonu arayalım
-            const q = query(collection(db, "members"), where("telefon", "==", `0${telefonNo}`)); // Veritabanında başında 0 ile kayıtlı olabilir
-            const q2 = query(collection(db, "members"), where("telefon", "==", telefonNo)); // Başında 0 olmadan kayıtlı olabilir
+            const q = query(collection(db, "members"), where("telefon", "==", `0${telefonNo}`)); 
+            const q2 = query(collection(db, "members"), where("telefon", "==", telefonNo));
             
             const snapshot1 = await getDocs(q);
             const snapshot2 = await getDocs(q2);
@@ -43,13 +68,9 @@ export async function sistemGiris(girdi, sifre) {
             else if (!snapshot2.empty) bulunanUye = snapshot2.docs[0];
 
             if (bulunanUye) {
-                // EĞER ADMİN BU NUMARAYI DAHA ÖNCE EKLEMİŞSE:
                 const uyeData = bulunanUye.data();
-                const uyeId = bulunanUye.id;
-                const sirketId = uyeData.coopId;
-
                 try {
-                    // Otomatik Hesap Oluştur (Register)
+                    // Otomatik Hesap Oluştur
                     const userCred = await createUserWithEmailAndPassword(auth, email, sifre);
                     const user = userCred.user;
 
@@ -57,46 +78,62 @@ export async function sistemGiris(girdi, sifre) {
                     await setDoc(doc(db, "users", user.uid), {
                         email: email,
                         role: 'member',
-                        coopId: sirketId,
-                        relatedMemberId: uyeId,
+                        coopId: uyeData.coopId,
+                        relatedMemberId: bulunanUye.id,
                         createdAt: new Date()
                     });
 
-                    alert("✅ Hesabınız başarıyla oluşturuldu ve eşleştirildi! Giriş yapılıyor...");
+                    alert("✅ Hesabınız oluşturuldu! Giriş yapılıyor...");
                     await yonlendir(user);
 
                 } catch (createError) {
-    console.error("Kayıt Hatası Detayı:", createError);
-    if (createError.code === 'auth/weak-password') {
-        alert("HATA: Şifreniz en az 6 karakter olmalıdır!");
-    } else if (createError.code === 'auth/email-already-in-use') {
-        alert("HATA: Bu kullanıcı zaten kayıtlı, ancak şifre yanlış girildi.");
-    } else {
-        alert("Hesap oluşturulurken hata: " + createError.message);
-    }
-}
+                    alert("Kayıt oluşturma hatası: " + createError.message);
+                }
             } else {
-                alert("❌ Bu telefon numarası sistemde kayıtlı değil. Lütfen yöneticinizle iletişime geçin.");
+                alert("❌ BU TELEFON SİSTEMDE KAYITLI DEĞİL.\nLütfen yöneticinizle görüşün.");
             }
-        } else {
-            alert("Giriş başarısız! Şifre yanlış olabilir.");
+        } 
+        // Hata 2: Şifre Yanlış
+        else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            alert("❌ ŞİFRE YANLIŞ.\nLütfen şifrenizi kontrol edip tekrar deneyin.");
+        } 
+        // Hata 3: Çok fazla deneme yapıldı
+        else if (error.code === 'auth/too-many-requests') {
+            alert("⚠️ ÇOK FAZLA HATALI DENEME.\nLütfen biraz bekleyip tekrar deneyin veya şifrenizi sıfırlayın.");
+        }
+        // Diğer Hatalar
+        else {
+            alert("Giriş Hatası: " + error.code + "\n" + error.message);
         }
     }
 }
 
-// Yönlendirme Fonksiyonu
 async function yonlendir(user) {
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-        const data = userDoc.data();
-        sessionStorage.setItem("userRole", data.role);
-        sessionStorage.setItem("coopId", data.coopId);
+    console.log("Yönlendiriliyor: ", user.email);
+    const q = query(collection(db, "users"), where("email", "==", user.email));
+    const querySnapshot = await getDocs(q);
 
-        if (data.role === 'admin') window.location.href = "panels/admin.html";
-        else if (data.role === 'member') window.location.href = "panels/member.html";
-        else if (data.role === 'driver') window.location.href = "panels/driver.html";
-        else alert("Rol tanımlanmamış.");
+    if (!querySnapshot.empty) {
+        const data = querySnapshot.docs[0].data();
+        const kullaniciRolu = data.role || data.rol; 
+        const kurumID = data.coopId || data.kurumID;
+
+        sessionStorage.setItem("userRole", kullaniciRolu);
+        sessionStorage.setItem("coopId", kurumID); 
+
+        if (kullaniciRolu === 'admin' || kullaniciRolu === 'yonetici') {
+            window.location.href = "panels/admin.html";
+        }
+        else if (kullaniciRolu === 'member' || kullaniciRolu === 'uye') {
+            window.location.href = "panels/member.html";
+        }
+        else if (kullaniciRolu === 'driver' || kullaniciRolu === 'sofor') {
+            window.location.href = "panels/driver.html";
+        }
+        else {
+            alert("Rol Tanımsız: " + kullaniciRolu);
+        }
     } else {
-        alert("Kullanıcı veri kaydı bulunamadı.");
+        alert("Kullanıcı veritabanında bulunamadı! (Auth var ama Firestore yok)");
     }
 }

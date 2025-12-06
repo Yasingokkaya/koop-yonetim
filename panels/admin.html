@@ -681,6 +681,33 @@ div.swal2-container {
     position: relative;
     cursor: pointer;
 }
+/* Üye Ekleme Penceresini EN ÖNE ZORLA */
+#addMemberModal {
+    z-index: 100090 !important; 
+}
+/* --- CSS Z-INDEX (KATMAN) DÜZELTMESİ --- */
+    
+    /* 1. Karartma Perdesini Arkaya İt */
+    .modal-backdrop {
+        z-index: 1040 !important; 
+        opacity: 0.5 !important;
+    }
+
+    /* 2. Açılan Pencereleri (Modal) Öne Al */
+    .modal {
+        z-index: 1050 !important;
+    }
+    
+    /* 3. SweetAlert Uyarılarını HER ŞEYİN Önüne Al */
+    div.swal2-container {
+        z-index: 200000 !important; 
+    }
+    
+    /* 4. Eğer giriş kartı index.html'de kayboluyorsa bunu kullan: */
+    .login-card {
+        z-index: 10;
+        position: relative;
+    }
 </style>
 </head>
 <body>
@@ -837,7 +864,14 @@ div.swal2-container {
                 <small>Detaylı Analiz</small>
             </div>
         </div>
-
+<div class="col-6 col-md-3">
+    <div class="card quick-card shadow-sm" style="background: linear-gradient(135deg, #be123c 0%, #9f1239 100%);" onclick="soforEkleModalAc()">
+        <i class="bg-icon fa-solid fa-truck-fast"></i>
+        <i class="fa-solid fa-truck-fast fa-2x mb-2"></i>
+        <h6>Şoför Ekle</h6>
+        <small>Personel Tanımla</small>
+    </div>
+</div>
     </div>
 </div>
 <div id="reports" class="content-section hidden-section">
@@ -956,13 +990,23 @@ div.swal2-container {
                             <i class="fa-solid fa-chevron-right text-muted small"></i>
                         </button>
                     </div>
-                    <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="hesapYayinlamaModalAc()">
-    <div>
-        <span class="fw-bold text-dark small">Dönem Hesabı Yayınla</span>
-        <small class="d-block text-danger fw-bold" style="font-size:0.7rem">Üretici Ekranına Gönder</small>
-    </div>
-    <i class="fa-solid fa-upload text-danger small"></i>
-</button>
+                    <div class="p-3 mt-auto bg-light bg-opacity-50 border-top">
+                    <button class="btn w-100 d-flex align-items-center justify-content-between p-3 border shadow-sm" 
+                            onclick="hesapYayinlamaModalAc()"
+                            style="background-color: #fff1f2; border-color: #fecdd3 !important; border-radius: 12px; transition: transform 0.2s;">
+                        
+                        <div class="text-start">
+                            <div class="fw-bold text-danger" style="font-size: 0.9rem;">
+                                <i class="fa-solid fa-bullhorn me-2"></i>Dönem Hesabı Yayınla
+                            </div>
+                            <small class="text-secondary" style="font-size: 0.7rem;">Bakiyeleri üreticilere gönder</small>
+                        </div>
+                        
+                        <div class="bg-danger text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                            <i class="fa-solid fa-arrow-up-from-bracket" style="font-size: 0.8rem;"></i>
+                        </div>
+                    </button>
+                </div>
                 </div>
             </div>
 
@@ -1059,8 +1103,8 @@ div.swal2-container {
                             <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
                             <input type="text" class="form-control border-start-0 ps-0" id="searchInput" placeholder="Hızlı ara...">
                         </div>
-                        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addMemberModal" id="btnAddMember">
-                            <i class="fa-solid fa-plus me-1"></i> Yeni
+                        <button class="btn btn-primary-custom" onclick="yeniUyeModalAc()" id="btnAddMember">
+                            <i class="fa-solid fa-plus me-1"></i> Yeni Müşteri
                         </button>
                        
                     </div>
@@ -1217,103 +1261,78 @@ div.swal2-container {
     </div>
 </div>
                     <div class="col-md-4">
-                        <div class="card settings-card">
-                            <div class="s-icon icon-purple"><i class="fa-solid fa-shield-halved"></i></div>
-                            <h5 class="fw-bold text-dark">Yetkiler</h5>
-                            <small class="text-muted d-block">Kullanıcı ve yönetici rolleri</small>
-                        </div>
-                    </div>
+    <div class="card settings-card" onclick="openSubSetting('sub-permissions'); yetkilileriGetir();">
+        <div class="s-icon icon-purple"><i class="fa-solid fa-shield-halved"></i></div>
+        <h5 class="fw-bold text-dark">Yetkiler</h5>
+        <small class="text-muted d-block">Şoför ve Personel Yönetimi</small>
+    </div>
+</div>
                 </div>
             </div>
-<div id="sub-regions" class="d-none sub-setting-page">
-                <div class="d-flex align-items-center mb-4">
-                    <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeSubSetting()" style="width: 45px; height: 45px;">
-                        <i class="fa-solid fa-arrow-left text-primary"></i>
-                    </button>
-                    <div>
-                        <h4 class="m-0 fw-bold">Bölge & Rota Yönetimi</h4>
-                        <small class="text-muted">Köy ve mahalle tanımlarını buradan yönetebilirsiniz.</small>
-                    </div>
+ <div id="sub-regions" class="d-none sub-setting-page">
+    <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeSubSetting()" style="width: 45px; height: 45px;">
+            <i class="fa-solid fa-arrow-left text-primary"></i>
+        </button>
+        <div>
+            <h4 class="m-0 fw-bold">Bölge & Rota Yönetimi</h4>
+            <small class="text-muted">Köy ve mahalle tanımları.</small>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 fw-bold text-primary"><i class="fa-solid fa-list-ul me-2"></i>Kayıtlı Rotalar</h6>
+                    <span class="badge bg-primary-subtle text-primary" id="rotaSayisiBadge">0 Rota</span>
                 </div>
-
-                <div class="row g-4">
-                    <div class="col-lg-8">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="m-0 fw-bold text-primary"><i class="fa-solid fa-list-ul me-2"></i>Kayıtlı Rotalar</h6>
-                                <span class="badge bg-primary-subtle text-primary" id="rotaSayisiBadge">0 Rota</span>
-                            </div>
-                            <div class="card-body">
-                                <form id="addVillageForm" class="row g-2 mb-4 align-items-center">
-                                    <div class="col">
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-map-pin text-muted"></i></span>
-                                            <input type="text" class="form-control form-control-lg border-start-0" id="newVillageInput" placeholder="Yeni Köy / Mahalle Adı" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <button type="submit" class="btn btn-lg btn-primary-custom h-100 px-4">
-                                            <i class="fa-solid fa-plus me-2"></i>EKLE
-                                        </button>
-                                    </div>
-                                </form>
-
-                                <hr class="text-muted opacity-25">
-
-                                <div id="villageList" class="list-group list-group-flush overflow-auto custom-scrollbar" style="max-height: 450px;">
-                                    </div>
+                <div class="card-body">
+                    <form id="addVillageForm" class="row g-2 mb-4 align-items-center">
+                        <div class="col">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-map-pin text-muted"></i></span>
+                                <input type="text" class="form-control form-control-lg border-start-0" id="newVillageInput" placeholder="Yeni Köy / Mahalle Adı" required>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="col-lg-4">
-                        <div class="card border-0 shadow-sm bg-primary-subtle h-100">
-                             <div class="card-body text-center p-4">
-                                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 70px; height: 70px;">
-                                    <i class="fa-solid fa-shield-halved text-primary fs-2"></i>
-                                </div>
-                                <h5 class="fw-bold text-dark mb-2">Güvenlik Limiti</h5>
-                                <p class="text-muted small mb-4">
-                                    Şoförlerin girdiği süt miktarında, bir önceki güne göre aşırı sapma olursa sistem uyarı verir.
-                                </p>
-
-                                <div class="bg-white p-4 rounded-4 shadow-sm">
-                                    <label class="form-label small fw-bold text-start w-100 text-muted text-uppercase">Sapma Yüzdesi</label>
-                                    <div class="input-group input-group-lg mb-3">
-                                        <input type="number" class="form-control fw-bold text-center text-primary border-primary" id="sapmaInput" placeholder="50">
-                                        <span class="input-group-text bg-primary text-white fw-bold">%</span>
-                                    </div>
-                                    <button class="btn btn-dark w-100 fw-bold py-2 rounded-3" onclick="limitKaydet()">
-                                        <i class="fa-solid fa-check me-2"></i> AYARI KAYDET
-                                    </button>
-                                </div>
-                             </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-lg btn-primary-custom h-100 px-4">EKLE</button>
                         </div>
-                    </div>
+                    </form>
+                    <div id="villageList" class="list-group list-group-flush overflow-auto custom-scrollbar" style="max-height: 450px;"></div>
                 </div>
             </div>
-            <div id="sub-prices" class="d-none sub-setting-page">
+        </div>
+        <div class="col-lg-4">
+             <div class="card border-0 shadow-sm bg-primary-subtle h-100">
+                 <div class="card-body text-center p-4">
+                    <h5 class="fw-bold text-dark mb-2">Güvenlik Limiti</h5>
+                    <div class="bg-white p-4 rounded-4 shadow-sm mt-3">
+                        <label class="form-label small fw-bold text-start w-100 text-muted">Sapma Yüzdesi</label>
+                        <div class="input-group input-group-lg mb-3">
+                            <input type="number" class="form-control fw-bold text-center text-primary border-primary" id="sapmaInput" placeholder="50">
+                            <span class="input-group-text bg-primary text-white fw-bold">%</span>
+                        </div>
+                        <button class="btn btn-dark w-100 fw-bold py-2 rounded-3" onclick="limitKaydet()">KAYDET</button>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="sub-prices" class="d-none sub-setting-page">
     <div class="d-flex align-items-center mb-4">
         <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeSubSetting()" style="width: 45px; height: 45px;">
             <i class="fa-solid fa-arrow-left text-primary"></i>
         </button>
         <div>
             <h4 class="m-0 fw-bold">Süt Fiyatlandırması</h4>
-            <small class="text-muted">Varsayılan litre fiyatını buradan belirleyin.</small>
+            <small class="text-muted">Litre fiyatı belirleyin.</small>
         </div>
     </div>
-
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card border-0 shadow-sm p-4">
-                <div class="text-center mb-4">
-                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i class="fa-solid fa-tag fa-2x"></i>
-                    </div>
-                    <h5 class="fw-bold">Güncel Süt Bedeli</h5>
-                    <p class="text-muted small">Bu fiyat, süt hesaplama ekranında otomatik olarak gelecektir.</p>
-                </div>
-
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted">Litre Fiyatı (TL)</label>
                     <div class="input-group input-group-lg">
@@ -1321,15 +1340,12 @@ div.swal2-container {
                         <span class="input-group-text fw-bold">₺</span>
                     </div>
                 </div>
-
-                <button class="btn btn-success w-100 py-3 fw-bold rounded-3 shadow-sm" onclick="sutFiyatiKaydet()">
-                    <i class="fa-solid fa-save me-2"></i> FİYATI KAYDET
-                </button>
+                <button class="btn btn-success w-100 py-3 fw-bold rounded-3 shadow-sm" onclick="sutFiyatiKaydet()">FİYATI KAYDET</button>
             </div>
         </div>
     </div>
 </div>
-            <div id="sub-pricing" class="d-none sub-setting-page">
+<div id="sub-pricing" class="d-none sub-setting-page">
     <div class="d-flex align-items-center mb-4">
         <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeSubSetting()" style="width: 45px; height: 45px;">
             <i class="fa-solid fa-arrow-left text-primary"></i>
@@ -1364,6 +1380,33 @@ div.swal2-container {
         <button class="btn btn-primary-custom w-100" onclick="kdvAyariniKaydet()">
             <i class="fa-solid fa-save me-2"></i> Ayarı Güncelle
         </button>
+    </div>
+</div>
+
+<div id="sub-permissions" class="d-none sub-setting-page">
+    <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeSubSetting()" style="width: 45px; height: 45px;">
+            <i class="fa-solid fa-arrow-left text-primary"></i>
+        </button>
+        <div>
+            <h4 class="m-0 fw-bold">Yetkili Listesi</h4>
+            <small class="text-muted">Yöneticiler ve Şoförler</small>
+        </div>
+        <div class="ms-auto">
+            <button class="btn btn-sm btn-dark rounded-pill px-3" onclick="soforEkleModalAc()">
+                <i class="fa-solid fa-plus me-1"></i> Yeni Ekle
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div id="authorizedUsersList" class="list-group list-group-flush">
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
         </div>
@@ -1437,7 +1480,7 @@ div.swal2-container {
                 <i class="fa-solid fa-wallet"></i>
             </div>
             <div class="text-start" style="line-height: 1.2;">
-                <div class="fw-bold text-dark small">ÖDEME YAP</div>
+                <div class="fw-bold text-dark small">ÖDEME</div>
                 <small class="text-muted" style="font-size: 0.65rem;">Para Çıkışı</small>
             </div>
         </button>
@@ -1561,74 +1604,68 @@ div.swal2-container {
         </div>
     </div>
 </div>  
-    
-
-           
-
 <div class="modal fade" id="evrakModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable"> <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-light">
-               <h5 class="modal-title fw-bold text-primary" id="modalBaslik"><i class="fa-solid fa-file-invoice me-2"></i>Yeni Evrak Girişi</h5>
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 95%;"> <div class="modal-content border-0 shadow-lg">
+            
+            <div class="modal-header bg-light py-3">
+                <h5 class="modal-title fw-bold text-primary" id="modalBaslik">
+                    <i class="fa-solid fa-file-invoice me-2"></i>Yeni Evrak Girişi
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body bg-light">
-                
+
                 <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-body p-3">
-<div class="card border-0 shadow-sm mb-3">
-    <div class="card-body p-4">
-        <div class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Evrak Türü</label>
-                <select class="form-select" id="evrakTuru">
-    <option value="satis">Satış Faturası</option>
-    <option value="iade">İade Faturası</option>
-    <option value="mustahsil">E-Müstahsil Makbuzu</option> </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Tarih</label>
-                <input type="date" class="form-control" id="evrakTarih">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Belge No</label>
-                <input type="text" class="form-control" id="evrakBelgeNo" placeholder="Örn: A-12345">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Açıklama</label>
-                <input type="text" class="form-control" id="evrakAciklama" placeholder="Fatura Açıklaması">
-            </div>
-        </div>
-    </div>
-</div>
-     
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Evrak Türü</label>
+                                <select class="form-select fw-bold text-dark" id="evrakTuru">
+                                    <option value="satis">Satış Faturası</option>
+                                    <option value="iade">İade Faturası</option>
+                                    <option value="mustahsil">E-Müstahsil Makbuzu</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Tarih</label>
+                                <input type="date" class="form-control fw-bold" id="evrakTarih">
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Belge No</label>
+                                <input type="text" class="form-control" id="evrakBelgeNo" placeholder="Örn: A-12345">
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Açıklama</label>
+                                <input type="text" class="form-control" id="evrakAciklama" placeholder="Fatura Açıklaması">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                           <table class="table table-bordered mb-0 small" id="faturaTablosu">
-    <thead class="table-light">
-    <tr>
-        <th style="width: 12%">Ürün Kodu</th> 
-        <th style="width: 22%">Ürün / Hizmet Adı</th> 
-        <th style="width: 8%">Miktar</th> 
-        <th style="width: 13%">Birim</th> <th style="width: 12%">Birim Fiyat</th> 
-        <th style="width: 8%">KDV %</th>
-        <th style="width: 10%">KDV Tutarı</th>
-        <th style="width: 15%">Toplam</th>
-        <th style="width: 5%">Sil</th>
-    </tr>
-</thead>
-    <tbody id="faturaSatirlari">
-    </tbody>
-    </table>
-                                <tbody id="faturaSatirlari">
+                            <table class="table table-bordered mb-0 small align-middle" id="faturaTablosu" style="min-width: 1100px;">
+                                <thead class="table-light">
+                                    <tr class="text-center text-uppercase">
+                                        <th style="width: 10%">Kod</th>
+                                        <th style="width: 25%">Ürün / Hizmet Adı</th>
+                                        <th style="width: 8%">Miktar</th>
+                                        <th style="width: 10%">Birim</th>
+                                        <th style="width: 12%">Birim Fiyat</th>
+                                        <th style="width: 10%">KDV %</th>
+                                        <th style="width: 10%">KDV Tutarı</th>
+                                        <th style="width: 10%">Toplam</th>
+                                        <th style="width: 5%"><i class="fa-solid fa-trash"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="faturaSatirlari" class="bg-white">
                                     </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td colspan="7">
-                                            <button class="btn btn-sm btn-light border text-primary fw-bold w-100" onclick="satirEkle()">
+                                        <td colspan="9" class="p-2 bg-light">
+                                            <button class="btn btn-sm btn-outline-primary fw-bold w-100 py-2 dashed-border" onclick="satirEkle()">
                                                 <i class="fa-solid fa-plus me-1"></i> Yeni Satır Ekle
                                             </button>
                                         </td>
@@ -1637,31 +1674,36 @@ div.swal2-container {
                             </table>
                         </div>
                     </div>
-                    <div class="card-footer bg-white">
-    <div class="row justify-content-end">
-        <div class="col-md-6 col-lg-4">
-            <table class="table table-sm table-borderless text-end mb-0" style="font-size: 0.9rem;">
-                <tr>
-                    <td class="text-secondary">Ara Toplam (KDV Hariç):</td>
-                    <td class="fw-bold text-dark" id="lblAraToplam">0,00 ₺</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary">Toplam KDV:</td>
-                    <td class="fw-bold text-danger" id="lblKdvToplam">0,00 ₺</td>
-                </tr>
-                <tr class="border-top">
-                    <td class="fw-bold text-dark fs-5 align-middle">GENEL TOPLAM:</td>
-                    <td class="fw-bold text-dark fs-4" id="lblGenelToplam">0,00 ₺</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-</div>
+                    
+                    <div class="card-footer bg-white p-3">
+                        <div class="row justify-content-end">
+                            <div class="col-md-4 col-lg-3">
+                                <table class="table table-sm table-borderless text-end mb-0" style="font-size: 0.9rem;">
+                                    <tr>
+                                        <td class="text-secondary">Ara Toplam:</td>
+                                        <td class="fw-bold text-dark" id="lblAraToplam">0,00 ₺</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-secondary">Toplam KDV:</td>
+                                        <td class="fw-bold text-danger" id="lblKdvToplam">0,00 ₺</td>
+                                    </tr>
+                                    <tr class="border-top">
+                                        <td class="fw-bold text-dark fs-5 align-middle pt-2">GENEL TOPLAM:</td>
+                                        <td class="fw-bold text-dark fs-5 pt-2" id="lblGenelToplam">0,00 ₺</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-primary px-4 fw-bold" id="evrakKaydetBtn" onclick="evrakiKaydet()">KAYDET</button>
+            
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary px-5 fw-bold" id="evrakKaydetBtn" onclick="evrakiKaydet()">
+                    <i class="fa-solid fa-save me-2"></i> KAYDET
+                </button>
             </div>
         </div>
     </div>
@@ -1879,12 +1921,44 @@ div.swal2-container {
         </div>
     </div>
 </div>
-
+<div class="modal fade" id="addDriverModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-id-card me-2"></i>Yeni Şoför Tanımla</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning small">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                    <b>Dikkat:</b> "Kaydet" dediğinizde güvenlik gereği <u>oturumunuz kapanacaktır</u>. Şoför oluşturulduktan sonra kendi hesabınızla tekrar giriş yapmalısınız.
+                </div>
+                <form id="addDriverForm">
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">Şoför Adı Soyadı</label>
+                        <input type="text" class="form-control" id="soforAd" placeholder="Örn: Ali Yılmaz" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">Giriş E-Postası</label>
+                        <input type="email" class="form-control" id="soforEmail" placeholder="sofor1@sirket.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">Giriş Şifresi</label>
+                        <input type="text" class="form-control" id="soforPass" placeholder="En az 6 hane" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-dark fw-bold">PERSONELİ OLUŞTUR</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script type="module">
-  import { auth, db, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy, limit, writeBatch, getDocs } from "../js/firebase-config.js";
+import { auth, db, signOut, onAuthStateChanged, createUserWithEmailAndPassword, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy, limit, writeBatch, getDocs } from "../js/firebase-config.js";
     let aktifCariTipi = 'musteri';
     let currentCoopId = null;
     let allMembers = [];
@@ -1893,43 +1967,70 @@ div.swal2-container {
     window.firmaTuru = "koop"; 
     let kdvDahilMi = false;
 
+// admin.html dosyasının en altındaki script kısmında bu bloğu bulun ve değiştirin:
+    
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // 1. Görsel düzenlemeler (Email yaz)
             if(document.getElementById("userEmailDisplay")) {
                 document.getElementById("userEmailDisplay").innerText = user.email;
             }
             
-            // 1. Önce hafızaya bak
-            currentCoopId = sessionStorage.getItem("coopId");
+            // 2. KULLANICIYI BULMA (DÜZELTİLEN KISIM)
+            // ID yerine Email ile arıyoruz:
+            const q = query(collection(db, "users"), where("email", "==", user.email));
+            const querySnapshot = await getDocs(q);
             
-            // 2. Eğer hafızada yoksa (sayfa yenilendiyse), veritabanından tekrar çek (BU KISIM EKSİKTİ)
-            if (!currentCoopId) {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    currentCoopId = userData.coopId;
-                    // Hafızayı tazele
-                    sessionStorage.setItem("coopId", currentCoopId);
+            if (!querySnapshot.empty) {
+                // Kullanıcı bulundu!
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                const rol = userData.role || userData.rol;
+
+                // Yetki Kontrolü
+                if(rol !== 'admin' && rol !== 'yonetici') {
+                    console.log("Yetkisiz Giriş, Çıkış Yapılıyor...");
+                    await signOut(auth);
+                    window.location.href = "../index.html";
+                    return;
+                }
+
+                // Kurum ID'sini al (Global değişkene ata)
+                currentCoopId = userData.kurumID || userData.coopId;
+                window.aktifKurumID = currentCoopId;
+                
+                // Session'a da yedekleyelim
+                sessionStorage.setItem("coopId", currentCoopId);
+
+                console.log("Yönetici Tanındı. Kurum ID:", currentCoopId);
+
+                // Hoşgeldin Yazısı
+                const kAdi = userData.kurumAdi || userData.ad || "Yönetim Paneli";
+                if(document.getElementById("lblCompanyName")) document.getElementById("lblCompanyName").innerText = kAdi;
+                if(document.getElementById("page-title")) document.getElementById("page-title").innerText = "Hoşgeldiniz: " + kAdi;
+
+                // ARTIK VERİLERİ ÇEKEBİLİRİZ
+                if(currentCoopId) {
+                    // Şirket bilgilerini dinle (Ayarların gelmesi için)
+                    if(typeof sirketBilgileriniDinle === 'function') sirketBilgileriniDinle(currentCoopId);
                     
-                    // Eğer admin değilse uyar (Güvenlik)
-                    if(userData.role !== 'admin') {
-                        window.location.href = "../index.html";
-                        return;
+                    // Üyeleri ve Stokları dinle
+                    canliUyeDinle();
+                    stoklariDinle();
+                    
+                    // Eğer Yetkiler ekranı açıksa orayı da yenile
+                    if(!document.getElementById("sub-permissions").classList.contains("d-none")) {
+                         yetkilileriGetir();
                     }
                 }
-            }
-            
-            // 3. ID Bulunduysa Verileri Çekmeye Başla
-            if(currentCoopId) {
-                console.log("Sirket ID: ", currentCoopId); // Konsola yazdıralım
-                sirketBilgileriniDinle(currentCoopId);
-                canliUyeDinle();
-                stoklariDinle();
+
             } else {
-                Swal.fire("Hata", "Kullanıcıya tanımlı şirket bulunamadı.", "error");
+                console.log("Kullanıcı veritabanında bulunamadı, yönlendiriliyor...");
+                window.location.href = "../index.html";
             }
 
-        } else { 
+        } else {
+            // Giriş yapılmamışsa login sayfasına at
             window.location.href = "../index.html"; 
         }
     });
@@ -2252,7 +2353,85 @@ function listeyiFiltreleVeCiz() {
             Swal.fire("Hata", "Rapor oluşturulamadı: "+error.message, "error");
         }
     }
+// --- ŞOFÖR EKLEME FONKSİYONLARI ---
 
+    // 1. Modalı Aç
+    window.soforEkleModalAc = function() {
+        document.getElementById("addDriverForm").reset();
+        const modalEl = document.getElementById('addDriverModal');
+        if(modalEl) {
+            document.body.appendChild(modalEl); // Pencereyi en üste taşı
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    }
+
+    // 2. Şoförü Kaydet (Dikkat: Oturumu kapatır)
+    const driverForm = document.getElementById("addDriverForm");
+    if(driverForm) {
+        driverForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const ad = document.getElementById("soforAd").value;
+            const mail = document.getElementById("soforEmail").value;
+            const pass = document.getElementById("soforPass").value;
+
+            if(pass.length < 6) {
+                Swal.fire("Hata", "Şifre en az 6 karakter olmalı.", "warning");
+                return;
+            }
+
+            // Onay İste
+            const confirm = await Swal.fire({
+                title: 'Oturum Kapanacak',
+                text: "Şoför hesabı oluşturulduğunda sistemden çıkış yapılacaktır. Onaylıyor musunuz?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Evet, Oluştur',
+                confirmButtonColor: '#000'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                // 1. Şoför kullanıcısını Auth üzerinde oluştur (Bu işlem Yöneticinin oturumunu düşürür!)
+                // Burada import ettiğin createUserWithEmailAndPassword fonksiyonunu kullanıyoruz.
+                // Eğer import etmediysen en üstteki import satırına eklemelisin.
+                // Senin kodlarında zaten var, sorun yok.
+                
+                const userCredential = await createUserWithEmailAndPassword(auth, mail, pass);
+                const user = userCredential.user;
+
+                // 2. Firestore'a Şoför Detaylarını Yaz
+                await setDoc(doc(db, "users", user.uid), {
+                    email: mail,
+                    adSoyad: ad,
+                    rol: "sofor",          // Kritik Nokta: Rolü 'sofor' yapıyoruz
+                    kurumID: currentCoopId,// Yöneticinin kurumuyla aynı
+                    kayitTarihi: new Date()
+                });
+
+                // 3. Başarılı!
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Şoför Oluşturuldu!',
+                    text: 'Şimdi yönetici hesabınızla tekrar giriş yapınız.',
+                    confirmButtonText: 'Tamam'
+                });
+
+                // Giriş sayfasına yönlendir
+                window.location.href = "../index.html";
+
+            } catch (error) {
+                console.error(error);
+                if(error.code === 'auth/email-already-in-use') {
+                    Swal.fire("Hata", "Bu e-posta adresi zaten kullanılıyor.", "error");
+                } else {
+                    Swal.fire("Hata", "Oluşturulamadı: " + error.message, "error");
+                }
+            }
+        });
+    }
     function grafikleriCiz(daysMap, villageMap) {
         // 1. Çizgi Grafik (Trend)
         const ctxTrend = document.getElementById('milkTrendChart').getContext('2d');
@@ -2359,20 +2538,66 @@ if(searchInput) {
 }
         });
     }
+// --- YENİ ÜYE EKLEME MODALINI AÇ (GÜNCELLENMİŞ) ---
+    window.yeniUyeModalAc = function() {
+        // 1. Formu Temizle (Eski veriler kalmasın)
+        if(typeof formuTemizle === 'function') {
+            formuTemizle();
+        } else {
+            document.getElementById("addMemberForm").reset();
+            duzenlenecekId = null;
+            document.getElementById("lblModalTitle").innerText = "Yeni Kayıt Oluştur";
+        }
 
+        // 2. Modalı Bul
+        const modalEl = document.getElementById('addMemberModal');
+        
+        if(modalEl) {
+            // 3. Modalı Body'e Taşı (Z-Index / Kararma Sorununu Çözer)
+            document.body.appendChild(modalEl);
+            
+            // 4. Modalı Aç
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        } else {
+            Swal.fire("Hata", "Üye ekleme penceresi bulunamadı!", "error");
+        }
+    }
+
+    // --- ÜYE DÜZENLEME FONKSİYONU (TAMİRLİ) ---
     window.uyeDuzenle = function(id) {
+        // 1. Üyeyi Bul
         const uye = allMembers.find(m => m.id === id);
-        if (!uye) return;
+        if (!uye) {
+            Swal.fire("Hata", "Üye bilgisi bulunamadı.", "error");
+            return;
+        }
+
+        // 2. Düzenleme Modunu Aktif Et
         duzenlenecekId = id;
+
+        // 3. Formu Doldur
         document.getElementById("uyeSira").value = uye.sira || "";
         document.getElementById("uyeAd").value = uye.ad;
         document.getElementById("uyeSoyad").value = uye.soyad;
         document.getElementById("uyeTc").value = uye.tc || "";
         document.getElementById("uyeKoy").value = uye.koy;
         document.getElementById("uyeTel").value = uye.telefon;
+        
+        // Başlığı Değiştir
         document.getElementById("lblModalTitle").innerText = "Kaydı Düzenle";
-        new bootstrap.Modal(document.getElementById('addMemberModal')).show();
+
+        // 4. Modalı Güvenli Şekilde Aç (Z-Index Sorununu Çözer)
+        const modalEl = document.getElementById('addMemberModal');
+        if(modalEl) {
+            document.body.appendChild(modalEl); // Pencereyi en üste taşı
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        } else {
+            console.error("Modal bulunamadı: addMemberModal");
+        }
     }
+    
   
     function formuTemizle() {
         document.getElementById("addMemberForm").reset();
@@ -2593,87 +2818,96 @@ window.hesapAc = async function(id) {
     // Verileri Çekmeye Başla
     hareketleriDinle(id);
 }
-    function tabloyuCiz(data) {
-    const tbody = document.getElementById("memberTableBody");
-    if(!tbody) return;
-    tbody.innerHTML = "";
-    
-    if (data.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='7' class='text-center text-muted py-5'><i class='fa-solid fa-inbox fa-2x mb-3 opacity-25'></i><br>Kayıt bulunamadı.</td></tr>";
-        return;
-    }
 
-    data.forEach(uye => {
-        // 1. Tip Rozeti
-        let tipBadge = '';
-        if(uye.tip === 'tedarikci') {
-            tipBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3">TEDARİKÇİ</span>';
-        } else {
-            tipBadge = '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3">MÜŞTERİ</span>';
+   function tabloyuCiz(data) {
+        const tbody = document.getElementById("memberTableBody");
+        if(!tbody) return;
+        tbody.innerHTML = "";
+        
+        if (data.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='7' class='text-center text-muted py-5'><i class='fa-solid fa-inbox fa-2x mb-3 opacity-25'></i><br>Kayıt bulunamadı.</td></tr>";
+            return;
         }
 
-        // 2. SIRA NO (Canlı Renk ve Gradyan)
-        // Mavi tonlarında canlı bir daire içine beyaz yazı
-        const siraNoHtml = `
-            <div class="d-flex align-items-center justify-content-center mx-auto text-white fw-bold rounded-circle shadow-sm" 
-                 style="width: 35px; height: 35px; font-size: 0.9rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
-                ${uye.sira || '-'}
-            </div>
-        `;
+        data.forEach(uye => {
+            // 1. Tip Rozeti
+            let tipBadge = '';
+            if(uye.tip === 'tedarikci') {
+                tipBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3">TEDARİKÇİ</span>';
+            } else {
+                tipBadge = '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3">MÜŞTERİ</span>';
+            }
 
-        // 3. Tablo Satırı
-        const row = `
-            <tr class="member-row align-middle border-bottom hover-shadow transition-all" style="height: 60px;">
-                <td class="text-center">${siraNoHtml}</td>
-                
-                <td>
-                    <div class="fw-bold text-dark fs-6">${uye.ad} ${uye.soyad}</div>
-                </td>
+            // 2. SIRA NO
+            const siraNoHtml = `
+                <div class="d-flex align-items-center justify-content-center mx-auto text-white fw-bold rounded-circle shadow-sm" 
+                     style="width: 35px; height: 35px; font-size: 0.9rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                    ${uye.sira || '-'}
+                </div>
+            `;
 
-                <td>
-                    <span class="font-monospace text-secondary fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
-                        ${uye.tc || '<span class="text-muted opacity-50">-</span>'}
-                    </span>
-                </td>
+            // 3. Tablo Satırı (GÜNCELLENMİŞ BUTONLAR)
+            const row = `
+                <tr class="member-row align-middle border-bottom hover-shadow transition-all" style="height: 60px;">
+                    <td class="text-center">${siraNoHtml}</td>
+                    
+                    <td>
+                        <div class="fw-bold text-dark fs-6">${uye.ad} ${uye.soyad}</div>
+                    </td>
 
-                <td class="text-center">${tipBadge}</td>
+                    <td>
+                        <span class="font-monospace text-secondary fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
+                            ${uye.tc || '<span class="text-muted opacity-50">-</span>'}
+                        </span>
+                    </td>
 
-                <td>
-                    <div class="d-flex align-items-center">
-                        <i class="fa-solid fa-location-dot text-danger opacity-50 me-2 small"></i>
-                        <span class="text-dark fw-medium">${uye.koy}</span>
-                    </div>
-                </td>
+                    <td class="text-center">${tipBadge}</td>
 
-                <td>
-                    <span class="text-muted small fw-bold">${uye.telefon || ''}</span>
-                </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="fa-solid fa-location-dot text-danger opacity-50 me-2 small"></i>
+                            <span class="text-dark fw-medium">${uye.koy}</span>
+                        </div>
+                    </td>
 
-                <td class="text-end pe-3">
-                    <div class="d-flex justify-content-end gap-2">
-                        
-                        <button class="btn btn-sm btn-primary-custom shadow-sm d-flex align-items-center gap-2 px-3" onclick="hesapAc('${uye.id}')">
-                            <i class="fa-solid fa-chevron-right" style="font-size: 0.8rem;"></i> Detay
-                        </button>
+                    <td>
+                        <span class="text-muted small fw-bold">${uye.telefon || ''}</span>
+                    </td>
 
-                        <button class="btn btn-sm btn-light text-secondary border shadow-sm" onclick="uyeDuzenle('${uye.id}')" title="Düzenle" style="width: 35px; height: 35px; border-radius: 8px;">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
+                    <td class="text-end pe-3">
+                        <div class="d-flex justify-content-end gap-2">
+                            
+                            <button class="btn btn-sm btn-light text-primary border shadow-sm" 
+                                    onclick="hesapAc('${uye.id}')" 
+                                    title="Hesap Detayı"
+                                    style="width: 35px; height: 35px; border-radius: 8px;">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
 
-                        <button class="btn btn-sm btn-light text-danger border shadow-sm" onclick="uyeSil('${uye.id}')" title="Sil" style="width: 35px; height: 35px; border-radius: 8px;">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-        tbody.innerHTML += row;
-    });
-    
-    // Alt kısımdaki toplam sayısını güncelle
-    const recCount = document.getElementById("recordCount");
-    if(recCount) recCount.innerText = `${data.length} kayıt listelendi`;
-}
+                            <button class="btn btn-sm btn-light text-secondary border shadow-sm" 
+                                    onclick="uyeDuzenle('${uye.id}')" 
+                                    title="Düzenle" 
+                                    style="width: 35px; height: 35px; border-radius: 8px;">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-light text-danger border shadow-sm" 
+                                    onclick="uyeSil('${uye.id}')" 
+                                    title="Sil" 
+                                    style="width: 35px; height: 35px; border-radius: 8px;">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+        
+        // Alt kısımdaki toplam sayısını güncelle
+        const recCount = document.getElementById("recordCount");
+        if(recCount) recCount.innerText = `${data.length} kayıt listelendi`;
+    }
     window.sutHesaplamaModalAc = function() {
         console.log("1. Fonksiyon tetiklendi.");
 
@@ -2881,8 +3115,10 @@ window.hesapAc = async function(id) {
         let t = window.firmaTuru === 'sahis' ? "Cari İşlemleri" : "Üye İşlemleri";
         document.getElementById('page-title').innerText = t;
     }
-// MEVCUT hareketleriDinle FONKSİYONUNU BUL VE BUNUNLA DEĞİŞTİR
+    
+    // --- HESAP HAREKETLERİNİ DİNLE (GÜNCELLENMİŞ: Saatli + Yeniden Eskiye Sıralı) ---
 function hareketleriDinle(memId) {
+    // 1. Veriyi ESKİDEN YENİYE çekiyoruz ki "Yürüyen Bakiye" doğru hesaplansın.
     const q = query(
         collection(db, "transactions"), 
         where("memberId", "==", memId),
@@ -2907,129 +3143,62 @@ function hareketleriDinle(memId) {
         let toplamBorc = 0;
         let toplamAlacak = 0;
         
-        snapshot.forEach(doc => {
-            const t = doc.data();
-            const miktar = Number(t.amount); 
-            const belgeNo = t.belgeNo || doc.id.substring(0,6).toUpperCase();
-            const dateObj = t.date?.toDate();
-            const tarih = dateObj ? dateObj.toLocaleDateString('tr-TR') : '-';
-            
-            let borcSutunu = "-";
-            let alacakSutunu = "-";
-            
-            // --- HESAPLAMA MANTIĞI ---
-            if (t.type === 'borc') {
-                // Borç İşlemi (Satış) -> Bakiyeyi Artırır
-                kumuletifBakiye += miktar;
-                toplamBorc += miktar;
-                borcSutunu = `<span class="text-danger fw-bold">${miktar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</span>`;
-            } else {
-                // Alacak İşlemi (Tahsilat) -> Bakiyeyi Azaltır
-                kumuletifBakiye -= miktar;
-                toplamAlacak += miktar;
-                alacakSutunu = `<span class="text-success fw-bold">${miktar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</span>`;
-            }
-
-            // --- YENİ: DİNAMİK BAKİYE GÖRÜNÜMÜ (A) / (B) ---
-            let bakiyeGorunum = "";
-            let bakiyeClass = "";
-
-            if (kumuletifBakiye > 0) {
-                // Müşteri Borçlu (B) - Kırmızı
-                bakiyeClass = "text-danger fw-bold";
-                bakiyeGorunum = `${kumuletifBakiye.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (B)`;
-            } else if (kumuletifBakiye < 0) {
-                // Müşteri Alacaklı (A) - Yeşil (Mutlak değerini gösteriyoruz)
-                bakiyeClass = "text-success fw-bold";
-                bakiyeGorunum = `${Math.abs(kumuletifBakiye).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (A)`;
-            } else {
-                // Bakiye Sıfır - Nötr
-                bakiyeClass = "text-dark fw-bold";
-                bakiyeGorunum = "0,00 ₺";
-            }
-            // ------------------------------------------------
-
-            // Detay Butonu Kontrolü
-            let detayBtn = '';
-            if(t.items && t.items.length > 0) {
-                detayBtn = `<button class="btn btn-sm btn-light border text-primary me-1" title="İçeriği Gör" onclick="evrakDetayGoster('${doc.id}')"><i class="fa-solid fa-eye"></i></button>`;
-            }
-
-            const tr = `
-                <tr class="align-middle">
-                    <td class="fw-bold text-secondary">${tarih}</td>
-                    <td class="hide-mobile"><span class="badge bg-light text-secondary border">#${belgeNo}</span></td>
-                    <td>
-                        <div class="fw-bold text-dark">${t.description || 'Evrak'}</div>
-                        <small class="text-muted" style="font-size:0.75rem">${t.items ? t.items.length + ' Kalem Ürün' : t.category}</small>
-                    </td>
-                    <td class="text-end bg-light bg-opacity-25">${borcSutunu}</td>
-                    <td class="text-end bg-light bg-opacity-25">${alacakSutunu}</td>
-                    
-                    <td class="text-end bg-white" style="font-size:1.05rem;">
-                        <span class="${bakiyeClass}">${bakiyeGorunum}</span>
-                    </td>
-
-                    <td class="text-end" style="min-width: 120px;">
-                        ${detayBtn}
-                        <button class="btn btn-sm btn-light border text-secondary me-1" onclick="islemDuzenle('${doc.id}')" title="Düzenle">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button class="btn btn-sm btn-light border text-danger" onclick="islemSil('${doc.id}')" title="Sil">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('afterbegin', tr); // En yeni tarih en üstte dursun isterseniz 'afterbegin', tarih sırası bozulmasın derseniz 'beforeend' yapın. (Genelde muhasebede tarih sırası önemlidir, o yüzden sıralamayı query'de yapıp buraya 'beforeend' yapmak daha doğrudur ama tabloyu tersten dizmek isterseniz 'afterbegin' kullanın)
-             // DÜZELTME: Veritabanından tarih sırasıyla geliyor (Eskiden yeniye). 
-             // Yürüyen bakiye mantığı bozulmasın diye burayı `beforeend` yapıyorum (Eskiden yeniye alt alta).
-             // Eğer en son işlemi en üstte görmek isterseniz yürüyen bakiye hesabı karışır. Muhasebede genelde üstten aşağı tarih akar.
-        });
-        
-        // Döngü bittiği için düzeltme: 'afterbegin' yerine 'beforeend' kullanmalıyız ki bakiye doğru ilerlesin
-        tbody.innerHTML = ""; // Temizle
-        let tempBakiye = 0;
+        // HTML satırlarını bu dizide biriktirip, en son TERS çevirip basacağız.
+        let satirlarListesi = [];
 
         snapshot.forEach(doc => {
              const t = doc.data();
              const miktar = Number(t.amount); 
              const belgeNo = t.belgeNo || doc.id.substring(0,6).toUpperCase();
              const dateObj = t.date?.toDate();
-             const tarih = dateObj ? dateObj.toLocaleDateString('tr-TR') : '-';
+             
+             // --- SAAT BİLGİSİ EKLENDİ ---
+             let tarihGorsel = '-';
+             if(dateObj) {
+                 const tarih = dateObj.toLocaleDateString('tr-TR');
+                 const saat = dateObj.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+                 // Tarih üstte kalın, saat altta silik görünsün
+                 tarihGorsel = `<div>${tarih}</div><small class="text-muted fw-normal" style="font-size:0.75rem">${saat}</small>`;
+             }
              
              let borcSutunu = "-";
              let alacakSutunu = "-";
              
+             // Yürüyen Bakiye Hesabı (Eskiden Yeniye doğru çalışır)
              if (t.type === 'borc') {
-                 tempBakiye += miktar;
+                 kumuletifBakiye += miktar;
+                 toplamBorc += miktar;
                  borcSutunu = `<span class="text-danger fw-bold">${miktar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</span>`;
              } else {
-                 tempBakiye -= miktar;
+                 kumuletifBakiye -= miktar;
+                 toplamAlacak += miktar;
                  alacakSutunu = `<span class="text-success fw-bold">${miktar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</span>`;
              }
 
+             // Satırın o anki bakiyesi (A) / (B)
              let bakiyeGorunum = "";
              let bakiyeClass = "";
-             if (tempBakiye > 0) {
+             if (kumuletifBakiye > 0) {
                  bakiyeClass = "text-danger fw-bold";
-                 bakiyeGorunum = `${tempBakiye.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (B)`;
-             } else if (tempBakiye < 0) {
+                 bakiyeGorunum = `${kumuletifBakiye.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (B)`;
+             } else if (kumuletifBakiye < 0) {
                  bakiyeClass = "text-success fw-bold";
-                 bakiyeGorunum = `${Math.abs(tempBakiye).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (A)`;
+                 bakiyeGorunum = `${Math.abs(kumuletifBakiye).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺ (A)`;
              } else {
                  bakiyeClass = "text-dark fw-bold";
                  bakiyeGorunum = "0,00 ₺";
              }
 
+            // Detay Butonu
             let detayBtn = '';
             if(t.items && t.items.length > 0) {
                 detayBtn = `<button class="btn btn-sm btn-light border text-primary me-1" title="İçeriği Gör" onclick="evrakDetayGoster('${doc.id}')"><i class="fa-solid fa-eye"></i></button>`;
             }
 
+             // Satır HTML'i
              const tr = `
                  <tr class="align-middle">
-                     <td class="fw-bold text-secondary">${tarih}</td>
+                     <td class="fw-bold text-secondary" style="line-height:1.2">${tarihGorsel}</td>
                      <td class="hide-mobile"><span class="badge bg-light text-secondary border">#${belgeNo}</span></td>
                      <td>
                          <div class="fw-bold text-dark">${t.description || 'Evrak'}</div>
@@ -3047,20 +3216,24 @@ function hareketleriDinle(memId) {
                      </td>
                  </tr>
              `;
-             tbody.innerHTML += tr; // Listenin sonuna ekle (Tarih akışı)
+             
+             // Listeye ekle (Henüz ekrana basma)
+             satirlarListesi.push(tr);
         });
+
+        // 2. LİSTEYİ TERS ÇEVİRİP BAS (EN YENİ EN ÜSTTE GÖRÜNSÜN)
+        tbody.innerHTML = satirlarListesi.reverse().join('');
 
         // Üst Bilgi Kartlarını Güncelle
         if(document.getElementById("detailBorc")) document.getElementById("detailBorc").innerText = toplamBorc.toLocaleString('tr-TR') + " ₺";
         if(document.getElementById("detailAlacak")) document.getElementById("detailAlacak").innerText = toplamAlacak.toLocaleString('tr-TR') + " ₺";
         
-        // Karttaki Büyük Bakiyeyi de (A)/(B) formatına çevirelim
+        // Ana Bakiyeyi Güncelle
         const headerBalance = document.getElementById("detailBalance");
         if(headerBalance) {
              if (kumuletifBakiye > 0) {
                 headerBalance.innerText = `${kumuletifBakiye.toLocaleString('tr-TR')} ₺ (B)`;
-                headerBalance.classList.remove("text-success");
-                headerBalance.classList.add("text-white"); // Header zaten renkli, beyaz kalsın
+                headerBalance.classList.remove("text-success"); // Renk ayarı
              } else if (kumuletifBakiye < 0) {
                 headerBalance.innerText = `${Math.abs(kumuletifBakiye).toLocaleString('tr-TR')} ₺ (A)`;
              } else {
@@ -3069,10 +3242,6 @@ function hareketleriDinle(memId) {
         }
     });
 }
-
-    
-
-
 window.satirHesapla = function(id) {
     const row = document.getElementById(`row-${id}`);
     
@@ -3083,40 +3252,33 @@ window.satirHesapla = function(id) {
 
     let kdvTutari = 0;
     let genelToplam = 0;
-    // Araç ipucu (Tooltip) veya görsel geri bildirim için input rengini değiştirebiliriz
     const priceField = row.querySelector('.item-price');
 
     if (kdvDahilMi) {
-        // --- SENARYO 1: KDV DAHİL (İçinden Ayır) ---
-        // Kullanıcı "110 TL" yazdıysa, bu GENEL TOPLAM birim fiyattır.
-        
-        // Formül: Vergisiz Fiyat = Fiyat / (1 + Oran)
+        // KDV DAHİL
         const vergisizBirimFiyat = priceInput / (1 + (taxRate / 100));
-        
         const toplamVergisizTutar = vergisizBirimFiyat * qty;
-        genelToplam = priceInput * qty; // Toplam direkt miktar * girilen fiyat
+        genelToplam = priceInput * qty;
         kdvTutari = genelToplam - toplamVergisizTutar;
-
-        // Görsel İpucu: KDV Dahil modunda input hafif yeşilimsi olsun
+        
         priceField.style.backgroundColor = "#f0fdf4"; 
         priceField.title = "Girdiğiniz fiyata KDV Dahildir";
-
     } else {
-        // --- SENARYO 2: KDV HARİÇ (Üstüne Ekle) ---
-        // Kullanıcı "100 TL" yazdıysa, bu HAM fiyattır.
-        
+        // KDV HARİÇ
         const toplamVergisizTutar = priceInput * qty;
         kdvTutari = toplamVergisizTutar * (taxRate / 100);
         genelToplam = toplamVergisizTutar + kdvTutari;
-
-        // Görsel İpucu: Normal beyaz
+        
         priceField.style.backgroundColor = "#fff";
         priceField.title = "Girdiğiniz fiyata KDV eklenecektir";
     }
 
-    // Sonuçları Yazdır (2 hane kuruş hassasiyeti)
-    row.querySelector('.item-tax-amt').value = kdvTutari.toFixed(2);
-    row.querySelector('.item-total').value = genelToplam.toFixed(2);
+    // --- DEĞİŞİKLİK BURADA: Formatlayarak Yazdır ---
+    // (Örn: 1.250,50 formatında yazdırır)
+    const fmt = (num) => num.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    row.querySelector('.item-tax-amt').value = fmt(kdvTutari);
+    row.querySelector('.item-total').value = fmt(genelToplam);
     
     // Alt toplamları yenile
     genelToplamHesapla();
@@ -3125,18 +3287,24 @@ window.genelToplamHesapla = function() {
     let toplamKdv = 0; 
     let genelToplam = 0; 
 
+    // Türkçe formatlı sayıyı (1.234,56) normal sayıya (1234.56) çeviren yardımcı fonksiyon
+    const parseTR = (val) => {
+        if(!val) return 0;
+        // Noktaları sil, virgülü noktaya çevir
+        return Number(val.replace(/\./g, '').replace(',', '.')) || 0;
+    };
+
     document.querySelectorAll('#faturaSatirlari tr').forEach(row => {
-        const rowTax = Number(row.querySelector('.item-tax-amt').value) || 0;
-        const rowTotal = Number(row.querySelector('.item-total').value) || 0;
+        // item-tax-amt ve item-total artık formatlı olduğu için parseTR ile okuyoruz
+        const rowTax = parseTR(row.querySelector('.item-tax-amt').value);
+        const rowTotal = parseTR(row.querySelector('.item-total').value);
         
         toplamKdv += rowTax;
         genelToplam += rowTotal;
     });
 
-    // Ara Toplam = Genel Toplam - KDV
     const araToplam = genelToplam - toplamKdv;
 
-    // HTML'e Yazdır
     if(document.getElementById("lblAraToplam")) 
         document.getElementById("lblAraToplam").innerText = araToplam.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + " ₺";
     
@@ -3263,8 +3431,7 @@ window.evrakDetayGoster = async function(docId) {
         if(tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-3">Hata: ${error.message}</td></tr>`;
     }
 }
-
-   // --- İŞLEM EKLEME FONKSİYONU (GÜNCELLENDİ - ÖDEME DAHİL) ---
+// --- İŞLEM EKLEME FONKSİYONU (GÜNCELLENDİ: TARİH SEÇİMİ EKLENDİ) ---
     window.islemEkle = async function(islemTuru) {
         // islemTuru: 'satis', 'tahsilat' veya 'odeme'
         
@@ -3277,32 +3444,38 @@ window.evrakDetayGoster = async function(docId) {
             kayitTipi = 'borc';
         } 
         else if (islemTuru === 'odeme') {
-            // YENİ: ÖDEME YAPMA (Para Çıkışı)
             baslik = 'Ödeme Yap (Para Çıkışı)';
             renk = '#f97316'; // Turuncu
-            kategoriler = '<option>Eft Havale</option><option>Nakit Ödeme</option><option>Avans</option>';
-            kayitTipi = 'borc'; // Ödeme yapmak, üyenin alacağını azaltır (Borç hanesine yazılır)
+            kategoriler = '<option>Nakit Ödeme</option><option>Eft Havale</option><option>Avans</option>';
+            kayitTipi = 'borc'; 
         }
         else {
-            // TAHSİLAT (Para Girişi)
             baslik = 'Tahsilat Al (Para Girişi)';
             renk = '#166534'; // Yeşil
             kategoriler = '<option>Nakit Tahsilat</option><option>Banka/Havale</option><option>Kredi Kartı</option>';
             kayitTipi = 'alacak';
         }
 
+        // Bugünü Varsayılan Ayarla
+        const bugun = new Date().toISOString().split('T')[0];
+
         // SweetAlert Penceresi
         const { value: formValues } = await Swal.fire({
             title: baslik,
             html: `
-                <label class="small fw-bold d-block text-start text-muted">İşlem Türü</label>
-                <select id="swal-cat" class="form-select mb-3">${kategoriler}</select>
-                
-                <label class="small fw-bold d-block text-start text-muted">Tutar (TL)</label>
-                <input id="swal-amt" class="form-control mb-3 fw-bold fs-5" type="number" placeholder="0.00">
-                
-                <label class="small fw-bold d-block text-start text-muted">Açıklama</label>
-                <input id="swal-desc" class="form-control" placeholder="Opsiyonel açıklama...">
+                <div class="text-start">
+                    <label class="small fw-bold text-muted mb-1">Tarih</label>
+                    <input id="swal-date" class="form-control mb-3 fw-bold" type="date" value="${bugun}">
+
+                    <label class="small fw-bold text-muted mb-1">İşlem Türü</label>
+                    <select id="swal-cat" class="form-select mb-3">${kategoriler}</select>
+                    
+                    <label class="small fw-bold text-muted mb-1">Tutar (TL)</label>
+                    <input id="swal-amt" class="form-control mb-3 fw-bold fs-5" type="number" placeholder="0.00">
+                    
+                    <label class="small fw-bold text-muted mb-1">Açıklama</label>
+                    <input id="swal-desc" class="form-control" placeholder="Opsiyonel açıklama...">
+                </div>
             `,
             focusConfirm: false,
             showCancelButton: true,
@@ -3310,6 +3483,7 @@ window.evrakDetayGoster = async function(docId) {
             confirmButtonText: 'Kaydet',
             preConfirm: () => {
                 return {
+                    date: document.getElementById('swal-date').value,
                     cat: document.getElementById('swal-cat').value,
                     amt: document.getElementById('swal-amt').value,
                     desc: document.getElementById('swal-desc').value
@@ -3319,15 +3493,21 @@ window.evrakDetayGoster = async function(docId) {
 
         if (formValues && formValues.amt) {
             try {
+                // Seçilen tarihi işle
+                const islemTarihi = new Date(formValues.date);
+                // Saat bilgisini şu anki saat yap ki sıralamada düzgün dursun
+                const simdi = new Date();
+                islemTarihi.setHours(simdi.getHours(), simdi.getMinutes(), simdi.getSeconds());
+
                 // Veritabanına Yaz
                 await addDoc(collection(db, "transactions"), {
                     memberId: activeMemberId,
                     coopId: currentCoopId,
-                    type: kayitTipi, // borc veya alacak
+                    type: kayitTipi, 
                     category: formValues.cat,
                     amount: Number(formValues.amt),
                     description: formValues.desc || formValues.cat,
-                    date: new Date()
+                    date: islemTarihi // Seçilen tarih
                 });
                 
                 const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1000});
@@ -3372,41 +3552,34 @@ window.evrakDetayGoster = async function(docId) {
             }
         }
     }
-    // 1. MODALI AÇMA FONKSİYONU (GÜNCELLENMİŞ - HATASIZ)
-    window.yeniEvrakModalAc = function() {
-        // Değişkeni sıfırla (Yeni kayıt modu)
-        duzenlenecekEvrakId = null;
-        
-        // Formu Temizle
-        if(document.getElementById("modalBaslik")) document.getElementById("modalBaslik").innerText = "Yeni Evrak Girişi";
-        document.getElementById("faturaSatirlari").innerHTML = "";
-        document.getElementById("evrakAciklama").value = "";
-        document.getElementById("evrakBelgeNo").value = "";
-        document.getElementById("evrakTarih").valueAsDate = new Date();
-        
-        // --- HATAYI ÇÖZEN KISIM BURASI ---
-        // Artık 'evrakGenelToplam' kutusu yok, onun yerine 'lblGenelToplam' var.
-        // Kodun patlamaması için kontrol ederek sıfırlıyoruz:
-        
-        if(document.getElementById("lblGenelToplam")) document.getElementById("lblGenelToplam").innerText = "0,00 ₺";
-        if(document.getElementById("lblAraToplam")) document.getElementById("lblAraToplam").innerText = "0,00 ₺";
-        if(document.getElementById("lblKdvToplam")) document.getElementById("lblKdvToplam").innerText = "0,00 ₺";
-        
-        // Ödeme kutuları varsa onları da sıfırla
-        if(document.getElementById("inpOdenenTutar")) document.getElementById("inpOdenenTutar").value = "";
-        if(document.getElementById("lblKalanBakiye")) document.getElementById("lblKalanBakiye").innerText = "0,00 ₺";
+    // 1. MODALI AÇMA FONKSİYONU (SOL MENÜ SORUNUNU ÇÖZER)
+window.yeniEvrakModalAc = function() {
+    duzenlenecekEvrakId = null;
+    
+    // Formu ve Başlıkları Sıfırla
+    if(document.getElementById("modalBaslik")) document.getElementById("modalBaslik").innerHTML = '<i class="fa-solid fa-file-invoice me-2"></i>Yeni Evrak Girişi';
+    document.getElementById("faturaSatirlari").innerHTML = "";
+    document.getElementById("evrakAciklama").value = "";
+    document.getElementById("evrakBelgeNo").value = "";
+    document.getElementById("evrakTarih").valueAsDate = new Date();
+    
+    // Toplamları Sıfırla
+    if(document.getElementById("lblGenelToplam")) document.getElementById("lblGenelToplam").innerText = "0,00 ₺";
+    if(document.getElementById("lblAraToplam")) document.getElementById("lblAraToplam").innerText = "0,00 ₺";
+    if(document.getElementById("lblKdvToplam")) document.getElementById("lblKdvToplam").innerText = "0,00 ₺";
+    if(document.getElementById("evrakKaydetBtn")) document.getElementById("evrakKaydetBtn").innerHTML = '<i class="fa-solid fa-save me-2"></i> KAYDET';
 
-        // Buton yazısını düzelt
-        if(document.getElementById("evrakKaydetBtn")) document.getElementById("evrakKaydetBtn").innerText = "KAYDET"; 
-
-        // İlk boş satırı ekle
-        if(typeof satirEkle === 'function') {
-            satirEkle();
-        }
-        
-        // Modalı Göster
-        new bootstrap.Modal(document.getElementById('evrakModal')).show();
+    // İlk boş satırı ekle
+    if(typeof satirEkle === 'function') satirEkle();
+    
+    // --- KRİTİK DÜZELTME: Modalı Body'e Taşı ---
+    const modalEl = document.getElementById('evrakModal');
+    if(modalEl) {
+        document.body.appendChild(modalEl); // Bu satır pencereyi her şeyin önüne alır
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalInstance.show();
     }
+}
 // --- İŞLEM DÜZENLEME FONKSİYONU (TAMİRLİ VE E-MÜSTAHSİL UYUMLU) ---
 window.islemDuzenle = async function(id) {
     try {
@@ -3595,23 +3768,25 @@ window.urunSecildi = function(selectEl, rowId) {
     // Hesapla
     satirHesapla(rowId); 
 }
-// --- EVRAK KAYDETME FONKSİYONU (DÜZELTİLMİŞ HALİ) ---
 window.evrakiKaydet = async function() {
-    // 1. Butonu kilitle (Çift tıklamayı önle)
     const btn = document.getElementById("evrakKaydetBtn");
     const orjText = btn.innerText;
     btn.disabled = true;
     btn.innerText = "İşleniyor...";
 
+    // Formatlı sayıyı çözme fonksiyonu
+    const parseTR = (val) => {
+        if(!val) return 0;
+        return Number(val.replace(/\./g, '').replace(',', '.')) || 0;
+    };
+
     try {
         const items = [];
         let grandTotal = 0;
 
-        // Tablodaki satırları tek tek oku
         const rows = document.querySelectorAll('#faturaSatirlari tr');
         
         rows.forEach(row => {
-            // Güvenli veri okuma (Eleman var mı diye kontrol et)
             const elName = row.querySelector('.item-name');
             const elCode = row.querySelector('.item-code');
             const elProdId = row.querySelector('.item-prod-id');
@@ -3621,9 +3796,9 @@ window.evrakiKaydet = async function() {
             const elTax = row.querySelector('.item-tax');
             const elTotal = row.querySelector('.item-total');
 
-            // Eğer zorunlu alanlar varsa veriyi al
             if (elName && elName.value) {
-                const totalVal = Number(elTotal.value) || 0;
+                // BURASI ÖNEMLİ: Formatlı değeri parseTR ile okuyoruz
+                const totalVal = parseTR(elTotal.value);
                 
                 items.push({
                     productId: elProdId ? elProdId.value : null,
@@ -3639,25 +3814,20 @@ window.evrakiKaydet = async function() {
             }
         });
 
-        // HATA KONTROLÜ: Tablo boşsa uyarı ver
         if (items.length === 0) {
             throw new Error("Lütfen en az bir ürün satırı ekleyin ve ürün seçin.");
         }
 
-        // Form verilerini al
         const evrakTuru = document.getElementById("evrakTuru").value;
         const tarihVal = document.getElementById("evrakTarih").value;
         const belgeNo = document.getElementById("evrakBelgeNo").value;
-        // Eğer açıklama boşsa otomatik doldur
         const aciklama = document.getElementById("evrakAciklama").value || (evrakTuru === 'satis' ? 'Vadeli Satış Faturası' : 'İade Faturası');
         
-        // Tarih kontrolü
         if (!tarihVal) throw new Error("Lütfen geçerli bir tarih seçiniz.");
 
-        // Veritabanı nesnesi hazırla
         const faturaVerisi = {
-            memberId: activeMemberId, // Bu değişken globalde tanımlı olmalı
-            coopId: currentCoopId,    // Bu değişken globalde tanımlı olmalı
+            memberId: activeMemberId,
+            coopId: currentCoopId,
             type: evrakTuru === 'satis' ? 'borc' : 'alacak',
             category: 'Fatura',
             description: aciklama,
@@ -3665,61 +3835,25 @@ window.evrakiKaydet = async function() {
             date: new Date(tarihVal),
             belgeNo: belgeNo,
             items: items,
-            isTaxInclusive: typeof kdvDahilMi !== 'undefined' ? kdvDahilMi : false // Ayar değişkeni varsa ekle
+            isTaxInclusive: typeof kdvDahilMi !== 'undefined' ? kdvDahilMi : false
         };
 
-        // Veritabanına Yazma İşlemi
         if (duzenlenecekEvrakId) {
-            // Güncelleme Modu
             await updateDoc(doc(db, "transactions", duzenlenecekEvrakId), faturaVerisi);
-            
-            Swal.fire({
-                icon: 'success',
-                title: 'Güncellendi',
-                text: 'Evrak başarıyla güncellendi.',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            Swal.fire({icon: 'success', title: 'Güncellendi', timer: 1500, showConfirmButton: false});
         } else {
-            // Yeni Kayıt Modu
             await addDoc(collection(db, "transactions"), faturaVerisi);
-
-            // STOKTAN DÜŞME (Sadece Satışsa)
-            if (evrakTuru === 'satis') {
-                for (const item of items) {
-                    if (item.productId) {
-                        // Ürünün mevcut stoğunu çekmemiz lazım, ancak basitlik için 
-                        // burada sadece işlemi yapıyoruz. Gerçek stok takibi için
-                        // ürün belgesini okuyup güncellemek daha sağlıklıdır.
-                        // Şimdilik sadece transaction kaydediyoruz.
-                        // İsterseniz stok düşme kodunu buraya tekrar ekleyebilirim.
-                    }
-                }
-            }
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Kaydedildi',
-                text: 'Fatura başarıyla oluşturuldu.',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            Swal.fire({icon: 'success', title: 'Kaydedildi', timer: 1500, showConfirmButton: false});
         }
 
-        // Modalı Kapat
         const modalEl = document.getElementById('evrakModal');
         const modalInstance = bootstrap.Modal.getInstance(modalEl);
         if(modalInstance) modalInstance.hide();
 
     } catch (error) {
         console.error("Kayıt Hatası:", error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Hata Oluştu',
-            text: error.message || "Bilinmeyen bir hata oluştu."
-        });
+        Swal.fire({ icon: 'error', title: 'Hata Oluştu', text: error.message || "Bilinmeyen bir hata oluştu." });
     } finally {
-        // Butonu tekrar aktif et
         btn.disabled = false;
         btn.innerText = orjText;
     }
@@ -3809,7 +3943,123 @@ window.yeniUrunModalAc = function() {
         modal.show();
     }
 }
+// --- YETKİLİ LİSTESİNİ GETİRME FONKSİYONU ---
+    window.yetkilileriGetir = async function() {
+        const listDiv = document.getElementById("authorizedUsersList");
+        
+        // 1. Yükleniyor simgesi göster
+        listDiv.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><div class="small text-muted mt-2">Kullanıcılar taranıyor...</div></div>';
 
+        if(!currentCoopId) {
+            listDiv.innerHTML = '<div class="p-4 text-danger text-center">Kurum Kimliği (ID) bulunamadı. Lütfen sayfayı yenileyin.</div>';
+            return;
+        }
+
+        try {
+            // 2. İki farklı sorgu yapıyoruz (Eski ve Yeni sistem uyumu için)
+            // Bazı kullanıcılar 'kurumID' ile, bazıları 'coopId' ile kayıtlı olabilir.
+            const q1 = query(collection(db, "users"), where("kurumID", "==", currentCoopId));
+            const q2 = query(collection(db, "users"), where("coopId", "==", currentCoopId));
+
+            // İkisini aynı anda çalıştır
+            const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+            // 3. Sonuçları Birleştir (Çift kayıtları engellemek için Map kullanıyoruz)
+            const usersMap = new Map();
+            
+            snap1.forEach(doc => usersMap.set(doc.id, { id: doc.id, ...doc.data() }));
+            snap2.forEach(doc => usersMap.set(doc.id, { id: doc.id, ...doc.data() }));
+
+            listDiv.innerHTML = ""; // Yükleniyor simgesini temizle
+
+            if (usersMap.size === 0) {
+                listDiv.innerHTML = '<div class="p-4 text-center text-muted">Kayıtlı yetkili bulunamadı.</div>';
+                return;
+            }
+
+            // 4. Listeyi Ekrana Bas
+            usersMap.forEach(data => {
+                const uid = data.id;
+                
+                // Rolü düzgün gösterelim (Türkçe/İngilizce uyumu)
+                let rolBadge = '';
+                let icon = '';
+                // Veritabanındaki rol isimlendirmelerini küçük harfe çevirip kontrol et
+                const userRole = (data.rol || data.role || '').toLowerCase();
+                
+                if (userRole === 'admin' || userRole === 'yonetici') {
+                    rolBadge = '<span class="badge bg-warning text-dark">Yönetici</span>';
+                    icon = 'fa-user-tie';
+                } else if (userRole === 'sofor' || userRole === 'driver') {
+                    rolBadge = '<span class="badge bg-info text-dark">Şoför</span>';
+                    icon = 'fa-truck-fast';
+                } else {
+                    rolBadge = '<span class="badge bg-secondary">Personel</span>';
+                    icon = 'fa-user';
+                }
+
+                // Listeye Ekle
+                const item = `
+                    <div class="list-group-item p-3 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px; height:45px;">
+                                <i class="fa-solid ${icon}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">${data.adSoyad || 'İsimsiz'}</h6>
+                                <small class="text-muted" style="font-size:0.8rem;">${data.email}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            ${rolBadge}
+                            ${(userRole !== 'yonetici' && userRole !== 'admin') ? 
+                                `<button class="btn btn-sm btn-light text-danger border" onclick="kullaniciSil('${uid}')" title="Yetkiyi Kaldır"><i class="fa-solid fa-trash"></i></button>` 
+                                : ''} 
+                        </div>
+                    </div>
+                `;
+                
+                listDiv.innerHTML += item;
+            });
+
+        } catch (error) {
+            console.error("Yetkili Getirme Hatası:", error);
+            
+            if(error.code === 'permission-denied') {
+                listDiv.innerHTML = '<div class="p-3 text-danger text-center fw-bold">⚠️ Yetki Hatası<br><small class="fw-normal text-dark">Firebase Rules (Kurallar) kısmından izin vermeniz gerekiyor.</small></div>';
+            } else {
+                listDiv.innerHTML = '<div class="p-3 text-danger text-center">Hata: ' + error.message + '</div>';
+            }
+        }
+    }
+
+    // --- KULLANICI SİLME (YETKİ ALMA) ---
+    window.kullaniciSil = async function(uid) {
+        const confirm = await Swal.fire({
+            title: 'Emin misiniz?',
+            text: "Bu personelin sisteme girişi engellenecektir!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Evet, Sil'
+        });
+
+        if(confirm.isConfirmed) {
+            try {
+                // Kullanıcıyı veritabanından sil
+                await deleteDoc(doc(db, "users", uid));
+                
+                Swal.fire("Silindi", "Personel yetkisi kaldırıldı.", "success");
+                
+                // Listeyi yenile
+                yetkilileriGetir();
+                
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Hata", error.message, "error");
+            }
+        }
+    }
 // --- ÜRÜN DÜZENLEME (TAMİRLİ VE KDV'Lİ) ---
 window.urunDuzenle = function(id) {
     const p = allProducts.find(x => x.id === id);
@@ -4523,27 +4773,26 @@ window.sutHesaplaModalAc = function() {
         modalInstance.show();
     }
 }
-// --- MODAL AÇMA SORUNU İÇİN DÜZELTİLMİŞ KOD (BUNU EN ALTA EKLE) ---
 
-// 1. DÖNEM HESABI YAYINLA (İsim düzeltildi: hesapYayinlaMA...)
+// 1. DÖNEM HESABI YAYINLA (GÜNCELLENDİ: ARTIK GÜNCEL AY GELİYOR)
 window.hesapYayinlamaModalAc = function() {
-    console.log("Yayınla Modalı (FIX) açılıyor...");
+    console.log("Yayınla Modalı açılıyor...");
     
     const modalEl = document.getElementById('yayinlaModal');
     if(!modalEl) { alert("Hata: yayinlaModal bulunamadı!"); return; }
 
-    // --- SİHİRLİ SATIR: Pencereyi en dışa taşı ---
+    // Pencereyi en dışa taşı (Z-Index sorunu için)
     document.body.appendChild(modalEl); 
-    // -------------------------------------------
 
-    // Tarihi Ayarla (Geçen Ay)
+    // --- TARİH AYARI (GÜNCEL AY) ---
     const d = new Date();
-    d.setMonth(d.getMonth() - 1);
+    // d.setMonth(d.getMonth() - 1);  <-- BU SATIRI KALDIRDIK
+    
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     
     const dateInput = document.getElementById("pubMonth");
-    if(dateInput) dateInput.value = `${yyyy}-${mm}`;
+    if(dateInput) dateInput.value = `${yyyy}-${mm}`; // Artık bugünün ayı seçili gelir
 
     // Köy Listesini Doldur
     const vilSel = document.getElementById("pubVillageSelect");
@@ -4605,9 +4854,8 @@ window.sutHesaplamaModalAc = function() {
     const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
     modalInstance.show();
 }
-
-// --- SÜT HESAPLAMA (BİRİM "Lt" OLARAK AYARLANDI) ---
-
+  
+// --- SÜT HESAPLAMA (GÜNCELLENMİŞ: Ay Kontrolü + Bitiş Tarihine Kayıt) ---
 document.addEventListener("DOMContentLoaded", () => {
     
     const form = document.getElementById("sutHesapForm");
@@ -4615,7 +4863,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (form) {
         form.onsubmit = async function(e) {
             e.preventDefault();
-            console.log("Vergili Hesaplama Başladı...");
 
             // 1. Verileri Al
             const startVal = document.getElementById("calcStartDate").value;
@@ -4625,6 +4872,21 @@ document.addEventListener("DOMContentLoaded", () => {
             // Vergi Oranını Al
             const taxInput = document.getElementById("calcTax");
             const taxRate = taxInput ? (Number(taxInput.value) || 0) : 0;
+
+            // --- KURAL 1: AY KONTROLÜ ---
+            const d1 = new Date(startVal);
+            const d2 = new Date(endVal);
+
+            if(d1.getMonth() !== d2.getMonth() || d1.getFullYear() !== d2.getFullYear()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hatalı Tarih Aralığı',
+                    text: 'İki farklı ay arasında toplu işlem yapılamaz! Lütfen başlangıç ve bitiş tarihini aynı ay içerisinde seçiniz.',
+                    target: document.getElementById('sutHesaplaModal')
+                });
+                return;
+            }
+            // ---------------------------
 
             // 2. Fiyat Kontrolü
             const price = Number(priceVal);
@@ -4638,11 +4900,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 title: 'İşlem Onayı',
                 html: `
                     <div class="text-start fs-6">
-                        <p><strong>Tarih:</strong> ${startVal} - ${endVal}</p>
+                        <p><strong>Dönem:</strong> ${startVal.split('-').reverse().join('.')} - ${endVal.split('-').reverse().join('.')}</p>
                         <p><strong>Birim Fiyat:</strong> <span class="text-primary fw-bold">${price} TL</span></p>
                         <p><strong>Vergi/KDV:</strong> %${taxRate}</p>
                         <hr>
-                        Sistem bu orana göre E-Müstahsil makbuzu kesecektir.
+                        <span class="text-danger fw-bold">DİKKAT:</span> İşlem tarihi olarak <u>${endVal.split('-').reverse().join('.')}</u> baz alınacaktır.
                     </div>
                 `,
                 icon: 'question',
@@ -4659,7 +4921,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 const startDate = new Date(startVal); startDate.setHours(0, 0, 0, 0);
+                
+                // Bitiş Tarihini Ayarla
                 const endDate = new Date(endVal); endDate.setHours(23, 59, 59, 999);
+
+                // --- KURAL 2: İŞLEM TARİHİ OLARAK BİTİŞ TARİHİNİ AL ---
+                const islemTarihi = new Date(endVal);
+                islemTarihi.setHours(12, 0, 0, 0); // Saat 12 yapalım ki gün kaymasın
+                // -------------------------------------------------------
+
                 const batch = writeBatch(db);
                 
                 const q = query(
@@ -4712,7 +4982,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             code: "SUT-S",
                             name: "Sabah Sütü",
                             qty: val.sabah,
-                            unit: "Lt", // *** GÜNCELLENDİ: Lt ***
+                            unit: "Lt", 
                             price: price,
                             taxRate: taxRate,
                             total: satirToplam 
@@ -4730,7 +5000,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             code: "SUT-A",
                             name: "Akşam Sütü",
                             qty: val.aksam,
-                            unit: "Lt", // *** GÜNCELLENDİ: Lt ***
+                            unit: "Lt",
                             price: price,
                             taxRate: taxRate,
                             total: satirToplam
@@ -4739,6 +5009,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                     const belgeNo = "M-" + new Date().getTime().toString().substring(8); 
+                    
+                    // Açıklama Tarih Formatı (01.11.2025 - 30.11.2025 gibi)
+                    const descTarih = `${startVal.split('-').reverse().join('.')} / ${endVal.split('-').reverse().join('.')}`;
 
                     const transRef = doc(collection(db, "transactions"));
                     batch.set(transRef, {
@@ -4746,9 +5019,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         coopId: currentCoopId,
                         type: 'alacak',
                         category: 'E-Müstahsil Makbuzu',
-                        description: `Süt Bedeli (${startVal} / ${endVal})`,
+                        description: `Süt Bedeli (${descTarih})`,
                         amount: genelToplam,
-                        date: new Date(),
+                        date: islemTarihi, // YENİ: Bitiş tarihini kullanıyoruz
                         belgeNo: belgeNo,
                         items: faturaSatirlari,
                         isTaxInclusive: false
