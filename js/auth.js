@@ -66,8 +66,15 @@ export async function sistemGiris(girdi, sifre) {
                     await yonlendir(user);
 
                 } catch (createError) {
-                    alert("Hesap oluşturulurken hata: " + createError.message);
-                }
+    console.error("Kayıt Hatası Detayı:", createError);
+    if (createError.code === 'auth/weak-password') {
+        alert("HATA: Şifreniz en az 6 karakter olmalıdır!");
+    } else if (createError.code === 'auth/email-already-in-use') {
+        alert("HATA: Bu kullanıcı zaten kayıtlı, ancak şifre yanlış girildi.");
+    } else {
+        alert("Hesap oluşturulurken hata: " + createError.message);
+    }
+}
             } else {
                 alert("❌ Bu telefon numarası sistemde kayıtlı değil. Lütfen yöneticinizle iletişime geçin.");
             }

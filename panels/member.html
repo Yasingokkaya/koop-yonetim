@@ -163,14 +163,14 @@
                     </div>
                 </div>
 
-                <div class="col-4">
-                    <div class="quick-card" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);"
-                         onclick="Swal.fire('Bilgi','Detaylı hesap dökümü yakında eklenecek.','info')">
-                        <i class="bg-icon fa-solid fa-wallet"></i>
-                        <i class="fa-solid fa-wallet fa-2x mb-1"></i>
-                        <h6>Hesap</h6>
-                    </div>
-                </div>
+              <div class="col-4">
+    <div class="quick-card" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);"
+         onclick="hesapEkstresiAc()">
+        <i class="bg-icon fa-solid fa-wallet"></i>
+        <i class="fa-solid fa-wallet fa-2x mb-1"></i>
+        <h6>Hesap</h6>
+    </div>
+</div>
 
                 <div class="col-4">
                     <div class="quick-card" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);"
@@ -316,6 +316,26 @@
         <div class="text-center text-muted small mb-5 opacity-50">
             KoopSistem v1.0
         </div>
+    </div>
+    <div id="page-account" style="display: none; padding-bottom: 80px;">
+        
+        <div class="bg-white px-3 pt-3 pb-3 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold text-dark m-0">Hesap Ekstresi</h5>
+                    <small class="text-muted" id="accCoopName">Kooperatif</small>
+                </div>
+                <input type="month" id="accMonthFilter" class="form-control form-control-sm border-primary text-primary fw-bold" style="width: 130px;">
+            </div>
+        </div>
+
+        <div id="account-content" class="px-3">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 text-muted">Hesap verileri alınıyor...</div>
+            </div>
+        </div>
+
     </div>
 
    <div class="bottom-nav">
@@ -807,6 +827,396 @@
                 }
             }
         }
+        // --- HESAP EKSTRESİ İŞLEMLERİ ---
+
+    // 1. Sayfayı Aç
+    window.hesapEkstresiAc = function() {
+        // Varsayılan olarak geçen ayı seç (Çünkü bu ay bitmediği için hesaplanmamış olabilir)
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1); // 1 ay geri git
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        
+        const filter = document.getElementById("accMonthFilter");
+        if(!filter.value) filter.value = `${yyyy}-${mm}`; // Eğer boşsa doldur
+        
+        sayfaDegistir('page-account', null); // "Hesap" için bir nav-item yok, null veriyoruz
+        
+        ekstreGetir(); // Veriyi çek
+    }
+
+    // Tarih değişince tekrar çek
+    document.getElementById("accMonthFilter").addEventListener("change", ekstreGetir);
+
+// 2. Veriyi Çek ve Ekrana Bas (YENİ TABLO YAPISI)
+    async function ekstreGetir() {
+        
+        const selectedPeriod = document.getElementById("accMonthFilter").value; 
+        const container = document.getElementById("account-content");
+        
+        container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+
+        try {
+            const docId = `${currentMemberId}_${selectedPeriod}`;
+            const docRef = doc(db, "monthly_statements", docId);
+            const docSnap = await getDoc(docRef);
+
+            if(!docSnap.exists()) {
+                container.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-file-invoice fa-3x mb-3 opacity-25"></i>
+                        <h5>Hesap Yayınlanmadı</h5>
+                        <p class="small">Seçilen dönem (${selectedPeriod}) için henüz hesap özeti yayınlanmamış.</p>
+                    </div>`;
+                return;
+            }
+
+            const data = docSnap.data();
+
+            // RAKAM FORMATLAMA
+            const fmt = (num) => Number(num).toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' ₺';
+            const dateFmt = (ts) => {
+                if(!ts) return '-';
+                if(ts.seconds) return new Date(ts.seconds * 1000).toLocaleDateString('tr-TR');
+                return ts; 
+            };
+
+            // 1. DEVİR
+            let devirHtml = '';
+            let devirText = '';
+            let devirClass = '';
+            
+            if(data.devirBakiye > 0) {
+                devirText = `${fmt(data.devirBakiye)} BORÇLU`;
+                devirClass = 'bg-danger bg-opacity-10 text-danger border-danger';
+            } else if(data.devirBakiye < 0) {
+                devirText = `${fmt(Math.abs(data.devirBakiye))} ALACAKLI`;
+                devirClass = 'bg-success bg-opacity-10 text-success border-success';
+            } else {
+                devirText = '0,00 ₺ (BAKİYE YOK)';
+                devirClass = 'bg-light text-secondary';
+            }
+
+            devirHtml = `
+                <div class="card border mb-4 shadow-sm">
+                    <div class="card-body d-flex justify-content-between align-items-center p-3 ${devirClass}" style="border-radius: 0.375rem;">
+                        <span class="fw-bold text-dark">DÖNEM BAŞI DEVİR</span>
+                        <span class="fw-bold fs-5">${devirText}</span>
+                    </div>
+                </div>
+            `;
+
+            // 2. SÜT BEDELLERİ (TEK SATIR)
+            let sutRows = '';
+            if(data.sutListesi && data.sutListesi.length > 0) {
+                data.sutListesi.forEach(item => {
+                    const tarih = item.tarih || dateFmt(item.date);
+                    const aciklama = item.aciklama || item.desc || 'Süt';
+                    const aksam = item.aksam || 0;
+                    const sabah = item.sabah || 0;
+                    const fiyat = item.fiyat || 0;
+                    const tutar = item.tutar || item.amount || 0;
+
+                    sutRows += `
+                        <tr>
+                            <td class="small fw-bold text-dark">${tarih}</td>
+                            <td class="small text-muted">${aciklama}</td>
+                            <td class="text-center text-primary bg-primary bg-opacity-10 fw-bold">${aksam > 0 ? aksam : '-'}</td>
+                            <td class="text-center text-warning bg-warning bg-opacity-10 fw-bold">${sabah > 0 ? sabah : '-'}</td>
+                            <td class="text-center text-muted small">${fmt(fiyat)}</td>
+                            <td class="text-end fw-bold text-success">${fmt(tutar)}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                sutRows = '<tr><td colspan="6" class="text-center text-muted small py-3">Bu dönem süt kaydı yok.</td></tr>';
+            }
+
+           
+// --- 3. MAL/HİZMET ALIMLARI (REVİZE - AYRI MİKTAR SÜTUNU) ---
+            let satisRows = '';
+            if(data.satisListesi && data.satisListesi.length > 0) {
+                data.satisListesi.forEach(item => {
+                    const urunAdi = item.name;
+                    const birimFiyat = item.price;
+                    // Miktar bilgisi artık ayrı bir hücrede (Örn: 10 Adet)
+                    const miktar = item.qty ? `${item.qty} <small class="text-muted">${item.unit || ''}</small>` : '-';
+
+                    satisRows += `
+                        <tr>
+                            <td class="small text-muted align-middle">${dateFmt(item.date)}</td>
+                            <td class="align-middle">
+                                <span class="text-secondary fw-semibold" style="font-size:0.85rem">${urunAdi}</span>
+                            </td>
+                            <td class="text-center align-middle fw-bold text-dark small">${miktar}</td>
+                            <td class="text-end align-middle small text-muted">${fmt(birimFiyat)}</td>
+                            <td class="text-end align-middle fw-bold text-danger">-${fmt(item.amount)}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                // Sütun sayısı 5'e çıktığı için colspan=5 yaptık
+                satisRows = '<tr><td colspan="5" class="text-center text-muted small py-3">Bu dönem alışveriş yok.</td></tr>';
+            }
+
+           // --- 4. NAKİT VE DİĞER HAREKETLER (GİREN / ÇIKAN FORMATI + TOPLAM) ---
+            let nakitRows = '';
+            let totalGiren = 0; // Toplam Giren (Tahsilat)
+            let totalCikan = 0; // Toplam Çıkan (Ödeme)
+
+            if(data.nakitListesi && data.nakitListesi.length > 0) {
+                data.nakitListesi.forEach(item => {
+                    let girenSutunu = '-';
+                    let cikanSutunu = '-';
+                    const miktar = Number(item.amount);
+
+                    if (item.type === 'alacak') {
+                        // Tahsilat (Giren)
+                        girenSutunu = `<span class="fw-bold text-dark">${fmt(miktar)}</span>`;
+                        totalGiren += miktar;
+                    } else {
+                        // Ödeme (Çıkan)
+                        cikanSutunu = `<span class="fw-bold text-dark">${fmt(miktar)}</span>`;
+                        totalCikan += miktar;
+                    }
+                    
+                    nakitRows += `
+                        <tr>
+                            <td class="small text-muted align-middle">${dateFmt(item.date)}</td>
+                            <td class="align-middle text-secondary">${item.desc}</td>
+                            <td class="text-end align-middle bg-success bg-opacity-10">${girenSutunu}</td>
+                            <td class="text-end align-middle bg-danger bg-opacity-10">${cikanSutunu}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                nakitRows = '<tr><td colspan="4" class="text-center text-muted small py-3">Bu dönem nakit hareket yok.</td></tr>';
+            }
+// --- 6. DÖNEM SONU DETAYLI HESAPLAMA TABLOSU (GÖRSEL TASARIM) ---
+
+            // A) Değişkenleri Hazırla
+            let devirAlacak = 0;
+            let devirBorc = 0;
+            let devirSatiriAlacak = ''; 
+            let devirSatiriBorc = '';
+
+            // Devir Yönünü Belirle (Negatif = Alacak, Pozitif = Borç)
+            if (data.devirBakiye < 0) {
+                devirAlacak = Math.abs(data.devirBakiye);
+                devirSatiriAlacak = `
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
+                        <span class="text-secondary small">Önceki Aydan Devir (Alacak)</span>
+                        <span class="fw-bold text-dark">+ ${fmt(devirAlacak)}</span>
+                    </div>`;
+            } else if (data.devirBakiye > 0) {
+                devirBorc = data.devirBakiye;
+                devirSatiriBorc = `
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
+                        <span class="text-secondary small">Önceki Aydan Devir (Borç)</span>
+                        <span class="fw-bold text-dark">- ${fmt(devirBorc)}</span>
+                    </div>`;
+            }
+
+            // Genel Toplamları Hesapla
+            // Not: totalGiren ve totalCikan yukarıdaki döngülerden geliyor.
+            const tGiren = typeof totalGiren !== 'undefined' ? totalGiren : 0;
+            const tCikan = typeof totalCikan !== 'undefined' ? totalCikan : 0;
+            
+            const genelToplamAlacak = devirAlacak + Number(data.sutToplam) + tGiren;
+            const genelToplamBorc = devirBorc + Number(data.satisToplam) + tCikan;
+
+            // B) HTML Tablosunu Oluştur (Resimdeki Tasarım)
+            const detayTabloHtml = `
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 pt-4 pb-2">
+                        <h6 class="fw-bold text-dark m-0">DÖNEM SONU HESAPLAMA DETAYI</h6>
+                    </div>
+                    <div class="card-body p-3 pt-0">
+                        
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-success mb-3" style="font-size: 0.8rem;">+ ALACAKLAR (Giriş)</h6>
+                            
+                            ${devirSatiriAlacak}
+
+                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
+                                <span class="text-secondary small">Cari Ay Süt Bedelleri</span>
+                                <span class="fw-bold text-dark">+ ${fmt(data.sutToplam)}</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-secondary small">Cari Ay Yapılan Nakit Tahsilatlar</span>
+                                <span class="fw-bold text-dark">+ ${fmt(tGiren)}</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #d1e7dd;">
+                                <span class="fw-bold text-success small">TOPLAM ALACAK</span>
+                                <span class="fw-bold text-dark">${fmt(genelToplamAlacak)}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h6 class="fw-bold text-danger mb-3" style="font-size: 0.8rem;">- BORÇLAR (Çıkış)</h6>
+
+                            ${devirSatiriBorc}
+
+                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
+                                <span class="text-secondary small">Cari Ay Mal/Hizmet Satışları</span>
+                                <span class="fw-bold text-dark">- ${fmt(data.satisToplam)}</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-secondary small">Cari Ay Yapılan Ödemeler (Avans)</span>
+                                <span class="fw-bold text-dark">- ${fmt(tCikan)}</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #f8d7da;">
+                                <span class="fw-bold text-danger small">TOPLAM BORÇ</span>
+                                <span class="fw-bold text-dark">${fmt(genelToplamBorc)}</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+// 7. SONUÇ BAKİYE KARTI
+            let sonucText = '';
+            let sonucRenk = ''; // Renk değişkenimiz bu
+            
+            if(data.sonucBakiye > 0) {
+                sonucText = `${fmt(data.sonucBakiye)} BORÇLUSUNUZ`;
+                sonucRenk = '#dc3545'; // Kırmızı
+            } else if(data.sonucBakiye < 0) {
+                sonucText = `${fmt(Math.abs(data.sonucBakiye))} ALACAKLISINIZ`;
+                sonucRenk = '#198754'; // Yeşil
+            } else {
+                sonucText = "HESAP KAPALI (0,00 ₺)";
+                sonucRenk = "#6c757d"; // Gri
+            }
+
+            // --- 7. RESİMDEKİ GİBİ ÜST DEVİR KARTI ---
+            let ustDevirHtml = '';
+            
+            if (data.devirBakiye !== 0) {
+                // Borç mu Alacak mı?
+                const isBorc = data.devirBakiye > 0;
+                const devirTutar = Math.abs(data.devirBakiye);
+                
+                // Stil Ayarları:
+                const bgStyle = isBorc ? 'background-color: #fff3cd;' : 'background-color: #d1e7dd;';
+                const textClass = isBorc ? 'text-danger' : 'text-success';
+                const durumYazisi = isBorc ? 'BORÇLU' : 'ALACAKLI';
+
+                ustDevirHtml = `
+                <div class="card border-0 mb-3 shadow-sm" style="border-radius: 12px;">
+                    <div class="card-body d-flex justify-content-between align-items-center p-3" style="${bgStyle}">
+                        <span class="fw-bold text-dark" style="font-size: 0.95rem;">DÖNEM BAŞI DEVİR</span>
+                        <span class="fw-bold ${textClass}" style="font-size: 1.1rem;">
+                            ${fmt(devirTutar)} ${durumYazisi}
+                        </span>
+                    </div>
+                </div>`;
+            } else {
+                // Bakiye Sıfır ise
+                ustDevirHtml = `
+                <div class="card border-0 mb-3 shadow-sm" style="border-radius: 12px;">
+                    <div class="card-body d-flex justify-content-between align-items-center p-3 bg-light">
+                        <span class="fw-bold text-muted" style="font-size: 0.95rem;">DÖNEM BAŞI DEVİR</span>
+                        <span class="fw-bold text-muted">BAKİYE YOK (0,00 ₺)</span>
+                    </div>
+                </div>`;
+            }
+
+            // HTML ÇIKTISI
+            container.innerHTML = `
+                
+                ${ustDevirHtml}
+
+                <h6 class="fw-bold text-success mb-2 border-bottom pb-1 mt-2">1. SÜT BEDELLERİ</h6>
+                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped mb-0 align-middle" style="font-size:0.8rem">
+                            <thead class="table-light">
+                                <tr class="text-center">
+                                    <th class="text-start ps-2">Tarih</th>
+                                    <th class="text-start">Açıklama</th>
+                                    <th>Akşam<br><small>(Lt)</small></th>
+                                    <th>Sabah<br><small>(Lt)</small></th>
+                                    <th>Fiyat</th>
+                                    <th class="text-end pe-2">Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>${sutRows}</tbody>
+                            <tfoot class="bg-success bg-opacity-10 fw-bold">
+                                <tr>
+                                    <td colspan="5" class="text-end pe-2">SÜT TOPLAMI:</td>
+                                    <td class="text-end text-success pe-2">${fmt(data.sutToplam)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+               <h6 class="fw-bold text-danger mb-2 border-bottom pb-1">2. MAL/HİZMET ALIMLARI</h6>
+                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped mb-0 align-middle" style="font-size:0.85rem">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:15%">Tarih</th>
+                                    <th style="width:40%">Ürün Adı</th>
+                                    <th class="text-center" style="width:15%">Miktar</th> <th class="text-end" style="width:15%">Birim Fiyat</th>
+                                    <th class="text-end" style="width:15%">Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>${satisRows}</tbody>
+                            <tfoot class="bg-danger bg-opacity-10 fw-bold">
+                                <tr>
+                                    <td colspan="4" class="text-end pe-2">BORÇ TOPLAMI:</td> <td class="text-end text-danger">${fmt(data.satisToplam)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+               <h6 class="fw-bold text-dark mb-2 border-bottom pb-1">3. DİĞER HAREKETLER</h6>
+                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0 align-middle" style="font-size:0.85rem">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:20%">Tarih</th>
+                                    <th style="width:40%">Açıklama</th>
+                                    <th class="text-end" style="width:20%">GİREN <small class="text-muted fw-normal">(Tahsilat)</small></th>
+                                    <th class="text-end" style="width:20%">ÇIKAN <small class="text-muted fw-normal">(Ödeme)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>${nakitRows}</tbody>
+                            <tfoot class="fw-bold border-top">
+                                <tr>
+                                    <td colspan="2" class="text-end pe-3 align-middle text-secondary">TOPLAM:</td>
+                                    <td class="text-end bg-success bg-opacity-25 text-success align-middle">${fmt(totalGiren)}</td>
+                                    <td class="text-end bg-danger bg-opacity-25 text-danger align-middle">${fmt(totalCikan)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                ${detayTabloHtml}
+
+                <div class="card border-0 shadow-lg mb-4" style="background-color: ${sonucRenk}; color: white; border-radius: 16px;">
+                    <div class="card-body text-center p-4">
+                        <small class="opacity-75 fw-bold d-block mb-1 text-uppercase">DÖNEM SONU NET DURUM</small>
+                        <h3 class="fw-bold m-0">${sonucText}</h3>
+                    </div>
+                </div>
+            `;
+
+        } catch (error) {
+            console.error(error);
+            container.innerHTML = '<div class="alert alert-danger">Veri alınırken hata oluştu.</div>';
+        }
+    }
     </script>
 </body>
 </html>
