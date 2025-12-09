@@ -171,14 +171,29 @@
         <h6>Hesap</h6>
     </div>
 </div>
-
+<div class="col-4">
+    <div class="quick-card" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);"
+         onclick="sayfaDegistir('page-animals', null); hayvanlariGetir();">
+        <i class="bg-icon fa-solid fa-paw"></i>
+        <i class="fa-solid fa-paw fa-2x mb-1"></i>
+        <h6>Hayvanlarım</h6>
+    </div>
+</div>
+<div class="col-4">
+    <div class="quick-card" style="background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);"
+         onclick="malzemeSiparisiVer()">
+        <i class="bg-icon fa-solid fa-truck-ramp-box"></i>
+        <i class="fa-solid fa-cart-shopping fa-2x mb-1"></i>
+        <h6>Yem İste</h6>
+    </div>
+</div>
                 <div class="col-4">
                     <div class="quick-card" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);"
-                         onclick="window.open('https://wa.me/905000000000', '_blank')">
-                        <i class="bg-icon fa-brands fa-whatsapp"></i>
-                        <i class="fa-brands fa-whatsapp fa-2x mb-1"></i>
-                        <h6>Destek</h6>
-                    </div>
+     onclick="whatsappDestekAc()">
+    <i class="bg-icon fa-brands fa-whatsapp"></i>
+    <i class="fa-brands fa-whatsapp fa-2x mb-1"></i>
+    <h6>Destek</h6>
+</div>
                 </div>
 
             </div>
@@ -209,12 +224,27 @@
             <h6 class="fw-bold text-secondary small ps-1 mb-2">GÜNLÜK AKIŞ (Son Kayıtlar)</h6>
             <div class="d-flex gap-2 overflow-auto pb-2" id="dailySlider" style="white-space: nowrap; -webkit-overflow-scrolling: touch;">
                 </div>
-
+<h6 class="fw-bold text-secondary small ps-1 mb-2 mt-4">DUYURULAR</h6>
+<div class="card border-0 shadow-sm mb-5" style="border-radius: 18px; overflow: hidden;">
+    <div class="list-group list-group-flush" id="announcement-list">
+        <div class="text-center py-4 text-muted small">
+            <div class="spinner-border spinner-border-sm text-secondary mb-2"></div>
+            <div>Yükleniyor...</div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
     <div id="page-milk" style="display: none;">
         <div class="bg-white px-3 pt-3 pb-4 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;">
-            <h5 class="fw-bold text-dark m-0 mb-3 ps-1">Süt Geçmişim</h5>
+            <div class="d-flex align-items-center mb-3">
+    <button class="btn btn-light rounded-circle shadow-sm me-3" 
+            onclick="sayfaDegistir('page-home', document.getElementById('nav-home'))"
+            style="width: 40px; height: 40px;">
+        <i class="fa-solid fa-arrow-left text-primary"></i>
+    </button>
+    <h5 class="fw-bold text-dark m-0">Süt Geçmişim</h5>
+</div>
             
             <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border-radius: 20px;">
                 <div class="card-body d-flex justify-content-between align-items-center px-4 py-3">
@@ -320,13 +350,22 @@
     <div id="page-account" style="display: none; padding-bottom: 80px;">
         
         <div class="bg-white px-3 pt-3 pb-3 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="fw-bold text-dark m-0">Hesap Ekstresi</h5>
-                    <small class="text-muted" id="accCoopName">Kooperatif</small>
-                </div>
-                <input type="month" id="accMonthFilter" class="form-control form-control-sm border-primary text-primary fw-bold" style="width: 130px;">
-            </div>
+           <div class="d-flex justify-content-between align-items-center">
+    
+    <div class="d-flex align-items-center">
+        <button class="btn btn-light rounded-circle shadow-sm me-3" 
+                onclick="sayfaDegistir('page-home', document.getElementById('nav-home'))"
+                style="width: 40px; height: 40px;">
+            <i class="fa-solid fa-arrow-left text-primary"></i>
+        </button>
+        <div>
+            <h5 class="fw-bold text-dark m-0">Hesap Ekstresi</h5>
+            <small class="text-muted" id="accCoopName">Kooperatif</small>
+        </div>
+    </div>
+
+    <input type="month" id="accMonthFilter" class="form-control form-control-sm border-primary text-primary fw-bold" style="width: 130px;">
+</div>
         </div>
 
         <div id="account-content" class="px-3">
@@ -337,7 +376,66 @@
         </div>
 
     </div>
+<div id="page-animals" style="display: none; padding-bottom: 80px;">
+    
+    <div class="bg-white px-3 pt-3 pb-3 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-light rounded-circle shadow-sm me-3" 
+                        onclick="sayfaDegistir('page-home', document.getElementById('nav-home'))"
+                        style="width: 40px; height: 40px;">
+                    <i class="fa-solid fa-arrow-left text-primary"></i>
+                </button>
+                <div>
+                    <h5 class="fw-bold text-dark m-0">Hayvan Varlığım</h5>
+                    <small class="text-muted">Çiftlik Yönetimi</small>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3" onclick="yeniHayvanEkle()">
+                <i class="fa-solid fa-plus me-1"></i> Ekle
+            </button>
+        </div>
 
+        <div class="row g-2 text-center mb-3">
+            <div class="col-3">
+                <div class="bg-light p-2 rounded-3 border">
+                    <small class="d-block text-muted" style="font-size:0.6rem">TOPLAM</small>
+                    <span class="fw-bold text-dark" id="stat-total">0</span>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="bg-warning bg-opacity-10 p-2 rounded-3 border border-warning border-opacity-25">
+                    <small class="d-block text-warning fw-bold" style="font-size:0.6rem">İNEK</small>
+                    <span class="fw-bold text-dark" id="stat-inek">0</span>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="bg-info bg-opacity-10 p-2 rounded-3 border border-info border-opacity-25">
+                    <small class="d-block text-info fw-bold" style="font-size:0.6rem">GENÇ</small>
+                    <span class="fw-bold text-dark" id="stat-genc">0</span>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="bg-danger bg-opacity-10 p-2 rounded-3 border border-danger border-opacity-25">
+                    <small class="d-block text-danger fw-bold" style="font-size:0.6rem">ERKEK</small>
+                    <span class="fw-bold text-dark" id="stat-erkek">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="position-relative">
+            <input type="text" id="animalSearch" class="form-control rounded-pill ps-5 bg-light border-0" placeholder="Küpe no ile ara..." onkeyup="hayvanAra()">
+            <i class="fa-solid fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+        </div>
+    </div>
+
+    <div id="animal-list-container" class="px-3">
+        </div>
+
+</div>
+    </div>
+
+    
    <div class="bottom-nav">
         <button class="nav-item active" id="nav-home" onclick="sayfaDegistir('page-home', this)">
             <i class="fa-solid fa-house"></i> <span>Ana Sayfa</span>
@@ -356,8 +454,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script type="module">
-        import { updatePassword, auth, db, signOut, onAuthStateChanged, doc, getDoc, collection, query, where, orderBy, limit, onSnapshot } from "../js/firebase-config.js";
-
+        // 'getDocs' eklendi
+// SONA 'getDocs' EKLENDİ 👇
+import { updatePassword, auth, db, signOut, onAuthStateChanged, doc, getDoc, updateDoc, collection, query, where, orderBy, limit, onSnapshot, getDocs, addDoc, deleteDoc } from "../js/firebase-config.js";
         let currentMemberId = null;
         let currentCoopId = null;
         let globalMilkSnapshot = null; // Verileri hafızada tutmak için
@@ -376,26 +475,98 @@
                 }
             });
         }
+// --- 4. GÜÇLENDİRİLMİŞ GİRİŞ VE VERİ ÇEKME KODU ---
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        console.log("Kullanıcı Giriş Yaptı:", user.uid);
 
-        // 2. Kullanıcı Giriş Kontrolü
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    if(userData.role !== 'member') {
-                        Swal.fire("Hata", "Yetkisiz giriş.", "error");
-                        signOut(auth);
-                        return;
-                    }
-                    currentCoopId = userData.coopId;
-                    currentMemberId = userData.relatedMemberId || user.uid;
-                    uyeBilgileriniGetir(currentMemberId);
+        try {
+            // 1. Users tablosundaki kullanıcı kaydını çek
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                
+                // Rol Kontrolü
+                if(userData.role !== 'member' && userData.role !== 'uye') {
+                    Swal.fire("Hata", "Bu panele sadece üreticiler girebilir.", "error");
+                    await signOut(auth);
+                    return;
                 }
+
+                let matchedMemberId = userData.relatedMemberId;
+                
+                // --- KESİN ÇÖZÜM BURASI ---
+                // Eğer bir ID varsa, bu ID gerçekten 'members' tablosunda yaşıyor mu kontrol et
+                let isMemberAlive = false;
+                if (matchedMemberId) {
+                    const checkMember = await getDoc(doc(db, "members", matchedMemberId));
+                    isMemberAlive = checkMember.exists();
+                }
+
+                // EĞER:
+                // 1. Hiç ID yoksa (matchedMemberId yok)
+                // 2. İsim "İsimsiz" ise
+                // 3. VEYA ID VAR AMA ÜYE SİLİNMİŞSE (!isMemberAlive) -> "Ölü Bağlantı"
+                if (!matchedMemberId || !userData.adSoyad || userData.adSoyad === 'İsimsiz' || !isMemberAlive) {
+                    
+                    console.log("Bağlantı kopuk veya üye silinmiş! Telefon ile yeniden aranıyor...");
+                    
+                    // Email'den saf numarayı çıkar
+                    let rawPhone = user.email.split('@')[0];
+                    const phoneNoZero = rawPhone.startsWith('0') ? rawPhone.substring(1) : rawPhone;
+                    const phoneWithZero = "0" + phoneNoZero;
+
+                    // Telefonla Üyeyi Bul
+                    const q1 = query(collection(db, "members"), where("telefon", "==", phoneNoZero));
+                    const q2 = query(collection(db, "members"), where("telefon", "==", phoneWithZero));
+                    
+                    const snap1 = await getDocs(q1);
+                    const snap2 = await getDocs(q2);
+                    
+                    let foundMember = null;
+                    if (!snap1.empty) foundMember = snap1.docs[0];
+                    else if (!snap2.empty) foundMember = snap2.docs[0];
+
+                    if (foundMember) {
+                        const mData = foundMember.data();
+                        
+                        console.log("Üye Tekrar Bulundu! Bağlantı tamir ediliyor: ", mData.ad);
+                        
+                        // Users Tablosunu YENİ ID ile Güncelle
+                        await updateDoc(userDocRef, { 
+                            relatedMemberId: foundMember.id, // Yeni ID'yi yaz
+                            coopId: mData.coopId,
+                            adSoyad: `${mData.ad} ${mData.soyad}`,
+                            role: 'member'
+                        });
+                        
+                        // Hemen ekrana yansıt
+                        uyeBilgileriniGetir(foundMember.id);
+
+                    } else {
+                        // Telefonla da bulunamadıysa gerçekten silinmiştir.
+                        Swal.fire("Hata", "Kaydınız silinmiş veya telefon numaranız uyuşmuyor. Yöneticiyle görüşün.", "warning");
+                    }
+                } else {
+                    // Bağlantı sağlamsa normal devam et
+                    console.log("Bağlantı sağlam, veriler çekiliyor...");
+                    currentMemberId = matchedMemberId;
+                    currentCoopId = userData.coopId;
+                    uyeBilgileriniGetir(matchedMemberId);
+                }
+
             } else {
-                window.location.href = "../index.html";
+                Swal.fire("Hata", "Kullanıcı profili bulunamadı.", "error");
             }
-        });
+        } catch (error) {
+            console.error("Giriş Hatası Detayı:", error);
+        }
+    } else {
+        window.location.href = "../index.html";
+    }
+});
 
         async function uyeBilgileriniGetir(uid) {
             let memberDoc = await getDoc(doc(db, "members", uid));
@@ -414,6 +585,8 @@
             bakiyeyiDinle(uid); // Bakiye her zaman "Genel Toplam"dır
             sutleriDinle(uid);  // Sütler tarihe göre değişir
             document.getElementById("loader").style.display = "none";
+            dogumBildirimiYap(uid);
+            duyurulariGetir();
         }
 
         // BAKİYE HESAPLAMA (Ekranda Gizli, Arka Planda Çalışır)
@@ -432,8 +605,10 @@
             });
         }
 
-      // SÜT VERİLERİNİ ÇEKME
+   // SÜT VERİLERİNİ ÇEKME (DEDEKTİF MODU)
         function sutleriDinle(uid) {
+            console.log("Sütler aranıyor... Aranan Üye ID:", uid);
+
             const q = query(
                 collection(db, "milk_records"),
                 where("memberId", "==", uid),
@@ -441,13 +616,28 @@
             );
 
             onSnapshot(q, (snapshot) => {
-                globalMilkSnapshot = snapshot; // Veriyi hafızaya al
+                globalMilkSnapshot = snapshot; 
                 
+                console.log("------- SÜT SORGUSU SONUCU -------");
+                console.log("Bulunan Toplam Kayıt Sayısı:", snapshot.size);
+                
+                if (snapshot.size > 0) {
+                    snapshot.forEach(doc => {
+                        const d = doc.data();
+                        console.log("Bulunan Kayıt:", d.dateString, d.liters, "Lt");
+                    });
+                } else {
+                    console.warn("BU ÜYE İÇİN HİÇ SÜT KAYDI YOK! (Veritabanında bu ID ile eşleşen kayıt yok)");
+                }
+                console.log("----------------------------------");
+
                 // 1. Ana Sayfa (Günlük/Aylık) güncelle
                 verileriSuzVeYazdir(snapshot); 
                 
-                // 2. Geçmiş Sayfası (Yıllık Özet) güncelle -- YENİ EKLENEN
-                gecmisSayfayiGuncelle(snapshot);
+                // 2. Geçmiş Sayfası (Yıllık Özet) güncelle
+                if(typeof gecmisSayfayiGuncelle === 'function') {
+                    gecmisSayfayiGuncelle(snapshot);
+                }
             });
         }
         // --- YENİ: GEÇMİŞ SAYFASI İÇİN YILLIK ÖZET ---
@@ -777,24 +967,27 @@
             }
         }
 
-        // SAYFA GEÇİŞLERİ (GÜNCELLENDİ)
-        window.sayfaDegistir = function(sayfaId, element) {
-            // Tüm sayfaları gizle
-            document.getElementById("page-home").style.display = "none";
-            document.getElementById("page-milk").style.display = "none";
-            document.getElementById("page-history").style.display = "none"; // Yeni eklenen
-            document.getElementById("page-profile").style.display = "none";
-            
-            // İstenen sayfayı aç
-            document.getElementById(sayfaId).style.display = "block";
-            
-            // Menü aktifliğini ayarla
-            if(element) {
-                document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-                element.classList.add("active");
-            }
-            window.scrollTo(0, 0);
-        }
+       window.sayfaDegistir = function(sayfaId, element) {
+    // 1. Tüm sayfaları gizle (Account sayfası dahil)
+    document.getElementById("page-home").style.display = "none";
+    document.getElementById("page-milk").style.display = "none";
+    document.getElementById("page-history").style.display = "none";
+    document.getElementById("page-profile").style.display = "none";
+    
+    // EKSİK OLAN SATIR BU 👇
+    document.getElementById("page-account").style.display = "none"; 
+    
+    // 2. İstenen sayfayı aç
+    const target = document.getElementById(sayfaId);
+    if(target) target.style.display = "block";
+    
+    // 3. Menü aktifliğini ayarla
+    if(element) {
+        document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+        element.classList.add("active");
+    }
+    window.scrollTo(0, 0);
+}
         // ÇIKIŞ YAP
         window.cikisYap = async function() {
             Swal.fire({
@@ -827,6 +1020,818 @@
                 }
             }
         }
+
+// --- 1. HAYVANLARI GETİR (KURU DÖNEM UYARILI) ---
+window.hayvanlariGetir = function() {
+    const container = document.getElementById("animal-list-container");
+    container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+
+    const q = query(collection(db, "animals"), where("memberId", "==", currentMemberId));
+
+    onSnapshot(q, (snapshot) => {
+        container.innerHTML = "";
+        
+        if (snapshot.empty) {
+            container.innerHTML = '<div class="text-center py-5 text-muted opacity-75"><i class="fa-solid fa-paw fa-3x mb-3"></i><h5>Kayıt Yok</h5><p>Hayvan eklemek için yukarıdaki + butonuna basın.</p></div>';
+            ['total', 'inek', 'genc', 'erkek'].forEach(k => document.getElementById(`stat-${k}`).innerText = '0');
+            return;
+        }
+
+        let countTotal = 0, countInek = 0, countGenc = 0, countErkek = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            countTotal++;
+
+            if(data.cinsiyet === 'Erkek') countErkek++;
+            else if(data.tur === 'İnek') countInek++;
+            else countGenc++;
+
+            // YAŞ HESABI
+            let yasText = "Yaş Bilinmiyor";
+            if(data.dogumTarihi) {
+                const diff = new Date() - new Date(data.dogumTarihi);
+                const ageMonth = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
+                if(ageMonth < 12) yasText = `${ageMonth} Aylık`;
+                else yasText = `${Math.floor(ageMonth/12)} Yaşında`;
+            }
+
+            // GEBELİK VE KURUYA AYIRMA HESABI
+            let gebelikBadge = '';
+            let altBilgiKutusu = '';
+            
+            if (data.gebelik === 'Gebe' && data.tohumlamaTarihi) {
+                const tohumlama = new Date(data.tohumlamaTarihi);
+                const bugun = new Date();
+                
+                // Doğum Tarihi (285 Gün)
+                const tahminiDogum = new Date(tohumlama);
+                tahminiDogum.setDate(tohumlama.getDate() + 285);
+                
+                // Kalan Gün
+                const farkZaman = tahminiDogum - bugun;
+                const kalanGun = Math.ceil(farkZaman / (1000 * 60 * 60 * 24));
+
+                // --- YENİ EKLENEN: KURU DÖNEM HESABI ---
+                // Doğuma 60 günden az kaldıysa ve henüz doğmadıysa
+                let kuruUyari = '';
+                if (kalanGun <= 60 && kalanGun > 0) {
+                    kuruUyari = `<div class="alert alert-warning d-flex align-items-center p-2 mb-2 mt-2" role="alert" style="font-size: 0.8rem;">
+                                    <i class="fa-solid fa-triangle-exclamation me-2 fs-5"></i>
+                                    <div>
+                                        <strong>DİKKAT!</strong> Hayvanı kuruya ayırma zamanı geldi.<br>
+                                        <small>Doğuma ${kalanGun} gün kaldı.</small>
+                                    </div>
+                                 </div>`;
+                }
+                // ---------------------------------------
+
+                if (kalanGun > 0) {
+                    gebelikBadge = `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 ms-1"><i class="fa-solid fa-baby me-1"></i>Gebe</span>`;
+                    
+                    // Alt bilgi kutusu (Normal Sayaç + Kuru Uyarısı)
+                    altBilgiKutusu = `
+                        ${kuruUyari}
+                        <div class="mt-2 p-2 bg-light rounded border border-danger border-opacity-25 text-center">
+                            <small class="text-danger fw-bold d-block">DOĞUMA KALAN</small>
+                            <span class="fw-bold text-dark fs-5">${kalanGun} Gün</span>
+                            <small class="text-muted d-block" style="font-size:0.65rem">Tahmini: ${tahminiDogum.toLocaleDateString('tr-TR')}</small>
+                        </div>`;
+                } else {
+                    gebelikBadge = `<span class="badge bg-success ms-1">DOĞUM ZAMANI!</span>`;
+                    altBilgiKutusu = `<div class="mt-2 p-2 bg-success text-white rounded text-center fw-bold">DOĞUM BEKLENİYOR</div>`;
+                }
+            }
+
+            // Kart İkon ve Renk
+            let icon = 'fa-cow';
+            let color = 'text-warning';
+            if(data.cinsiyet === 'Erkek') { color = 'text-danger'; }
+            
+            const html = `
+            <div class="card border-0 shadow-sm mb-3 animal-card" data-kupe="${data.kupeNo.toLowerCase()}" style="border-radius: 16px; overflow:hidden;">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light ${color} rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                <i class="fa-solid ${icon}"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark m-0 fs-5">
+                                    ${data.kupeNo}
+                                    ${data.rumuz ? `<span class="text-muted fw-normal small ms-1">(${data.rumuz})</span>` : ''}
+                                    ${gebelikBadge}
+                                </h6>
+                                <div class="small text-muted mt-1">
+                                    <span class="badge bg-light text-dark border me-1">${data.irk || 'Irk Yok'}</span>
+                                    <span class="badge bg-light text-secondary border me-1">${data.tur || '-'}</span>
+                                    <span class="text-secondary" style="font-size:0.75rem"><i class="fa-regular fa-clock me-1"></i>${yasText}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            ${data.gebelik === 'Gebe' ? 
+                            `<button class="btn btn-success btn-sm text-white shadow-sm" onclick="dogumKaydet('${doc.id}', '${data.kupeNo}', '${data.irk || ''}')" title="Doğum Gerçekleşti">
+                                <i class="fa-solid fa-baby-carriage"></i>
+                            </button>` : ''}
+
+                            <button class="btn btn-light text-primary btn-sm border" onclick="hayvanDuzenle('${doc.id}', '${data.kupeNo}', '${data.gebelik || 'Bos'}', '${data.tohumlamaTarihi || ''}', '${data.tohumlamaTipi || 'Suni'}')">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            
+                            <button class="btn btn-light text-danger btn-sm border" onclick="hayvanSil('${doc.id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    ${altBilgiKutusu}
+                    
+                </div>
+            </div>`;
+            
+            container.innerHTML += html;
+        });
+
+        document.getElementById("stat-total").innerText = countTotal;
+        document.getElementById("stat-inek").innerText = countInek;
+        document.getElementById("stat-genc").innerText = countGenc;
+        document.getElementById("stat-erkek").innerText = countErkek;
+    });
+}
+// --- 7. YEM VE MALZEME SİPARİŞİ ---
+window.malzemeSiparisiVer = async function() {
+    // Örnek Ürün Listesi (İleride veritabanından çekilebilir)
+    const urunListesi = `
+        <option value="Süt Yemi (50kg)">Süt Yemi (50kg Çuval)</option>
+        <option value="Besi Yemi (50kg)">Besi Yemi (50kg Çuval)</option>
+        <option value="Buzağı Başlangıç">Buzağı Başlangıç Yemi</option>
+        <option value="Kuru Dönem Yemi">Kuru Dönem Yemi</option>
+        <option value="Yalama Taşı">Yalama Taşı (Blok)</option>
+        <option value="Mısır Silajı">Mısır Silajı (Paket)</option>
+    `;
+
+    const { value: formValues } = await Swal.fire({
+        title: 'Yem / Malzeme Siparişi',
+        html: `
+            <div class="text-start">
+                <div class="alert alert-info small p-2 mb-3">
+                    <i class="fa-solid fa-truck me-1"></i> Siparişiniz kooperatife iletilecek ve cari hesabınıza işlenecektir.
+                </div>
+
+                <label class="small fw-bold text-muted mb-1">Ürün Seçiniz</label>
+                <select id="ord-urun" class="form-select mb-3">
+                    ${urunListesi}
+                </select>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">Miktar (Adet/Çuval)</label>
+                        <input type="number" id="ord-adet" class="form-control fw-bold" value="1" min="1">
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">Teslimat</label>
+                        <select id="ord-teslimat" class="form-select">
+                            <option value="Adrese Teslim">Adrese Gelsin</option>
+                            <option value="Gelip Alacağım">Ben Alacağım</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <label class="small fw-bold text-muted mt-2 mb-1">Notunuz (Opsiyonel)</label>
+                <textarea id="ord-not" class="form-control" rows="2" placeholder="Örn: Süt arabasıyla gönderin..."></textarea>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Siparişi Onayla',
+        confirmButtonColor: '#0891b2',
+        cancelButtonText: 'Vazgeç',
+        preConfirm: () => {
+            return {
+                urun: document.getElementById('ord-urun').value,
+                adet: document.getElementById('ord-adet').value,
+                teslimat: document.getElementById('ord-teslimat').value,
+                not: document.getElementById('ord-not').value
+            }
+        }
+    });
+
+    if (formValues) {
+        if(formValues.adet < 1) return Swal.fire("Hata", "En az 1 adet seçmelisiniz.", "warning");
+
+        Swal.fire({title: 'Sipariş İletiliyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+        try {
+            // SİPARİŞİ KAYDET (Orders Koleksiyonuna)
+            await addDoc(collection(db, "orders"), {
+                memberId: currentMemberId,
+                coopId: currentCoopId,
+                memberName: document.getElementById("lblMemberName").innerText.replace('Sn. ', ''), // İsmi al
+                urunAdi: formValues.urun,
+                miktar: Number(formValues.adet),
+                teslimatTipi: formValues.teslimat,
+                not: formValues.not,
+                durum: 'Bekliyor', // Bekliyor, Onaylandı, Teslim Edildi
+                siparisTarihi: new Date()
+            });
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sipariş Alındı!',
+                text: 'Talebiniz kooperatif yetkilisine iletildi.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Hata", "Sipariş oluşturulamadı: " + error.message, "error");
+        }
+    }
+}
+// --- 4. HAYVAN DÜZENLE (DÜZELTİLMİŞ VERSİYON) ---
+window.hayvanDuzenle = async function(docId, kupeNo, mevcutGebelik, mevcutTarih, mevcutTip) {
+    const { value: formValues } = await Swal.fire({
+        title: `Düzenle: ${kupeNo}`,
+        html: `
+            <div class="text-start">
+                <div class="alert alert-info small p-2 mb-3">
+                    <i class="fa-solid fa-info-circle me-1"></i> Sadece gebelik durumunu buradan güncelleyebilirsiniz.
+                </div>
+
+                <label class="small fw-bold text-primary mb-1">Gebelik Durumu</label>
+                <select id="edit-gebelik" class="form-select mb-3">
+                    <option value="Bos" ${mevcutGebelik === 'Bos' ? 'selected' : ''}>Boş (Gebe Değil)</option>
+                    <option value="Gebe" ${mevcutGebelik === 'Gebe' ? 'selected' : ''}>Gebe / Tohumlandı</option>
+                </select>
+                
+                <div id="edit-detay-div" style="display: ${mevcutGebelik === 'Gebe' ? 'block' : 'none'};">
+                    <label class="small fw-bold text-muted mb-1">Tohumlama Tarihi</label>
+                    <input type="date" id="edit-tohumlama" class="form-control mb-2" value="${mevcutTarih}">
+                    
+                    <label class="small fw-bold text-muted mb-1">Tohumlama Tipi</label>
+                    <select id="edit-tip" class="form-select">
+                        <option value="Suni" ${mevcutTip === 'Suni' ? 'selected' : ''}>Suni Tohumlama (Veteriner)</option>
+                        <option value="Tabii" ${mevcutTip === 'Tabii' ? 'selected' : ''}>Tabii Tohumlama (Boğa)</option>
+                    </select>
+                </div>
+            </div>
+        `,
+        // --- DEĞİŞİKLİK BURADA: Pencere açılınca bu kod çalışır ---
+        didOpen: () => {
+            const selectBox = document.getElementById('edit-gebelik');
+            const detayDiv = document.getElementById('edit-detay-div');
+            
+            // Seçim değişince çalışacak kod
+            selectBox.addEventListener('change', function() {
+                if (this.value === 'Gebe') {
+                    detayDiv.style.display = 'block';
+                } else {
+                    detayDiv.style.display = 'none';
+                }
+            });
+        },
+        // ----------------------------------------------------------
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Güncelle',
+        confirmButtonColor: '#0284c7',
+        preConfirm: () => {
+            return {
+                gebelik: document.getElementById('edit-gebelik').value,
+                tarih: document.getElementById('edit-tohumlama').value,
+                tip: document.getElementById('edit-tip').value
+            }
+        }
+    });
+
+    if (formValues) {
+        // Doğrulama
+        if(formValues.gebelik === 'Gebe' && !formValues.tarih) {
+            return Swal.fire("Eksik Bilgi", "Gebe seçtiyseniz tarih girmelisiniz!", "warning");
+        }
+
+        try {
+            // Veritabanını Güncelle
+            await updateDoc(doc(db, "animals", docId), {
+                gebelik: formValues.gebelik,
+                tohumlamaTarihi: formValues.tarih,
+                tohumlamaTipi: formValues.tip
+            });
+
+            const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+            Toast.fire({icon: 'success', title: 'Bilgiler Güncellendi'});
+
+        } catch (error) {
+            Swal.fire("Hata", error.message, "error");
+        }
+    }
+}
+
+// --- 6. DOĞUM KAYDI (ÇOKLU / İKİZ DOĞUM DESTEKLİ) ---
+window.dogumKaydet = async function(anneId, anneKupe, anneIrk) {
+    const bugun = new Date().toISOString().split('T')[0];
+
+    // Buzağı Satırı HTML Şablonu
+    const buzagiSatiriHTML = `
+        <div class="buzagi-satir border rounded p-2 mb-2 bg-light position-relative">
+            <div class="row g-2">
+                <div class="col-5">
+                    <label class="small text-muted fw-bold">Küpe No</label>
+                    <input type="text" class="form-control form-control-sm fw-bold text-uppercase inp-kupe" placeholder="TR...">
+                </div>
+                <div class="col-4">
+                    <label class="small text-muted fw-bold">Cinsiyet</label>
+                    <select class="form-select form-select-sm inp-cinsiyet">
+                        <option value="Dişi">Dişi</option>
+                        <option value="Erkek">Erkek</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label class="small text-muted fw-bold">Irk</label>
+                    <select class="form-select form-select-sm inp-irk">
+                        <option value="${anneIrk}" selected>${anneIrk}</option>
+                        <option value="Holstein">Holstein</option>
+                        <option value="Simental">Simental</option>
+                        <option value="Montofon">Montofon</option>
+                        <option value="Angus">Angus</option>
+                        <option value="Yerli">Yerli</option>
+                    </select>
+                </div>
+            </div>
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-1 small" aria-label="Close" onclick="this.parentElement.remove()"></button>
+        </div>
+    `;
+
+    const { value: result } = await Swal.fire({
+        title: '🎉 Doğum Kaydı',
+        html: `
+            <div class="text-start">
+                <p class="small text-muted mb-2"><b>${anneKupe}</b> doğum yapıyor. İkiz/Üçüz durumunda aşağıdaki butona basarak ekleme yapın.</p>
+                
+                <div class="mb-2">
+                    <label class="small fw-bold text-dark">Doğum Tarihi (Hepsi İçin)</label>
+                    <input type="date" id="ortak-tarih" class="form-control" value="${bugun}">
+                </div>
+
+                <div id="buzagi-container" class="mb-2" style="max-height: 300px; overflow-y: auto;">
+                    </div>
+
+                <button type="button" class="btn btn-outline-primary btn-sm w-100 dashed-border fw-bold" id="btn-satir-ekle">
+                    <i class="fa-solid fa-plus me-1"></i> Başka Yavru Ekle (İkiz/Üçüz)
+                </button>
+            </div>
+        `,
+        width: '600px',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Kaydet ve Bitir',
+        confirmButtonColor: '#198754',
+        cancelButtonText: 'İptal',
+        didOpen: () => {
+            const container = document.getElementById('buzagi-container');
+            const btnEkle = document.getElementById('btn-satir-ekle');
+
+            // 1. İlk satırı ekle
+            container.insertAdjacentHTML('beforeend', buzagiSatiriHTML);
+
+            // 2. Butona basınca yeni satır ekle
+            btnEkle.addEventListener('click', () => {
+                container.insertAdjacentHTML('beforeend', buzagiSatiriHTML);
+            });
+        },
+        preConfirm: () => {
+            const tarih = document.getElementById('ortak-tarih').value;
+            const satirlar = document.querySelectorAll('.buzagi-satir');
+            let buzagilar = [];
+
+            // Tüm satırları dolaş ve verileri topla
+            satirlar.forEach(satir => {
+                const kupe = satir.querySelector('.inp-kupe').value.toUpperCase();
+                const cinsiyet = satir.querySelector('.inp-cinsiyet').value;
+                const irk = satir.querySelector('.inp-irk').value;
+
+                if (kupe) {
+                    buzagilar.push({ kupe, cinsiyet, irk });
+                }
+            });
+
+            if (buzagilar.length === 0) {
+                Swal.showValidationMessage('En az bir buzağı küpe numarası girmelisiniz.');
+                return false;
+            }
+
+            return { tarih, buzagilar };
+        }
+    });
+
+    if (result) {
+        Swal.fire({title: 'Kaydediliyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+        try {
+            // 1. TÜM YAVRULARI EKLE (Döngü ile)
+            const promises = result.buzagilar.map(yavru => {
+                return addDoc(collection(db, "animals"), {
+                    memberId: currentMemberId,
+                    coopId: currentCoopId,
+                    kupeNo: yavru.kupe,
+                    tur: 'Buzağı',
+                    cinsiyet: yavru.cinsiyet,
+                    irk: yavru.irk,
+                    dogumTarihi: result.tarih,
+                    anneKupe: anneKupe,
+                    kayitTarihi: new Date()
+                });
+            });
+
+            // Yavruların eklenmesini bekle
+            await Promise.all(promises);
+
+            // 2. ANNEYİ GÜNCELLE (Sadece 1 kere)
+            await updateDoc(doc(db, "animals", anneId), {
+                gebelik: 'Bos',
+                tohumlamaTarihi: null,
+                sonDogumTarihi: result.tarih
+            });
+
+            Swal.fire({
+                icon: 'success', 
+                title: 'Tebrikler!', 
+                text: `${result.buzagilar.length} adet buzağı başarıyla kaydedildi. Anne durumu güncellendi.`
+            });
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Hata", error.message, "error");
+        }
+    }
+}
+// --- 8. WHATSAPP DESTEK ---
+window.whatsappDestekAc = async function() {
+    Swal.fire({title: 'Bağlanıyor...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+
+    try {
+        if (!currentCoopId) throw new Error("Kooperatif bağlantısı bulunamadı.");
+
+        // Kooperatif bilgilerini çek
+        const docRef = doc(db, "cooperatives", currentCoopId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            // Veritabanında 'telefon' alanı varsa al, yoksa varsayılanı kullan
+            // Örn: veritabanında 0532 123 45 67 kayıtlı olsa bile temizleyip 905321234567 yapar.
+            let rawPhone = data.telefon || "905000000000"; 
+            
+            // Sadece rakamları bırak (Boşluk, parantez vs temizle)
+            let phone = rawPhone.replace(/\D/g, '');
+            
+            // Başına 90 ekle (Eğer yoksa)
+            if (!phone.startsWith("90")) {
+                if (phone.startsWith("0")) phone = "9" + phone;
+                else phone = "90" + phone;
+            }
+
+            Swal.close();
+            // WhatsApp'ı aç
+            window.open(`https://wa.me/${phone}`, '_blank');
+        } else {
+            throw new Error("Kurum bilgisine ulaşılamadı.");
+        }
+    } catch (error) {
+        Swal.fire("Hata", "Destek hattına bağlanılamadı. Lütfen yöneticinizi arayın.", "error");
+    }
+}
+// --- 5. DOĞUM BİLDİRİM KONTROLÜ ---
+window.dogumBildirimiYap = async function(uid) {
+    // Sadece 'Gebe' olanları bir kere çekelim
+    const q = query(
+        collection(db, "animals"), 
+        where("memberId", "==", uid),
+        where("gebelik", "==", "Gebe")
+    );
+
+    const snapshot = await getDocs(q);
+    let bildirimListesi = "";
+    let sayac = 0;
+
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.tohumlamaTarihi) {
+            const tohumlama = new Date(data.tohumlamaTarihi);
+            const bugun = new Date();
+            
+            // Tahmini Doğum (285 Gün)
+            const tahminiDogum = new Date(tohumlama);
+            tahminiDogum.setDate(tohumlama.getDate() + 285);
+            
+            // Kalan Gün Hesabı
+            const farkZaman = tahminiDogum - bugun;
+            const kalanGun = Math.ceil(farkZaman / (1000 * 60 * 60 * 24));
+
+            // Sadece Son 10 Güne Girenler (veya günü geçmiş ama 30 günü geçmemişler)
+            if (kalanGun <= 10 && kalanGun > -30) {
+                sayac++;
+                let durumMetni = "";
+                let renk = "";
+
+                if (kalanGun > 0) {
+                    durumMetni = `${kalanGun} Gün Kaldı`;
+                    renk = "text-danger"; // Kırmızı
+                } else if (kalanGun === 0) {
+                    durumMetni = "BUGÜN!";
+                    renk = "text-success fw-bold"; // Yeşil
+                } else {
+                    durumMetni = `${Math.abs(kalanGun)} Gün Geçti!`;
+                    renk = "text-muted text-decoration-line-through"; // Gri
+                }
+
+                bildirimListesi += `
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <i class="fa-solid fa-cow me-2 text-primary"></i>
+                            <span class="fw-bold text-dark">${data.kupeNo}</span>
+                        </div>
+                        <span class="${renk} small fw-bold">${durumMetni}</span>
+                    </div>
+                `;
+            }
+        }
+    });
+
+    // Eğer yaklaşan doğum varsa uyarı ver
+    if (sayac > 0) {
+        Swal.fire({
+            title: '🔔 Doğum Yaklaşıyor!',
+            html: `
+                <p class="text-muted small mb-3">Aşağıdaki hayvanlarınızın doğumu çok yakın:</p>
+                <div class="bg-light p-3 rounded border text-start" style="max-height: 300px; overflow-y: auto;">
+                    ${bildirimListesi}
+                </div>
+            `,
+            icon: 'info',
+            confirmButtonText: 'Tamam, Anlaşıldı',
+            confirmButtonColor: '#0f766e'
+        });
+    }
+}
+// --- 9. DUYURULARI GETİR ---
+window.duyurulariGetir = function() {
+    const container = document.getElementById("announcement-list");
+    
+    // Veritabanı sorgusu: En yeni 3 duyuru
+    const q = query(collection(db, "announcements"), orderBy("tarih", "desc"), limit(3));
+
+    onSnapshot(q, (snapshot) => {
+        container.innerHTML = "";
+
+        if (snapshot.empty) {
+            container.innerHTML = `
+                <div class="p-4 text-center text-muted">
+                    <i class="fa-regular fa-bell-slash fa-2x mb-2 opacity-25"></i>
+                    <p class="m-0 small">Şu an yeni duyuru yok.</p>
+                </div>`;
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            // Tarih formatı
+            let tarihStr = "";
+            if(data.tarih) {
+                const d = data.tarih.toDate();
+                tarihStr = d.toLocaleDateString('tr-TR', {day:'numeric', month:'long'});
+            }
+
+            // Önem derecesine göre ikon/renk
+            let ikon = "fa-bullhorn"; 
+            let renk = "text-primary";
+            let bg = "bg-primary";
+            
+            if(data.onem === 'yuksek') { 
+                ikon = "fa-triangle-exclamation"; 
+                renk = "text-danger"; 
+                bg = "bg-danger";
+            } else if (data.onem === 'odeme') {
+                ikon = "fa-wallet";
+                renk = "text-success";
+                bg = "bg-success";
+            }
+
+            const item = `
+            <div class="list-group-item p-3 border-bottom">
+                <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                    <div class="d-flex align-items-center">
+                        <div class="${bg} bg-opacity-10 ${renk} rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                            <i class="fa-solid ${ikon} small"></i>
+                        </div>
+                        <strong class="text-dark small">${data.baslik}</strong>
+                    </div>
+                    <small class="text-muted" style="font-size:0.65rem">${tarihStr}</small>
+                </div>
+                <p class="mb-0 text-secondary ps-5 small" style="font-size: 0.8rem; line-height: 1.4;">${data.icerik}</p>
+            </div>
+            `;
+            container.innerHTML += item;
+        });
+    });
+}
+// --- 2. YENİ HAYVAN EKLE (CİNSİYET KONTROLLÜ) ---
+window.yeniHayvanEkle = async function() {
+    const { value: formValues } = await Swal.fire({
+        title: 'Yeni Hayvan Kartı',
+        html: `
+            <div class="text-start">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">Küpe Numarası</label>
+                        <input id="swal-kupe" class="form-control fw-bold text-uppercase" placeholder="TR...">
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">Rumuz / İsim</label>
+                        <input id="swal-rumuz" class="form-control" placeholder="Örn: Sarıkız">
+                    </div>
+                </div>
+                
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">Türü</label>
+                        <select id="swal-tur" class="form-select">
+                            <option value="İnek">İnek</option>
+                            <option value="Düve">Düve</option>
+                            <option value="Dana">Dana</option>
+                            <option value="Buzağı">Buzağı</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">Cinsiyeti</label>
+                        <select id="swal-cinsiyet" class="form-select">
+                            <option value="Dişi">Dişi</option>
+                            <option value="Erkek">Erkek</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="gebelik-wrapper">
+                    <div id="gebelik-container" class="bg-light p-2 rounded border mb-2">
+                        <label class="small fw-bold text-primary mb-1">Gebelik Durumu</label>
+                        <select id="swal-gebelik" class="form-select mb-2">
+                            <option value="Bos">Boş (Gebe Değil)</option>
+                            <option value="Gebe">Gebe / Tohumlandı</option>
+                        </select>
+                        
+                        <div id="tarih-div" style="display:none;">
+                            <label class="small fw-bold text-muted mb-1">Tohumlama Tarihi</label>
+                            <input type="date" id="swal-tohumlama" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <label class="small fw-bold text-muted mb-1">Irkı</label>
+                <select id="swal-irk" class="form-select mb-2">
+                    <option value="Holstein">Holstein (Siyah Alaca)</option>
+                    <option value="Simental">Simental</option>
+                    <option value="Montofon">Montofon</option>
+                    <option value="Jersey">Jersey</option>
+                    <option value="Yerli">Yerli / Melez</option>
+                    <option value="Angus">Angus</option>
+                    <option value="Diğer">Diğer</option>
+                </select>
+
+                <label class="small fw-bold text-muted mb-1">Doğum Tarihi (Yaş İçin)</label>
+                <input type="date" id="swal-dogum" class="form-control">
+            </div>
+        `,
+        // --- KRİTİK BÖLÜM: DİNAMİK KONTROLLER ---
+        didOpen: () => {
+            const cinsiyetSelect = document.getElementById('swal-cinsiyet');
+            const gebelikWrapper = document.getElementById('gebelik-wrapper');
+            const gebelikSelect = document.getElementById('swal-gebelik');
+            const tarihDiv = document.getElementById('tarih-div');
+
+            // 1. Cinsiyet Değişince Çalışacak Kod
+            cinsiyetSelect.addEventListener('change', function() {
+                if (this.value === 'Erkek') {
+                    gebelikWrapper.style.display = 'none'; // Gizle
+                    gebelikSelect.value = 'Bos'; // Erkekse boş yap
+                } else {
+                    gebelikWrapper.style.display = 'block'; // Göster
+                }
+            });
+
+            // 2. Gebelik Durumu Değişince Çalışacak Kod
+            gebelikSelect.addEventListener('change', function() {
+                if (this.value === 'Gebe') {
+                    tarihDiv.style.display = 'block';
+                } else {
+                    tarihDiv.style.display = 'none';
+                }
+            });
+        },
+        // ----------------------------------------
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Kaydet',
+        confirmButtonColor: '#0f766e',
+        preConfirm: () => {
+            return {
+                kupe: document.getElementById('swal-kupe').value.toUpperCase(),
+                rumuz: document.getElementById('swal-rumuz').value,
+                tur: document.getElementById('swal-tur').value,
+                cinsiyet: document.getElementById('swal-cinsiyet').value,
+                // Erkekse gebelik verisi 'Bos' gider
+                gebelikDurumu: document.getElementById('swal-cinsiyet').value === 'Erkek' ? 'Bos' : document.getElementById('swal-gebelik').value,
+                tohumlamaTarihi: document.getElementById('swal-tohumlama').value,
+                irk: document.getElementById('swal-irk').value,
+                dogum: document.getElementById('swal-dogum').value
+            }
+        }
+    });
+
+    if (formValues) {
+        if(!formValues.kupe) return Swal.fire("Hata", "Küpe numarası zorunludur!", "warning");
+
+        try {
+            await addDoc(collection(db, "animals"), {
+                memberId: currentMemberId,
+                coopId: currentCoopId,
+                kupeNo: formValues.kupe,
+                rumuz: formValues.rumuz,
+                tur: formValues.tur,
+                cinsiyet: formValues.cinsiyet,
+                gebelik: formValues.gebelikDurumu,
+                tohumlamaTarihi: formValues.tohumlamaTarihi,
+                irk: formValues.irk,
+                dogumTarihi: formValues.dogum,
+                kayitTarihi: new Date()
+            });
+            
+            const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+            Toast.fire({icon: 'success', title: 'Kaydedildi'});
+
+        } catch (error) {
+            Swal.fire("Hata", error.message, "error");
+        }
+    }
+}
+// --- 3. HIZLI ARAMA ---
+window.hayvanAra = function() {
+    const input = document.getElementById("animalSearch");
+    const filter = input.value.toLowerCase();
+    const cards = document.getElementsByClassName("animal-card");
+
+    for (let i = 0; i < cards.length; i++) {
+        const kupeNo = cards[i].getAttribute("data-kupe");
+        if (kupeNo.indexOf(filter) > -1) {
+            cards[i].style.display = "";
+        } else {
+            cards[i].style.display = "none";
+        }
+    }
+}
+
+    // --- 3. HAYVAN SİL ---
+    window.hayvanSil = async function(docId) {
+        const res = await Swal.fire({
+            title: 'Silinsin mi?',
+            text: "Bu hayvan listenizden kaldırılacak.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Evet, Sil',
+            confirmButtonColor: '#d33',
+            cancelButtonText: 'Vazgeç'
+        });
+
+        if(res.isConfirmed) {
+            await deleteDoc(doc(db, "animals", docId));
+            const Toast = Swal.mixin({toast: true, position: 'top', showConfirmButton: false, timer: 1000});
+            Toast.fire({icon: 'success', title: 'Silindi'});
+        }
+    }
+    window.sayfaDegistir = function(sayfaId, element) {
+        // Tüm sayfaları gizle
+        document.getElementById("page-home").style.display = "none";
+        document.getElementById("page-milk").style.display = "none";
+        document.getElementById("page-history").style.display = "none";
+        document.getElementById("page-profile").style.display = "none";
+        document.getElementById("page-account").style.display = "none";
+        
+        // YENİ EKLENEN SATIR 👇
+        document.getElementById("page-animals").style.display = "none"; 
+        
+        // İstenen sayfayı aç
+        const target = document.getElementById(sayfaId);
+        if(target) target.style.display = "block";
+        
+        // Menü aktifliğini ayarla
+        if(element) {
+            document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+            element.classList.add("active");
+        }
+        window.scrollTo(0, 0);
+    }
         // 1. Sayfayı Aç (GÜNCELLENDİ: ARTIK GÜNCEL AY GELİYOR)
     window.hesapEkstresiAc = function() {
         const d = new Date();
@@ -985,16 +1990,14 @@ async function ekstreGetir() {
                     hesaplananSutToplami += tutar; 
 
                     sutRows += `
-                        <tr>
-                            <td class="small fw-bold text-dark ps-3">${ayAdi}</td>
-                            <td class="small text-muted" style="font-size:0.75rem">${aciklama}</td>
-                            <td class="text-center text-primary bg-primary bg-opacity-10 fw-bold">${aksam > 0 ? aksam : '-'}</td>
-                            <td class="text-center text-warning bg-warning bg-opacity-10 fw-bold">${sabah > 0 ? sabah : '-'}</td>
-                            <td class="text-center fw-bold text-dark bg-secondary bg-opacity-10">${toplamLt}</td>
-                            <td class="text-center text-muted small">${fmt(fiyat)}</td>
-                            <td class="text-end fw-bold text-success pe-3">${fmt(tutar)}</td>
-                        </tr>
-                    `;
+    <tr>
+        <td class="text-center text-primary bg-primary bg-opacity-10 fw-bold ps-3">${aksam > 0 ? aksam : '-'}</td>
+        <td class="text-center text-warning bg-warning bg-opacity-10 fw-bold">${sabah > 0 ? sabah : '-'}</td>
+        <td class="text-center fw-bold text-dark bg-secondary bg-opacity-10">${toplamLt}</td>
+        <td class="text-center text-muted small">${fmt(fiyat)}</td>
+        <td class="text-end fw-bold text-success pe-3">${fmt(tutar)}</td>
+    </tr>
+`;
                 });
             } else {
                 sutRows = '<tr><td colspan="7" class="text-center text-muted small py-3">Bu dönem süt kaydı yok.</td></tr>';
@@ -1013,17 +2016,16 @@ async function ekstreGetir() {
 
                     hesaplananSatisToplami += tutar;
 
-                    satisRows += `
-                        <tr>
-                            <td class="small text-muted align-middle">${dateFmt(item.date)}</td>
-                            <td class="align-middle">
-                                <span class="text-secondary fw-semibold" style="font-size:0.85rem">${urunAdi}</span>
-                            </td>
-                            <td class="text-center align-middle fw-bold text-dark small">${miktar}</td>
-                            <td class="text-end align-middle small text-muted">${fmt(birimFiyat)}</td>
-                            <td class="text-end align-middle fw-bold text-danger">-${fmt(tutar)}</td>
-                        </tr>
-                    `;
+                  satisRows += `
+    <tr>
+        <td class="align-middle ps-3">
+            <span class="text-secondary fw-semibold" style="font-size:0.85rem">${urunAdi}</span>
+        </td>
+        <td class="text-center align-middle fw-bold text-dark small">${miktar}</td>
+        <td class="text-end align-middle small text-muted">${fmt(birimFiyat)}</td>
+        <td class="text-end align-middle fw-bold text-danger pe-3">-${fmt(tutar)}</td>
+    </tr>
+`;
                 });
             } else {
                 satisRows = '<tr><td colspan="5" class="text-center text-muted small py-3">Bu dönem alışveriş yok.</td></tr>';
@@ -1186,73 +2188,47 @@ async function ekstreGetir() {
                 <div class="card border-0 shadow-sm mb-4 overflow-hidden">
                     <div class="table-responsive">
                         <table class="table table-sm table-striped mb-0 align-middle" style="font-size:0.8rem">
-                            <thead class="table-light">
-                                <tr class="text-center">
-                                    <th class="text-start ps-3">Ay</th>
-                                    <th class="text-start">Açıklama</th>
-                                    <th>Akşam<br><small>(Lt)</small></th>
-                                    <th>Sabah<br><small>(Lt)</small></th>
-                                    <th>Toplam<br><small>(Lt)</small></th>
-                                    <th>Fiyat</th>
-                                    <th class="text-end pe-3">Tutar</th>
-                                </tr>
-                            </thead>
+                           <thead class="table-light">
+    <tr class="text-center">
+        <th class="ps-3">Akşam<br><small>(Lt)</small></th>
+        <th>Sabah<br><small>(Lt)</small></th>
+        <th>Toplam<br><small>(Lt)</small></th>
+        <th>Fiyat</th>
+        <th class="text-end pe-3">Tutar</th>
+    </tr>
+</thead>
                             <tbody>${sutRows}</tbody>
                             <tfoot class="bg-success bg-opacity-10 fw-bold">
-                                <tr>
-                                    <td colspan="6" class="text-end pe-2">SÜT TUTAR TOPLAMI:</td>
-                                    <td class="text-end text-success pe-3">${fmt(hesaplananSutToplami)}</td>
-                                </tr>
-                            </tfoot>
+    <tr>
+        <td colspan="4" class="text-end pe-2">SÜT TUTAR TOPLAMI:</td>
+        <td class="text-end text-success pe-3">${fmt(hesaplananSutToplami)}</td>
+    </tr>
+</tfoot>
                         </table>
                     </div>
                 </div>
-
-               <h6 class="fw-bold text-danger mb-2 border-bottom pb-1">2. MAL/HİZMET ALIMLARI</h6>
-                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped mb-0 align-middle" style="font-size:0.85rem">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width:15%">Tarih</th>
-                                    <th style="width:40%">Ürün Adı</th>
-                                    <th class="text-center" style="width:15%">Miktar</th> <th class="text-end" style="width:15%">Birim Fiyat</th>
-                                    <th class="text-end" style="width:15%">Tutar</th>
-                                </tr>
-                            </thead>
-                            <tbody>${satisRows}</tbody>
-                            <tfoot class="bg-danger bg-opacity-10 fw-bold">
-                                <tr>
-                                    <td colspan="4" class="text-end pe-2">BORÇ TOPLAMI:</td> <td class="text-end text-danger">${fmt(hesaplananSatisToplami)}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-
-               <h6 class="fw-bold text-dark mb-2 border-bottom pb-1">3. DİĞER HAREKETLER</h6>
-                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered mb-0 align-middle" style="font-size:0.85rem">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width:20%">Tarih</th>
-                                    <th style="width:40%">Açıklama</th>
-                                    <th class="text-end" style="width:20%">GİREN <small class="text-muted fw-normal">(Tahsilat)</small></th>
-                                    <th class="text-end" style="width:20%">ÇIKAN <small class="text-muted fw-normal">(Ödeme)</small></th>
-                                </tr>
-                            </thead>
-                            <tbody>${nakitRows}</tbody>
-                            <tfoot class="fw-bold border-top">
-                                <tr>
-                                    <td colspan="2" class="text-end pe-3 align-middle text-secondary">TOPLAM:</td>
-                                    <td class="text-end bg-success bg-opacity-25 text-success align-middle">${fmt(totalGiren)}</td>
-                                    <td class="text-end bg-danger bg-opacity-25 text-danger align-middle">${fmt(totalCikan)}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
+<h6 class="fw-bold text-danger mb-2 border-bottom pb-1">2. MAL/HİZMET ALIMLARI</h6>
+<div class="card border-0 shadow-sm mb-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0 align-middle" style="font-size:0.85rem">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:55%" class="ps-3">Ürün Adı</th>
+                    <th class="text-center" style="width:15%">Miktar</th> 
+                    <th class="text-end" style="width:15%">Birim Fiyat</th>
+                    <th class="text-end pe-3" style="width:15%">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>${satisRows}</tbody>
+            <tfoot class="bg-danger bg-opacity-10 fw-bold">
+                <tr>
+                    <td colspan="3" class="text-end pe-2">BORÇ TOPLAMI:</td> 
+                    <td class="text-end text-danger pe-3">${fmt(hesaplananSatisToplami)}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
 
                 ${detayTabloHtml}
 

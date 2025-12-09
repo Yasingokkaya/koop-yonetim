@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root {
         --primary-color: #0f766e;
@@ -708,6 +709,104 @@ div.swal2-container {
         z-index: 10;
         position: relative;
     }
+    /* --- MOBİL GELİŞTİRMELER (APP GÖRÜNÜMÜ) --- */
+
+    /* 1. Alt Menü (Bottom Nav) - Sadece Mobilde Görünür */
+    .bottom-nav {
+        display: none; /* PC'de gizli */
+    }
+
+    @media (max-width: 992px) {
+        body {
+            padding-bottom: 80px; /* Alt menü için yer aç */
+        }
+
+        /* Sidebar'ı Tamamen Gizle ve Overlay Yap */
+        .sidebar {
+            transform: translateX(-100%);
+            width: 280px;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+        }
+        .sidebar.active {
+            transform: translateX(0); /* Açılınca gelsin */
+        }
+
+        /* Sidebar Açma Butonu (Hamburger) */
+        .mobile-menu-btn {
+            display: block !important;
+            font-size: 1.5rem;
+            color: white;
+            background: none;
+            border: none;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        /* Alt Menü Tasarımı */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            height: 70px;
+            background: white;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+            z-index: 1045; /* Modal'ın altında, içeriğin üstünde */
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+        }
+
+        .b-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #94a3b8;
+            font-size: 0.7rem;
+            font-weight: 600;
+            width: 20%;
+        }
+        .b-nav-item i {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+            transition: transform 0.2s;
+        }
+        .b-nav-item.active {
+            color: #0f766e;
+        }
+        .b-nav-item.active i {
+            transform: translateY(-5px);
+        }
+
+        /* Header Düzenlemesi */
+        .admin-header {
+            padding: 15px !important;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+        }
+        
+        /* Tabloları Yatay Kaydırılabilir Yap */
+        .table-responsive {
+            border: 0;
+        }
+        
+        /* Kartların Arasını Aç */
+        .content-section {
+            padding-bottom: 20px;
+        }
+    }
+
+    /* Sidebar Karartma Perdesi */
+    .sidebar-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1049; /* Sidebar'ın hemen altında */
+        display: none;
+        backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.active { display: block; }
 </style>
 </head>
 <body>
@@ -746,10 +845,13 @@ div.swal2-container {
 <a class="nav-link" onclick="switchTab('advanced-reports', this)">
     <i class="fa-solid fa-file-contract" style="width:20px"></i> Detaylı Raporlar
 </a>
+<a class="nav-link" onclick="switchTab('announcements', this); adminDuyurulariGetir();">
+    <i class="fa-solid fa-bullhorn" style="width:20px"></i> Duyuru Yönetimi
+</a>
         <a class="nav-link" onclick="switchTab('settings', this)">
             <i class="fa-solid fa-sliders" style="width:20px"></i> Ayarlar
         </a>
-        
+       
         <a class="nav-link logout-link" id="logoutBtn">
             <i class="fa-solid fa-arrow-right-from-bracket" style="width:20px"></i> Çıkış Yap
         </a>
@@ -758,21 +860,87 @@ div.swal2-container {
 
 <div class="main-content">
     
-    <div class="admin-header">
+  <div class="admin-header">
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <div class="d-flex justify-content-between align-items-center">
-            <div class="header-title">
-                <small class="text-white-50 text-uppercase fw-bold" id="lblCompanyName">Yükleniyor...</small>
-                <h2 id="page-title">Genel Bakış</h2>
+            
+            <div class="d-flex align-items-center">
+                <button class="mobile-menu-btn d-lg-none" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="header-title">
+                    <small class="text-white-50 text-uppercase fw-bold" id="lblCompanyName">Yükleniyor...</small>
+                    <h2 id="page-title" style="font-size: 1.4rem;">Genel Bakış</h2>
+                </div>
             </div>
             
-            <div class="user-badge">
-                <i class="fa-solid fa-circle-user fa-lg"></i>
-                <span class="small fw-bold" id="userEmailDisplay">Yönetici</span>
+            <div class="d-flex align-items-center gap-2">
+                <div id="licenseInfoBox" class="px-2 py-1 rounded-pill fw-bold small shadow-sm d-none align-items-center" 
+                     style="background: white; min-height: 30px; display: flex;">
+                    <span id="licenseText" style="font-size: 0.75rem;">...</span>
+                </div>
+                <div class="user-badge p-1 px-2">
+                    <i class="fa-solid fa-circle-user fa-lg"></i>
+                </div>
             </div>
+
         </div>
     </div>
 
     <div class="content-wrapper">
+        <div id="announcements" class="content-section hidden-section">
+    
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold text-dark m-0"><i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Yeni Duyuru Yaz</h6>
+                </div>
+                <div class="card-body p-4">
+                    <form id="announcementForm">
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted">Başlık</label>
+                            <input type="text" id="annBaslik" class="form-control" placeholder="Örn: Süt Ödemeleri" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted">Duyuru İçeriği</label>
+                            <textarea id="annIcerik" class="form-control" rows="4" placeholder="Mesajınızı buraya yazın..." required></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="small fw-bold text-muted">Önem Derecesi</label>
+                            <select id="annOnem" class="form-select">
+                                <option value="normal">Normal (Mavi - Bilgi)</option>
+                                <option value="yuksek">Yüksek (Kırmızı - Uyarı)</option>
+                                <option value="odeme">Ödeme (Yeşil - Para Konusu)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100 py-2">
+                            <i class="fa-solid fa-paper-plane me-2"></i> YAYINLA
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark m-0"><i class="fa-solid fa-list me-2 text-secondary"></i>Yayındaki Duyurular</h6>
+                    <small class="text-muted">En yeni 10 duyuru</small>
+                </div>
+                <div class="list-group list-group-flush" id="adminAnnList">
+                    <div class="text-center py-5 text-muted">Yükleniyor...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
 <div id="dashboard" class="content-section">
     
     <div class="row g-4 mb-5">
@@ -829,12 +997,12 @@ div.swal2-container {
             </div>
         </div>
 
-        <div class="col-6 col-md-3">
-            <div class="card quick-card shadow-sm" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+       <div class="col-6 col-md-3">
+            <div class="card quick-card shadow-sm" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);" onclick="yeniUyeModalAc()">
                 <i class="bg-icon fa-solid fa-user-plus"></i>
                 <i class="fa-solid fa-user-plus fa-2x mb-2"></i>
-                <h6>Yeni Üye Ekle</h6>
-                <small>Müstahsil Kaydı</small>
+                <h6>Yeni Müşteri Ekle</h6>
+                <small>Müşteri Kaydı</small>
             </div>
         </div>
 
@@ -1098,7 +1266,18 @@ div.swal2-container {
                         <small class="text-muted" id="recordCount">Yükleniyor...</small>
                     </div>
                     
-                    <div class="d-flex gap-2">
+                  <div class="d-flex gap-2">
+                        <button class="btn btn-success text-white shadow-sm" onclick="excelDisariAktar()" title="Listeyi Excel Olarak İndir">
+                            <i class="fa-solid fa-file-excel"></i> <span class="d-none d-md-inline">İndir</span>
+                        </button>
+                        
+                        <button class="btn btn-warning text-dark shadow-sm" onclick="excelIceriAktarClick()" title="Excel'den Veri Yükle">
+                            <i class="fa-solid fa-file-import"></i> <span class="d-none d-md-inline">Yükle</span>
+                        </button>
+                        <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="excelDosyasiOku(this)">
+                        <button class="btn btn-danger text-white shadow-sm d-none" id="btnDeleteSelected" onclick="secilenleriSil()">
+                            <i class="fa-solid fa-trash-can"></i> <span class="d-none d-md-inline">Seçilenleri Sil (<span id="selectedCount">0</span>)</span>
+                        </button>
                         <div class="input-group" style="width: 250px;">
                             <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
                             <input type="text" class="form-control border-start-0 ps-0" id="searchInput" placeholder="Hızlı ara...">
@@ -1106,23 +1285,25 @@ div.swal2-container {
                         <button class="btn btn-primary-custom" onclick="yeniUyeModalAc()" id="btnAddMember">
                             <i class="fa-solid fa-plus me-1"></i> Yeni Müşteri
                         </button>
-                       
                     </div>
                 </div>
 
                 <div class="table-responsive">
                     <table class="table table-custom table-hover">
                         <thead>
-    <tr class="table-light text-secondary" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
-        <th style="width: 60px;" class="text-center">Sıra</th>
-        <th>Ad Soyad / Unvan</th>
-        <th>TC / Vergi No</th>
-        <th class="text-center">Tip</th>
-        <th>Bölge / Köy</th>
-        <th>Telefon</th>
-        <th class="text-end pe-4">İşlemler</th>
-    </tr>
-</thead>
+                            <tr class="table-light text-secondary" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <th style="width: 40px;" class="text-center">
+                                    <input type="checkbox" class="form-check-input" id="selectAllMembers" onclick="tumunuSec(this)">
+                                </th>
+                                <th style="width: 60px;" class="text-center">Sıra</th>
+                                <th>Ad Soyad / Unvan</th>
+                                <th>TC / Vergi No</th>
+                                <th class="text-center">Tip</th>
+                                <th>Bölge / Köy</th>
+                                <th>Telefon</th>
+                                <th class="text-end pe-4">İşlemler</th>
+                            </tr>
+                        </thead>
                         <tbody id="memberTableBody"></tbody>
                     </table>
                 </div>
@@ -1248,6 +1429,7 @@ div.swal2-container {
                     <div class="col-md-4">
                         
                           <div class="card settings-card" onclick="openSubSetting('sub-prices')">
+                            
     <div class="s-icon icon-green"><i class="fa-solid fa-turkish-lira-sign"></i></div>
     <h5 class="fw-bold text-dark">Fiyatlandırma</h5>
     <small class="text-muted d-block">Süt birim fiyatı belirle</small>
@@ -1925,22 +2107,31 @@ div.swal2-container {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-id-card me-2"></i>Yeni Şoför Tanımla</h5>
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-plus me-2"></i>Yeni Personel Tanımla</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-warning small">
                     <i class="fa-solid fa-triangle-exclamation me-1"></i>
-                    <b>Dikkat:</b> "Kaydet" dediğinizde güvenlik gereği <u>oturumunuz kapanacaktır</u>. Şoför oluşturulduktan sonra kendi hesabınızla tekrar giriş yapmalısınız.
+                    <b>Dikkat:</b> Bu işlem mevcut oturumunuzu etkilemez, arka planda güvenli şekilde oluşturulur.
                 </div>
                 <form id="addDriverForm">
                     <div class="mb-3">
-                        <label class="small fw-bold text-muted">Şoför Adı Soyadı</label>
-                        <input type="text" class="form-control" id="soforAd" placeholder="Örn: Ali Yılmaz" required>
+                        <label class="small fw-bold text-muted">Ad Soyad</label>
+                        <input type="text" class="form-control" id="soforAd" placeholder="Örn: Ahmet Yılmaz" required>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">Görevi / Rolü</label>
+                        <select class="form-select fw-bold text-dark" id="soforRol">
+                            <option value="sofor">Şoför (Sadece Süt Toplar)</option>
+                            <option value="yonetici">Yönetici (Tam Yetki)</option>
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label class="small fw-bold text-muted">Giriş E-Postası</label>
-                        <input type="email" class="form-control" id="soforEmail" placeholder="sofor1@sirket.com" required>
+                        <input type="email" class="form-control" id="soforEmail" placeholder="personel@sirket.com" required>
                     </div>
                     <div class="mb-3">
                         <label class="small fw-bold text-muted">Giriş Şifresi</label>
@@ -1958,17 +2149,67 @@ div.swal2-container {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script type="module">
-import { auth, db, signOut, onAuthStateChanged, createUserWithEmailAndPassword, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy, limit, writeBatch, getDocs } from "../js/firebase-config.js";
-    let aktifCariTipi = 'musteri';
-    let currentCoopId = null;
-    let allMembers = [];
-    let villageList = [];
-    let duzenlenecekEvrakId = null;
-    window.firmaTuru = "koop"; 
-    let kdvDahilMi = false;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signOut, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword,
+    updatePassword,
+    sendPasswordResetEmail 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// admin.html dosyasının en altındaki script kısmında bu bloğu bulun ve değiştirin:
-    
+import { 
+    getFirestore, 
+    doc, 
+    getDoc, 
+    setDoc,  // <-- setDoc BURADA
+    collection, 
+    addDoc, 
+    query, 
+    where, 
+    getDocs, 
+    onSnapshot, 
+    deleteDoc, 
+    updateDoc, 
+    arrayUnion, 
+    arrayRemove, 
+    orderBy, 
+    limit, 
+    writeBatch 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
+  authDomain: "koopplatform-dd9f8.firebaseapp.com",
+  projectId: "koopplatform-dd9f8",
+  storageBucket: "koopplatform-dd9f8.firebasestorage.app",
+  messagingSenderId: "757328538678",
+  appId: "1:757328538678:web:ffc9994b42025765b1fc97",
+  measurementId: "G-R9K7G471FN"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// --- GLOBAL DEĞİŞKENLER (TEK SEFER TANIMLANMALI) ---
+let currentCoopId = null;
+let activeMemberId = null;
+let duzenlenecekEvrakId = null;
+let aktifCariTipi = 'musteri';
+let villageList = [];
+let allMembers = [];
+let kdvDahilMi = false;
+let trendChart = null; // <-- BURADA TANIMLI OLMASI YETERLİ
+let pieChart = null;   // <-- BURADA TANIMLI OLMASI YETERLİ
+let duzenlenecekId = null; 
+
+// Export (Opsiyonel ama modül yapısında dursun)
+export { app, auth, db, doc, setDoc, deleteDoc, updateDoc };
+
+// --- DÜZELTİLMİŞ GİRİŞ VE YETKİ KONTROLÜ ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             // 1. Görsel düzenlemeler (Email yaz)
@@ -1976,57 +2217,62 @@ import { auth, db, signOut, onAuthStateChanged, createUserWithEmailAndPassword, 
                 document.getElementById("userEmailDisplay").innerText = user.email;
             }
             
-            // 2. KULLANICIYI BULMA (DÜZELTİLEN KISIM)
-            // ID yerine Email ile arıyoruz:
-            const q = query(collection(db, "users"), where("email", "==", user.email));
-            const querySnapshot = await getDocs(q);
-            
-            if (!querySnapshot.empty) {
-                // Kullanıcı bulundu!
-                const userDoc = querySnapshot.docs[0];
-                const userData = userDoc.data();
-                const rol = userData.role || userData.rol;
+            try {
+                // 2. KULLANICIYI BULMA
+                const q = query(collection(db, "users"), where("email", "==", user.email));
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    const userDoc = querySnapshot.docs[0];
+                    const userData = userDoc.data();
+                    
+                    // Rolü küçük harfe çevirerek al (Büyük/Küçük harf hatasını önler)
+                    const rol = (userData.role || userData.rol || '').toLowerCase();
 
-                // Yetki Kontrolü
-                if(rol !== 'admin' && rol !== 'yonetici') {
-                    console.log("Yetkisiz Giriş, Çıkış Yapılıyor...");
+                    // --- KRİTİK DÜZELTME: SUPERADMIN'E DE İZİN VER ---
+                    // Artık 'superadmin' de bu panele girebilir.
+                    if(rol !== 'admin' && rol !== 'yonetici' && rol !== 'superadmin') {
+                        console.warn("Yetkisiz Giriş Denemesi. Rol:", rol);
+                        alert(`Yetkisiz Giriş!\n\nSizin Rolünüz: ${rol}\nBu panele sadece Yöneticiler girebilir.`);
+                        
+                        await signOut(auth);
+                        window.location.href = "../index.html";
+                        return;
+                    }
+
+                    // Kurum ID'sini al
+                    currentCoopId = userData.kurumID || userData.coopId;
+                    
+                    // Eğer Super Admin ise ve CoopID yoksa, hata vermemesi için sahte/ilk kurumu seçebiliriz
+                    // (Şimdilik boş geçiyoruz, dashboard boş gelebilir ama atmaz)
+                    
+                    window.aktifKurumID = currentCoopId;
+                    sessionStorage.setItem("coopId", currentCoopId);
+
+                    console.log("Giriş Başarılı. Rol:", rol, "Kurum:", currentCoopId);
+
+                    // Başlıkları Güncelle
+                    const kAdi = userData.kurumAdi || userData.ad || "Yönetim Paneli";
+                    if(document.getElementById("lblCompanyName")) document.getElementById("lblCompanyName").innerText = kAdi;
+                    if(document.getElementById("page-title")) document.getElementById("page-title").innerText = "Hoşgeldiniz: " + (userData.adSoyad || "Yönetici");
+
+                    // VERİLERİ ÇEK
+                    if(currentCoopId) {
+                        if(typeof sirketBilgileriniDinle === 'function') sirketBilgileriniDinle(currentCoopId);
+                        if(typeof canliUyeDinle === 'function') canliUyeDinle();
+                        if(typeof stoklariDinle === 'function') stoklariDinle();
+                    } else if (rol === 'superadmin') {
+                        // Eğer süper adminse ve kurum seçili değilse uyarmasın, sadece boş göstersin
+                        console.log("Super Admin modu: Kurum ID yok.");
+                    }
+
+                } else {
+                    alert("Kullanıcı veritabanında bulunamadı! (Firestore Kaydı Yok)");
                     await signOut(auth);
                     window.location.href = "../index.html";
-                    return;
                 }
-
-                // Kurum ID'sini al (Global değişkene ata)
-                currentCoopId = userData.kurumID || userData.coopId;
-                window.aktifKurumID = currentCoopId;
-                
-                // Session'a da yedekleyelim
-                sessionStorage.setItem("coopId", currentCoopId);
-
-                console.log("Yönetici Tanındı. Kurum ID:", currentCoopId);
-
-                // Hoşgeldin Yazısı
-                const kAdi = userData.kurumAdi || userData.ad || "Yönetim Paneli";
-                if(document.getElementById("lblCompanyName")) document.getElementById("lblCompanyName").innerText = kAdi;
-                if(document.getElementById("page-title")) document.getElementById("page-title").innerText = "Hoşgeldiniz: " + kAdi;
-
-                // ARTIK VERİLERİ ÇEKEBİLİRİZ
-                if(currentCoopId) {
-                    // Şirket bilgilerini dinle (Ayarların gelmesi için)
-                    if(typeof sirketBilgileriniDinle === 'function') sirketBilgileriniDinle(currentCoopId);
-                    
-                    // Üyeleri ve Stokları dinle
-                    canliUyeDinle();
-                    stoklariDinle();
-                    
-                    // Eğer Yetkiler ekranı açıksa orayı da yenile
-                    if(!document.getElementById("sub-permissions").classList.contains("d-none")) {
-                         yetkilileriGetir();
-                    }
-                }
-
-            } else {
-                console.log("Kullanıcı veritabanında bulunamadı, yönlendiriliyor...");
-                window.location.href = "../index.html";
+            } catch (error) {
+                console.error("Giriş Kontrol Hatası:", error);
             }
 
         } else {
@@ -2245,9 +2491,7 @@ function listeyiFiltreleVeCiz() {
             await updateDoc(ref, { villages: arrayUnion(yeniAd) });
         }
     }
-// --- GRAFİK DEĞİŞKENLERİ ---
-    let trendChart = null;
-    let pieChart = null;
+
 
     // Menü geçiş fonksiyonunu (switchTab) bul ve içine şu 'else if' bloğunu ekle:
     // Mevcut kodunuzda "if(tabId==='milk-management')" satırının altına ekleyin.
@@ -2365,9 +2609,21 @@ function listeyiFiltreleVeCiz() {
             modal.show();
         }
     }
+  // --- GÜNCELLENMİŞ PERSONEL EKLEME KODU (YÖNETİCİ + ŞOFÖR) ---
+    
+    // Firebase Config (Secondary App için)
+    const firebaseConfigForStaff = {
+      apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
+      authDomain: "koopplatform-dd9f8.firebaseapp.com",
+      projectId: "koopplatform-dd9f8",
+      storageBucket: "koopplatform-dd9f8.firebasestorage.app",
+      messagingSenderId: "757328538678",
+      appId: "1:757328538678:web:ffc9994b42025765b1fc97",
+      measurementId: "G-R9K7G471FN"
+    };
 
-    // 2. Şoförü Kaydet (Dikkat: Oturumu kapatır)
     const driverForm = document.getElementById("addDriverForm");
+    
     if(driverForm) {
         driverForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -2375,60 +2631,72 @@ function listeyiFiltreleVeCiz() {
             const ad = document.getElementById("soforAd").value;
             const mail = document.getElementById("soforEmail").value;
             const pass = document.getElementById("soforPass").value;
+            
+            // YENİ: Seçilen rolü alıyoruz (yonetici veya sofor)
+            const secilenRol = document.getElementById("soforRol").value;
 
             if(pass.length < 6) {
                 Swal.fire("Hata", "Şifre en az 6 karakter olmalı.", "warning");
                 return;
             }
 
-            // Onay İste
             const confirm = await Swal.fire({
-                title: 'Oturum Kapanacak',
-                text: "Şoför hesabı oluşturulduğunda sistemden çıkış yapılacaktır. Onaylıyor musunuz?",
-                icon: 'warning',
+                title: 'Personel Eklensin mi?',
+                html: `<b>${ad}</b> kişisi <b>${secilenRol.toUpperCase()}</b> yetkisiyle eklenecek.`,
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Evet, Oluştur',
+                confirmButtonText: 'Evet, Ekle',
                 confirmButtonColor: '#000'
             });
 
             if (!confirm.isConfirmed) return;
 
+            Swal.fire({title: 'İşleniyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+            let secondaryApp = null;
+
             try {
-                // 1. Şoför kullanıcısını Auth üzerinde oluştur (Bu işlem Yöneticinin oturumunu düşürür!)
-                // Burada import ettiğin createUserWithEmailAndPassword fonksiyonunu kullanıyoruz.
-                // Eğer import etmediysen en üstteki import satırına eklemelisin.
-                // Senin kodlarında zaten var, sorun yok.
-                
-                const userCredential = await createUserWithEmailAndPassword(auth, mail, pass);
+                // 1. İkincil Uygulama Başlat
+                secondaryApp = initializeApp(firebaseConfigForStaff, "StaffApp");
+                const secondaryAuth = getAuth(secondaryApp);
+
+                // 2. Kullanıcıyı Oluştur
+                const userCredential = await createUserWithEmailAndPassword(secondaryAuth, mail, pass);
                 const user = userCredential.user;
 
-                // 2. Firestore'a Şoför Detaylarını Yaz
+                // 3. Veritabanına Yaz (Seçilen ROL ile)
                 await setDoc(doc(db, "users", user.uid), {
                     email: mail,
                     adSoyad: ad,
-                    rol: "sofor",          // Kritik Nokta: Rolü 'sofor' yapıyoruz
-                    kurumID: currentCoopId,// Yöneticinin kurumuyla aynı
+                    rol: secilenRol, // <-- BURASI DEĞİŞTİ (Dinamik oldu)
+                    coopId: currentCoopId, 
                     kayitTarihi: new Date()
                 });
 
-                // 3. Başarılı!
+                // 4. Temizlik
+                await signOut(secondaryAuth);
+                if(secondaryApp) await deleteApp(secondaryApp);
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addDriverModal'));
+                if(modal) modal.hide();
+                driverForm.reset();
+
                 await Swal.fire({
                     icon: 'success',
-                    title: 'Şoför Oluşturuldu!',
-                    text: 'Şimdi yönetici hesabınızla tekrar giriş yapınız.',
-                    confirmButtonText: 'Tamam'
+                    title: 'Başarılı!',
+                    text: 'Yeni personel başarıyla tanımlandı.',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
-
-                // Giriş sayfasına yönlendir
-                window.location.href = "../index.html";
+                
+                // Listeyi Yenile
+                if(typeof yetkilileriGetir === 'function') yetkilileriGetir();
 
             } catch (error) {
                 console.error(error);
-                if(error.code === 'auth/email-already-in-use') {
-                    Swal.fire("Hata", "Bu e-posta adresi zaten kullanılıyor.", "error");
-                } else {
-                    Swal.fire("Hata", "Oluşturulamadı: " + error.message, "error");
-                }
+                let msg = error.message;
+                if(error.code === 'auth/email-already-in-use') msg = "Bu e-posta adresi zaten kullanılıyor.";
+                Swal.fire("Hata", msg, "error");
             }
         });
     }
@@ -2495,7 +2763,7 @@ if(searchInput) {
 }
 
     // Üye Ekleme / Düzenleme
-    let duzenlenecekId = null; 
+     
     const memberForm = document.getElementById("addMemberForm");
     if(memberForm) {
         memberForm.addEventListener("submit", async (e) => {
@@ -2654,23 +2922,8 @@ window.switchTab = function(tabId, el) {
 
         document.getElementById('page-title').innerText = t;
     }
-    window.cariTabDegistir = function(tip, element) {
-    // 1. Tipi güncelle (musteri veya tedarikci)
-    aktifCariTipi = tip;
 
-    // 2. Sayfayı 'members' olarak aç (Mevcut yapıyı kullanıyoruz)
-    switchTab('members', element);
-
-    // 3. Başlığı ve Butonu Güncelle
-    const baslik = (tip === 'musteri') ? 'Müşteri Listesi' : 'Tedarikçi Listesi';
-    document.getElementById('lblListTitle').innerText = baslik;
     
-    // Yeni Ekle butonunun metnini güncelle
-    document.getElementById('btnAddMember').innerHTML = `<i class="fa-solid fa-plus me-1"></i> Yeni ${tip === 'musteri' ? 'Müşteri' : 'Tedarikçi'}`;
-
-    // 4. Listeyi hemen filtrele ve çiz
-    listeyiFiltreleVeCiz();
-}
 // --- RAPOR MERKEZİ FONKSİYONLARI ---
 
     // Menüden alt rapora geçiş
@@ -2794,9 +3047,7 @@ window.switchTab = function(tabId, el) {
         document.querySelectorAll('.sub-setting-page').forEach(el => el.classList.add('d-none'));
         document.getElementById('settings-main-menu').classList.remove('d-none');
     }
-    // --- CARİ HESAP FONKSİYONLARI ---
     
-    let activeMemberId = null; 
 
 window.hesapAc = async function(id) {
     activeMemberId = id;
@@ -2818,14 +3069,18 @@ window.hesapAc = async function(id) {
     // Verileri Çekmeye Başla
     hareketleriDinle(id);
 }
-
-   function tabloyuCiz(data) {
+function tabloyuCiz(data) {
         const tbody = document.getElementById("memberTableBody");
         if(!tbody) return;
         tbody.innerHTML = "";
         
+        // "Tümünü Seç" kutusunu sıfırla
+        const masterCheck = document.getElementById("selectAllMembers");
+        if(masterCheck) masterCheck.checked = false;
+        secimKontrol(); // Butonu gizle
+
         if (data.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='7' class='text-center text-muted py-5'><i class='fa-solid fa-inbox fa-2x mb-3 opacity-25'></i><br>Kayıt bulunamadı.</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='8' class='text-center text-muted py-5'><i class='fa-solid fa-inbox fa-2x mb-3 opacity-25'></i><br>Kayıt bulunamadı.</td></tr>";
             return;
         }
 
@@ -2846,9 +3101,12 @@ window.hesapAc = async function(id) {
                 </div>
             `;
 
-            // 3. Tablo Satırı (GÜNCELLENMİŞ BUTONLAR)
+            // 3. Tablo Satırı (CHECKBOX EKLENDİ)
             const row = `
                 <tr class="member-row align-middle border-bottom hover-shadow transition-all" style="height: 60px;">
+                    <td class="text-center">
+                        <input type="checkbox" class="form-check-input member-checkbox" value="${uye.id}" onclick="secimKontrol()">
+                    </td>
                     <td class="text-center">${siraNoHtml}</td>
                     
                     <td>
@@ -2876,24 +3134,18 @@ window.hesapAc = async function(id) {
 
                     <td class="text-end pe-3">
                         <div class="d-flex justify-content-end gap-2">
-                            
                             <button class="btn btn-sm btn-light text-primary border shadow-sm" 
-                                    onclick="hesapAc('${uye.id}')" 
-                                    title="Hesap Detayı"
+                                    onclick="hesapAc('${uye.id}')" title="Hesap Detayı"
                                     style="width: 35px; height: 35px; border-radius: 8px;">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </button>
-
                             <button class="btn btn-sm btn-light text-secondary border shadow-sm" 
-                                    onclick="uyeDuzenle('${uye.id}')" 
-                                    title="Düzenle" 
+                                    onclick="uyeDuzenle('${uye.id}')" title="Düzenle" 
                                     style="width: 35px; height: 35px; border-radius: 8px;">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-
                             <button class="btn btn-sm btn-light text-danger border shadow-sm" 
-                                    onclick="uyeSil('${uye.id}')" 
-                                    title="Sil" 
+                                    onclick="uyeSil('${uye.id}')" title="Sil" 
                                     style="width: 35px; height: 35px; border-radius: 8px;">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
@@ -2904,7 +3156,6 @@ window.hesapAc = async function(id) {
             tbody.innerHTML += row;
         });
         
-        // Alt kısımdaki toplam sayısını güncelle
         const recCount = document.getElementById("recordCount");
         if(recCount) recCount.innerText = `${data.length} kayıt listelendi`;
     }
@@ -3095,7 +3346,109 @@ window.hesapAc = async function(id) {
             Swal.fire("Hata", "İşlem sırasında bir sorun oluştu: " + error.message, "error");
         }
     });
+// --- DUYURU YÖNETİMİ SCRİPTLERİ ---
 
+    // 1. YENİ DUYURU KAYDET
+    const annForm = document.getElementById("announcementForm");
+    if(annForm) {
+        annForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const baslik = document.getElementById("annBaslik").value;
+            const icerik = document.getElementById("annIcerik").value;
+            const onem = document.getElementById("annOnem").value;
+
+            Swal.fire({title: 'Yayınlanıyor...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+
+            try {
+                await addDoc(collection(db, "announcements"), {
+                    coopId: currentCoopId, // Sadece bu kooperatife özel
+                    baslik: baslik,
+                    icerik: icerik,
+                    onem: onem,
+                    tarih: new Date()
+                });
+
+                document.getElementById("announcementForm").reset();
+                
+                const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+                Toast.fire({icon: 'success', title: 'Duyuru Yayınlandı'});
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Hata", error.message, "error");
+            }
+        });
+    }
+
+    // 2. DUYURULARI LİSTELE (ADMİN TARAFINDA SİLMEK İÇİN)
+    window.adminDuyurulariGetir = function() {
+        const listDiv = document.getElementById("adminAnnList");
+        
+        // Sadece bu kooperatifin duyurularını getir
+        const q = query(
+            collection(db, "announcements"), 
+            where("coopId", "==", currentCoopId),
+            orderBy("tarih", "desc"), 
+            limit(10)
+        );
+
+        onSnapshot(q, (snapshot) => {
+            listDiv.innerHTML = "";
+            
+            if(snapshot.empty) {
+                listDiv.innerHTML = '<div class="text-center py-5 text-muted">Henüz duyuru eklemediniz.</div>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const d = data.tarih ? data.tarih.toDate().toLocaleDateString('tr-TR') : '-';
+                
+                // Renk ayarı
+                let badgeClass = "bg-primary";
+                if(data.onem === 'yuksek') badgeClass = "bg-danger";
+                if(data.onem === 'odeme') badgeClass = "bg-success";
+
+                const item = `
+                <div class="list-group-item p-3">
+                    <div class="d-flex w-100 justify-content-between align-items-start">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge ${badgeClass} bg-opacity-75" style="font-weight:normal;">${d}</span>
+                                <h6 class="mb-0 fw-bold text-dark">${data.baslik}</h6>
+                            </div>
+                            <p class="mb-0 small text-muted text-truncate" style="max-width: 300px;">${data.icerik}</p>
+                        </div>
+                        <button class="btn btn-sm btn-light text-danger border" onclick="duyuruSil('${doc.id}')" title="Yayından Kaldır">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>`;
+                
+                listDiv.innerHTML += item;
+            });
+        });
+    }
+
+    // 3. DUYURU SİL
+    window.duyuruSil = async function(docId) {
+        const res = await Swal.fire({
+            title: 'Yayından Kaldır?',
+            text: "Bu duyuru üyelerin ekranından silinecektir.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Evet, Sil',
+            confirmButtonColor: '#d33',
+            cancelButtonText: 'Vazgeç'
+        });
+
+        if(res.isConfirmed) {
+            await deleteDoc(doc(db, "announcements", docId));
+            const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1000});
+            Toast.fire({icon: 'success', title: 'Silindi'});
+        }
+    }
     
 
     // 2. Detaydan Listeye Geri Dönüş (GÜNCELLENDİ)
@@ -3552,6 +3905,7 @@ window.evrakDetayGoster = async function(docId) {
             }
         }
     }
+    
     // 1. MODALI AÇMA FONKSİYONU (SOL MENÜ SORUNUNU ÇÖZER)
 window.yeniEvrakModalAc = function() {
     duzenlenecekEvrakId = null;
@@ -3943,62 +4297,60 @@ window.yeniUrunModalAc = function() {
         modal.show();
     }
 }
-// --- YETKİLİ LİSTESİNİ GETİRME FONKSİYONU ---
+// --- YETKİLİ LİSTESİ (ÜRETİCİ + ŞOFÖR + YÖNETİCİ) ---
     window.yetkilileriGetir = async function() {
         const listDiv = document.getElementById("authorizedUsersList");
-        
-        // 1. Yükleniyor simgesi göster
         listDiv.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><div class="small text-muted mt-2">Kullanıcılar taranıyor...</div></div>';
 
-        if(!currentCoopId) {
-            listDiv.innerHTML = '<div class="p-4 text-danger text-center">Kurum Kimliği (ID) bulunamadı. Lütfen sayfayı yenileyin.</div>';
-            return;
-        }
+        if(!currentCoopId) return;
 
         try {
-            // 2. İki farklı sorgu yapıyoruz (Eski ve Yeni sistem uyumu için)
-            // Bazı kullanıcılar 'kurumID' ile, bazıları 'coopId' ile kayıtlı olabilir.
+            // 1. Kullanıcıları Çek
             const q1 = query(collection(db, "users"), where("kurumID", "==", currentCoopId));
             const q2 = query(collection(db, "users"), where("coopId", "==", currentCoopId));
-
-            // İkisini aynı anda çalıştır
             const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
-            // 3. Sonuçları Birleştir (Çift kayıtları engellemek için Map kullanıyoruz)
             const usersMap = new Map();
-            
             snap1.forEach(doc => usersMap.set(doc.id, { id: doc.id, ...doc.data() }));
             snap2.forEach(doc => usersMap.set(doc.id, { id: doc.id, ...doc.data() }));
 
-            listDiv.innerHTML = ""; // Yükleniyor simgesini temizle
+            listDiv.innerHTML = "";
 
             if (usersMap.size === 0) {
-                listDiv.innerHTML = '<div class="p-4 text-center text-muted">Kayıtlı yetkili bulunamadı.</div>';
+                listDiv.innerHTML = '<div class="p-4 text-center text-muted">Kayıtlı kullanıcı bulunamadı.</div>';
                 return;
             }
 
-            // 4. Listeyi Ekrana Bas
             usersMap.forEach(data => {
                 const uid = data.id;
-                
-                // Rolü düzgün gösterelim (Türkçe/İngilizce uyumu)
-                let rolBadge = '';
-                let icon = '';
-                // Veritabanındaki rol isimlendirmelerini küçük harfe çevirip kontrol et
                 const userRole = (data.rol || data.role || '').toLowerCase();
                 
+                // --- ROL ETİKETLEME ---
+                let rolBadge = '';
+                let icon = '';
+                let bgClass = '';
+
                 if (userRole === 'admin' || userRole === 'yonetici') {
-                    rolBadge = '<span class="badge bg-warning text-dark">Yönetici</span>';
+                    rolBadge = 'Yönetici';
+                    bgClass = 'bg-warning text-dark';
                     icon = 'fa-user-tie';
                 } else if (userRole === 'sofor' || userRole === 'driver') {
-                    rolBadge = '<span class="badge bg-info text-dark">Şoför</span>';
+                    rolBadge = 'Şoför';
+                    bgClass = 'bg-info text-dark';
                     icon = 'fa-truck-fast';
+                } else if (userRole === 'member' || userRole === 'uye') {
+                    rolBadge = 'Üretici'; // <-- ARTIK ÜRETİCİ YAZACAK
+                    bgClass = 'bg-success text-white';
+                    icon = 'fa-tractor';
                 } else {
-                    rolBadge = '<span class="badge bg-secondary">Personel</span>';
+                    rolBadge = 'Personel';
+                    bgClass = 'bg-secondary text-white';
                     icon = 'fa-user';
                 }
 
-                // Listeye Ekle
+                const badgeHtml = `<span class="badge ${bgClass}">${rolBadge}</span>`;
+
+                // --- LİSTE ÖĞESİ ---
                 const item = `
                     <div class="list-group-item p-3 d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
@@ -4007,11 +4359,22 @@ window.yeniUrunModalAc = function() {
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold text-dark">${data.adSoyad || 'İsimsiz'}</h6>
-                                <small class="text-muted" style="font-size:0.8rem;">${data.email}</small>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted" style="font-size:0.8rem;">${data.email}</small>
+                                    ${badgeHtml}
+                                </div>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center gap-3">
-                            ${rolBadge}
+                        
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-light border text-primary" onclick="kullaniciDuzenle('${uid}', '${data.adSoyad || ''}', '${userRole}')" title="Bilgileri Düzenle">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-light border text-warning" onclick="sifreSifirlamaGonder('${data.email}')" title="Şifre Sıfırlama Linki Gönder">
+                                <i class="fa-solid fa-key"></i>
+                            </button>
+
                             ${(userRole !== 'yonetici' && userRole !== 'admin') ? 
                                 `<button class="btn btn-sm btn-light text-danger border" onclick="kullaniciSil('${uid}')" title="Yetkiyi Kaldır"><i class="fa-solid fa-trash"></i></button>` 
                                 : ''} 
@@ -4023,12 +4386,76 @@ window.yeniUrunModalAc = function() {
             });
 
         } catch (error) {
-            console.error("Yetkili Getirme Hatası:", error);
-            
-            if(error.code === 'permission-denied') {
-                listDiv.innerHTML = '<div class="p-3 text-danger text-center fw-bold">⚠️ Yetki Hatası<br><small class="fw-normal text-dark">Firebase Rules (Kurallar) kısmından izin vermeniz gerekiyor.</small></div>';
-            } else {
-                listDiv.innerHTML = '<div class="p-3 text-danger text-center">Hata: ' + error.message + '</div>';
+            console.error(error);
+            listDiv.innerHTML = '<div class="text-danger p-3">Hata: ' + error.message + '</div>';
+        }
+    }
+
+    // --- KULLANICI DÜZENLEME FONKSİYONU ---
+    window.kullaniciDuzenle = async function(uid, mevcutAd, mevcutRol) {
+        const { value: formValues } = await Swal.fire({
+            title: 'Kullanıcı Düzenle',
+            html: `
+                <div class="text-start">
+                    <label class="small fw-bold text-muted">Ad Soyad</label>
+                    <input id="swal-edit-name" class="form-control mb-3" value="${mevcutAd}">
+                    
+                    <label class="small fw-bold text-muted">Rol / Yetki</label>
+                    <select id="swal-edit-role" class="form-select">
+                        <option value="member" ${mevcutRol === 'member' || mevcutRol === 'uye' ? 'selected' : ''}>Üretici (Müşteri)</option>
+                        <option value="sofor" ${mevcutRol === 'sofor' ? 'selected' : ''}>Şoför</option>
+                        <option value="yonetici" ${mevcutRol === 'yonetici' ? 'selected' : ''}>Yönetici</option>
+                    </select>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Kaydet',
+            preConfirm: () => {
+                return {
+                    ad: document.getElementById('swal-edit-name').value,
+                    rol: document.getElementById('swal-edit-role').value
+                }
+            }
+        });
+
+        if (formValues) {
+            try {
+                await updateDoc(doc(db, "users", uid), {
+                    adSoyad: formValues.ad,
+                    rol: formValues.rol
+                });
+                Swal.fire({ icon: 'success', title: 'Güncellendi', timer: 1000, showConfirmButton: false });
+                yetkilileriGetir(); // Listeyi yenile
+            } catch (error) {
+                Swal.fire("Hata", error.message, "error");
+            }
+        }
+    }
+
+    // --- ŞİFRE SIFIRLAMA (E-Posta Gönderme) ---
+    // Not: Güvenlik nedeniyle admin direkt şifre değiştiremez, sıfırlama maili atar.
+    window.sifreSifirlamaGonder = async function(email) {
+        if(!email || !email.includes('@')) {
+            Swal.fire("Hata", "Geçerli bir e-posta adresi bulunamadı.", "warning");
+            return;
+        }
+
+        const confirm = await Swal.fire({
+            title: 'Şifre Sıfırlama',
+            text: `${email} adresine şifre değiştirme bağlantısı gönderilsin mi?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Evet, Gönder'
+        });
+
+        if (confirm.isConfirmed) {
+            try {
+                await sendPasswordResetEmail(auth, email);
+                Swal.fire("Gönderildi", "Kullanıcının e-postasına (veya SMS kutusuna) şifre yenileme linki gönderildi.", "success");
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Hata", "Link gönderilemedi: " + error.message, "error");
             }
         }
     }
@@ -5342,6 +5769,250 @@ window.yayiniKaldir = async function() {
         Swal.fire("Hata", "İşlem hatası: " + error.message, "error");
     }
 }
-</script>
+// --- CARİ SEKME DEĞİŞTİRME FONKSİYONU ---
+    window.cariTabDegistir = function(tip, element) {
+        // 1. Tipi güncelle (Global değişkene ata)
+        aktifCariTipi = tip;
 
+        // 2. Sayfayı 'members' olarak aç
+        if(typeof switchTab === 'function') {
+            switchTab('members', element);
+        }
+
+        // 3. Başlığı ve Butonu Güncelle
+        const titleEl = document.getElementById('lblListTitle');
+        const btnEl = document.getElementById('btnAddMember');
+        
+        if(titleEl) titleEl.innerText = (tip === 'musteri') ? 'Müşteri Listesi' : 'Tedarikçi Listesi';
+        
+        if(btnEl) {
+            btnEl.innerHTML = `<i class="fa-solid fa-plus me-1"></i> Yeni ${tip === 'musteri' ? 'Müşteri' : 'Tedarikçi'}`;
+        }
+
+        // 4. Listeyi hemen filtrele ve çiz
+        if(typeof listeyiFiltreleVeCiz === 'function') {
+            listeyiFiltreleVeCiz();
+        }
+    };
+    // --- EXCEL DIŞA AKTAR (EXPORT) ---
+    window.excelDisariAktar = function() {
+        if (!allMembers || allMembers.length === 0) {
+            Swal.fire("Uyarı", "Listelenecek veri yok.", "warning");
+            return;
+        }
+
+        // 1. Veriyi Excel Formatına Hazırla (Türkçe Başlıklar)
+        // Sadece o anki aktif tipteki (Müşteri veya Tedarikçi) kişileri indirir
+        const exportData = allMembers
+            .filter(m => m.tip === aktifCariTipi)
+            .map(m => ({
+                "Sıra No": m.sira || "",
+                "Ad": m.ad || "",
+                "Soyad": m.soyad || "",
+                "TC/Vergi No": m.tc || "",
+                "Telefon": m.telefon || "",
+                "Bölge/Köy": m.koy || "",
+                "Tip": m.tip === 'musteri' ? 'Müşteri' : 'Tedarikçi'
+            }));
+
+        // 2. Excel Sayfası Oluştur
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Üyeler");
+
+        // 3. Dosyayı İndir
+        const turAdi = aktifCariTipi === 'musteri' ? 'Musteri_Listesi' : 'Tedarikci_Listesi';
+        XLSX.writeFile(workbook, `${turAdi}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    // --- EXCEL İÇE AKTAR (IMPORT) TETİKLEYİCİ ---
+    window.excelIceriAktarClick = function() {
+        // Dosya seçiciyi aç
+        document.getElementById('excelFileInput').click();
+    }
+
+    // --- EXCEL DOSYASINI OKU VE KAYDET ---
+    window.excelDosyasiOku = async function(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        
+        reader.onload = async function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            // İlk sayfayı al
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            // JSON'a çevir
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+            if (jsonData.length === 0) {
+                Swal.fire("Hata", "Excel dosyası boş veya okunamadı.", "error");
+                return;
+            }
+
+            // Onay İste
+            const confirm = await Swal.fire({
+                title: 'Veriler Yüklensin mi?',
+                text: `${jsonData.length} adet kayıt bulundu. Bu işlem veritabanına eklenecektir.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Evet, Yükle',
+                confirmButtonColor: '#198754'
+            });
+
+            if (!confirm.isConfirmed) {
+                input.value = ""; // Seçimi temizle
+                return;
+            }
+
+            Swal.fire({title: 'Yükleniyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+            try {
+                const batch = writeBatch(db);
+                let count = 0;
+
+                jsonData.forEach((row) => {
+                    // Excel başlıklarını veritabanı alanlarına eşle
+                    // Kullanıcı "Ad", "Soyad" gibi Türkçe başlıklar kullanmış olabilir
+                    const ad = row["Ad"] || row["ad"] || row["AD"] || "";
+                    const soyad = row["Soyad"] || row["soyad"] || row["SOYAD"] || "";
+                    
+                    // Ad veya Soyad yoksa o satırı atla
+                    if(!ad) return;
+
+                    const yeniUye = {
+                        sira: Number(row["Sıra No"] || row["sira"] || 0),
+                        ad: String(ad).trim(),
+                        soyad: String(soyad).trim(),
+                        tc: String(row["TC/Vergi No"] || row["tc"] || row["TC"] || ""),
+                        telefon: String(row["Telefon"] || row["telefon"] || ""),
+                        koy: String(row["Bölge/Köy"] || row["koy"] || row["Köy"] || row["Koy"] || "Merkez"),
+                        tip: aktifCariTipi, // O an hangi sayfadaysan o tipte ekle
+                        coopId: currentCoopId,
+                        kayitTarihi: new Date()
+                    };
+
+                    const docRef = doc(collection(db, "members"));
+                    batch.set(docRef, yeniUye);
+                    count++;
+                });
+
+                await batch.commit();
+                
+                input.value = ""; // Seçimi temizle
+                Swal.fire("Başarılı", `${count} kişi listeye eklendi.`, "success");
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Hata", "Yükleme sırasında hata oluştu: " + error.message, "error");
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+    // --- TOPLU İŞLEM FONKSİYONLARI ---
+
+    // 1. Tümünü Seç / Kaldır
+    window.tumunuSec = function(master) {
+        const checkboxes = document.querySelectorAll('.member-checkbox');
+        checkboxes.forEach(cb => cb.checked = master.checked);
+        secimKontrol();
+    }
+
+    // 2. Seçim Sayısını Kontrol Et ve Butonu Göster
+    window.secimKontrol = function() {
+        const checkboxes = document.querySelectorAll('.member-checkbox:checked');
+        const count = checkboxes.length;
+        const btn = document.getElementById("btnDeleteSelected");
+        const countSpan = document.getElementById("selectedCount");
+        
+        if(count > 0) {
+            btn.classList.remove("d-none");
+            countSpan.innerText = count;
+        } else {
+            btn.classList.add("d-none");
+        }
+    }
+
+    // 3. Seçilenleri Sil (Batch İşlemi)
+    window.secilenleriSil = async function() {
+        const checkboxes = document.querySelectorAll('.member-checkbox:checked');
+        const idList = Array.from(checkboxes).map(cb => cb.value);
+
+        if(idList.length === 0) return;
+
+        const confirm = await Swal.fire({
+            title: 'Emin misiniz?',
+            text: `${idList.length} adet kayıt KALICI OLARAK silinecek!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Evet, Hepsini Sil'
+        });
+
+        if (confirm.isConfirmed) {
+            Swal.fire({title: 'Siliniyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+            try {
+                const batch = writeBatch(db);
+                
+                idList.forEach(id => {
+                    const ref = doc(db, "members", id);
+                    batch.delete(ref);
+                });
+
+                await batch.commit();
+                
+                Swal.fire("Başarılı", "Seçilen kayıtlar silindi.", "success");
+                
+                // Seçim butonunu gizle
+                document.getElementById("btnDeleteSelected").classList.add("d-none");
+                document.getElementById("selectAllMembers").checked = false;
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Hata", "Silme işleminde sorun oluştu: " + error.message, "error");
+            }
+        }
+    }
+    // --- MOBİL MENÜ FONKSİYONLARI ---
+    window.toggleSidebar = function() {
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.sidebar-overlay').classList.toggle('active');
+    }
+
+    window.closeSidebar = function() {
+        document.querySelector('.sidebar').classList.remove('active');
+        document.querySelector('.sidebar-overlay').classList.remove('active');
+    }
+</script>
+<div class="bottom-nav d-lg-none">
+    <a class="b-nav-item active" onclick="switchTab('dashboard', this); closeSidebar()">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Ana Sayfa</span>
+    </a>
+    <a class="b-nav-item" onclick="switchTab('members', this); closeSidebar()">
+        <i class="fa-solid fa-users"></i>
+        <span>Cariler</span>
+    </a>
+    <a class="b-nav-item" onclick="sutHesaplamaModalAc(); closeSidebar()">
+        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
+             style="width: 45px; height: 45px; margin-top: -25px; border: 4px solid #f1f5f9;">
+            <i class="fa-solid fa-calculator" style="font-size: 1.2rem; transform: none;"></i>
+        </div>
+    </a>
+    <a class="b-nav-item" onclick="switchTab('milk-management', this); closeSidebar()">
+        <i class="fa-solid fa-cow"></i>
+        <span>Süt</span>
+    </a>
+    <a class="b-nav-item" onclick="toggleSidebar()">
+        <i class="fa-solid fa-bars"></i>
+        <span>Menü</span>
+    </a>
+</div>
 </body>

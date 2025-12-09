@@ -74,9 +74,10 @@ export async function sistemGiris(girdi, sifre) {
                     const userCred = await createUserWithEmailAndPassword(auth, email, sifre);
                     const user = userCred.user;
 
-                    // Users tablosuna yetki yaz
+                   // Users tablosuna yetki yaz (İSİM DÜZELTMESİ EKLENDİ)
                     await setDoc(doc(db, "users", user.uid), {
                         email: email,
+                        adSoyad: `${uyeData.ad} ${uyeData.soyad}`, // <-- İSMİ ARTIK BURADAN ALIYOR
                         role: 'member',
                         coopId: uyeData.coopId,
                         relatedMemberId: bulunanUye.id,
@@ -110,6 +111,8 @@ export async function sistemGiris(girdi, sifre) {
 
 async function yonlendir(user) {
     console.log("Yönlendiriliyor: ", user.email);
+    
+    // Kullanıcıyı Firestore'dan bul
     const q = query(collection(db, "users"), where("email", "==", user.email));
     const querySnapshot = await getDocs(q);
 
@@ -118,9 +121,40 @@ async function yonlendir(user) {
         const kullaniciRolu = data.role || data.rol; 
         const kurumID = data.coopId || data.kurumID;
 
+        // Süper Admin Kontrolü (Lisans süresine takılmaz)
+        if (kullaniciRolu === 'superadmin') {
+            // DİKKAT: super_admin.html dosyasının panels klasöründe olduğundan emin olun!
+            window.location.href = "panels/super_admin.html";
+            return;
+        }
+
+        // Diğer Roller İçin Lisans Kontrolü
+        if (kurumID) { 
+            try {
+                const coopDoc = await getDoc(doc(db, "cooperatives", kurumID));
+                if (coopDoc.exists()) {
+                    const coopData = coopDoc.data();
+                    if (coopData.licenseEndDate) {
+                        const bitis = coopData.licenseEndDate.toDate();
+                        const bugun = new Date();
+                        if (bugun > bitis) {
+                            alert("⚠️ LİSANS SÜRESİ DOLDU!\nLütfen sistem sağlayıcınızla iletişime geçin.");
+                            await signOut(auth);
+                            window.location.href = "index.html";
+                            return;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Lisans kontrol hatası:", err);
+            }
+        }
+
+        // Session Kayıtları
         sessionStorage.setItem("userRole", kullaniciRolu);
         sessionStorage.setItem("coopId", kurumID); 
 
+        // Yönlendirmeler
         if (kullaniciRolu === 'admin' || kullaniciRolu === 'yonetici') {
             window.location.href = "panels/admin.html";
         }
@@ -131,9 +165,9 @@ async function yonlendir(user) {
             window.location.href = "panels/driver.html";
         }
         else {
-            alert("Rol Tanımsız: " + kullaniciRolu);
+            alert("HATA: Kullanıcı rolü tanımsız (" + kullaniciRolu + ")");
         }
     } else {
-        alert("Kullanıcı veritabanında bulunamadı! (Auth var ama Firestore yok)");
+        alert("Kullanıcı veritabanında (Firestore Users tablosunda) bulunamadı!");
     }
 }
