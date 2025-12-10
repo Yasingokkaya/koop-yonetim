@@ -7,6 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/jpeg" href="app-logo.jpg">
+    <link rel="apple-touch-icon" href="app-logo.jpg">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -876,15 +878,18 @@ div.swal2-container {
                 </div>
             </div>
             
-            <div class="d-flex align-items-center gap-2">
-                <div id="licenseInfoBox" class="px-2 py-1 rounded-pill fw-bold small shadow-sm d-none align-items-center" 
-                     style="background: white; min-height: 30px; display: flex;">
-                    <span id="licenseText" style="font-size: 0.75rem;">...</span>
-                </div>
-                <div class="user-badge p-1 px-2">
-                    <i class="fa-solid fa-circle-user fa-lg"></i>
-                </div>
-            </div>
+           <div class="d-flex align-items-center gap-3">
+    <img src="web-logo.jpg" alt="Logo" style="height: 38px; width: auto; border-radius: 4px;">
+
+    <div id="licenseInfoBox" class="px-2 py-1 rounded-pill fw-bold small shadow-sm d-none align-items-center" 
+         style="background: white; min-height: 30px; display: flex;">
+        <span id="licenseText" style="font-size: 0.75rem;">...</span>
+    </div>
+
+    <div class="user-badge p-1 px-2">
+        <i class="fa-solid fa-circle-user fa-lg"></i>
+    </div>
+</div>
 
         </div>
     </div>
@@ -3380,17 +3385,19 @@ function tabloyuCiz(data) {
             }
         });
     }
-
-    // 2. DUYURULARI LİSTELE (ADMİN TARAFINDA SİLMEK İÇİN)
+// admin.html İÇİNDEKİ MEVCUT FONKSİYONLA DEĞİŞTİR
     window.adminDuyurulariGetir = function() {
         const listDiv = document.getElementById("adminAnnList");
+        if(!listDiv) return;
+
+        if(!currentCoopId) return; 
         
-        // Sadece bu kooperatifin duyurularını getir
+        // Son 20 duyuruyu getir
         const q = query(
             collection(db, "announcements"), 
             where("coopId", "==", currentCoopId),
             orderBy("tarih", "desc"), 
-            limit(10)
+            limit(20) 
         );
 
         onSnapshot(q, (snapshot) => {
@@ -3405,30 +3412,103 @@ function tabloyuCiz(data) {
                 const data = doc.data();
                 const d = data.tarih ? data.tarih.toDate().toLocaleDateString('tr-TR') : '-';
                 
-                // Renk ayarı
                 let badgeClass = "bg-primary";
                 if(data.onem === 'yuksek') badgeClass = "bg-danger";
                 if(data.onem === 'odeme') badgeClass = "bg-success";
 
+                // Tırnak işaretleri sorunu olmasın diye güvenli hale getiriyoruz
+                const safeBaslik = data.baslik.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                // İçerikteki satır atlamaları korunsun diye replace yapmıyoruz, pre-wrap halledecek.
+                // Ancak düzenle butonuna parametre gönderirken tırnakları temizlemeliyiz:
+                const safeIcerikParam = data.icerik.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, "\\n");
+
                 const item = `
-                <div class="list-group-item p-3">
-                    <div class="d-flex w-100 justify-content-between align-items-start">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="list-group-item p-3 border-bottom">
+                    <div class="d-flex w-100 justify-content-between align-items-start gap-3">
+                        <div style="flex: 1;"> 
+                            <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="badge ${badgeClass} bg-opacity-75" style="font-weight:normal;">${d}</span>
                                 <h6 class="mb-0 fw-bold text-dark">${data.baslik}</h6>
                             </div>
-                            <p class="mb-0 small text-muted text-truncate" style="max-width: 300px;">${data.icerik}</p>
+                            <div class="text-muted small text-break" style="white-space: pre-wrap; line-height: 1.5; font-family: inherit;">${data.icerik}</div>
                         </div>
-                        <button class="btn btn-sm btn-light text-danger border" onclick="duyuruSil('${doc.id}')" title="Yayından Kaldır">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        
+                        <div class="d-flex flex-column gap-2">
+                             <button class="btn btn-sm btn-light text-primary border" 
+                                onclick="duyuruDuzenle('${doc.id}', '${safeBaslik}', '${safeIcerikParam}', '${data.onem}')" 
+                                title="Düzenle">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light text-danger border" onclick="duyuruSil('${doc.id}')" title="Yayından Kaldır">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>`;
                 
                 listDiv.innerHTML += item;
             });
+        }, (error) => {
+             console.error(error);
         });
+    }
+    // YENİ FONKSİYON: DUYURU DÜZENLEME
+    window.duyuruDuzenle = async function(id, mevcutBaslik, mevcutIcerik, mevcutOnem) {
+        
+        const { value: formValues } = await Swal.fire({
+            title: 'Duyuruyu Düzenle',
+            html: `
+                <div class="text-start">
+                    <label class="small fw-bold text-muted mb-1">Başlık</label>
+                    <input id="swal-d-baslik" class="form-control mb-3" value="${mevcutBaslik}">
+                    
+                    <label class="small fw-bold text-muted mb-1">İçerik</label>
+                    <textarea id="swal-d-icerik" class="form-control mb-3" rows="6">${mevcutIcerik}</textarea>
+                    
+                    <label class="small fw-bold text-muted mb-1">Önem Derecesi</label>
+                    <select id="swal-d-onem" class="form-select">
+                        <option value="normal" ${mevcutOnem === 'normal' ? 'selected' : ''}>Normal (Mavi)</option>
+                        <option value="yuksek" ${mevcutOnem === 'yuksek' ? 'selected' : ''}>Yüksek (Kırmızı)</option>
+                        <option value="odeme" ${mevcutOnem === 'odeme' ? 'selected' : ''}>Ödeme (Yeşil)</option>
+                    </select>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Güncelle',
+            confirmButtonColor: '#0f766e',
+            cancelButtonText: 'İptal',
+            preConfirm: () => {
+                return {
+                    baslik: document.getElementById('swal-d-baslik').value,
+                    icerik: document.getElementById('swal-d-icerik').value,
+                    onem: document.getElementById('swal-d-onem').value
+                }
+            }
+        });
+
+        if (formValues) {
+            if(!formValues.baslik || !formValues.icerik) {
+                Swal.fire("Uyarı", "Başlık ve içerik boş olamaz.", "warning");
+                return;
+            }
+
+            try {
+                // Firebase Güncelleme
+                await updateDoc(doc(db, "announcements", id), {
+                    baslik: formValues.baslik,
+                    icerik: formValues.icerik,
+                    onem: formValues.onem
+                });
+
+                const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+                Toast.fire({icon: 'success', title: 'Duyuru Güncellendi'});
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Hata", error.message, "error");
+            }
+        }
     }
 
     // 3. DUYURU SİL
