@@ -12,6 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="manifest" href="../manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
         --primary-color: #0f766e;
@@ -175,16 +176,22 @@
 
     .hidden-section { display: none !important; }
 
-  /* MOBİL AYARLAR (DÜZELTİLDİ) */
+/* MOBİL AYARLAR (KAYMA SORUNU ÇÖZÜLDÜ) */
     @media (max-width: 992px) {
         .sidebar { transform: translateX(-100%); }
         .main-content { margin-left: 0; }
-        /* Header alt boşluğunu azalttık */
-        .admin-header { padding: 20px 20px 20px 20px; text-align: center; }
-        /* Margin eksi değerini kaldırdık, artık üzerine binmeyecek */
-        .content-wrapper { margin-top: 0; padding: 20px; }
+        
+        /* Header'a yeterli boşluk ver */
+        .admin-header { padding: 20px 20px 30px 20px; text-align: center; }
+        
+        /* BURASI DÜZELTİLDİ: Eksi margin kaldırıldı, artık üstüne binmeyecek */
+        .content-wrapper { margin-top: 0 !important; padding: 20px; }
+        
         .d-flex.justify-content-between { flex-direction: column; gap: 15px; }
         .user-badge { align-self: center; }
+        
+        /* Tablolar taşarsa kaydır */
+        .table-responsive { overflow-x: auto; }
     }
     /* --- CARİ HESAP STİLLERİ (YENİ) --- */
     .balance-card {
@@ -813,51 +820,77 @@ div.swal2-container {
     }
     .sidebar-overlay.active { display: block; }
 
-
-/* --- YAZDIRMA AYARLARI (BOŞ SAYFA SORUNU ÇÖZÜMÜ) --- */
+/* --- YAZDIRMA AYARLARI (BÜYÜK YAZI & DÜZGÜN HİZALAMA) --- */
 @media print {
-    @page { margin: 5mm; size: A4 portrait; }
+    @page { 
+        margin: 5mm; /* Kenar boşluğunu azalttık ki içerik sığsın */
+        size: A4 portrait; 
+    }
     
-    /* Arka plan ve genel ayarlar */
     body, html { 
         background-color: white !important; 
-        width: 100% !important; height: auto !important;
-        margin: 0 !important; padding: 0 !important;
-        overflow: visible !important;
+        width: 100% !important; 
+        margin: 0 !important; 
+        padding: 0 !important;
+        font-size: 14px !important; /* Temel yazı boyutunu büyüttük */
+        color: #000 !important;
     }
 
-    /* Ekranda olan ama kağıtta İSTENMEYEN her şeyi YOK ET (Display: None) */
+    /* Gereksizleri Gizle */
     .sidebar, .admin-header, .bottom-nav, .modal, .modal-backdrop, .btn, .no-print,
-    #dashboard, #members, #stocks, #settings, #milk-management, #announcements, #reports-main-menu,
-    #rep-account-summary > div:not(#accountReportContent) /* Arama kutusunu gizle */
-    { 
+    #dashboard, #members, #stocks, #settings, #milk-management, #announcements, 
+    #reports-main-menu, 
+    #rep-account-summary > div:not(#accountReportContent) { 
         display: none !important; 
     }
 
-    /* Raporun Kapsayıcılarını Görünür ve Serbest Yap */
+    /* Rapor Alanını Aç */
     .main-content, .content-wrapper, #advanced-reports, #rep-account-summary {
-        display: block !important;
-        visibility: visible !important;
-        position: static !important;
-        margin: 0 !important; padding: 0 !important;
+        display: block !important; visibility: visible !important;
+        position: static !important; margin: 0 !important; padding: 0 !important;
         width: 100% !important; height: auto !important;
-        background: transparent !important;
-        border: none !important; box-shadow: none !important;
+        background: transparent !important; border: none !important; box-shadow: none !important;
         overflow: visible !important;
     }
 
-    /* Rapor İçeriğini Kağıda Yerleştir */
     #accountReportContent {
-        display: block !important;
-        visibility: visible !important;
-        position: relative !important;
-        left: 0 !important; top: 0 !important;
-        width: 100% !important;
-        z-index: 9999;
+        display: block !important; visibility: visible !important;
+        position: relative !important; left: 0 !important; top: 0 !important;
+        width: 100% !important; z-index: 9999;
+    }
+
+    /* --- KRİTİK AYAR: SÜTUNLARI YAN YANA ZORLA --- */
+    .row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
     }
     
-    /* Renkleri Zorla Çıkar */
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    /* col-6'ları zorla %50 yap */
+    .col-6 {
+        width: 50% !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    /* Flex kutuları koru (Dönem Başı Devir için önemli) */
+    .d-flex { 
+        display: flex !important; 
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+    .justify-content-between { justify-content: space-between !important; }
+
+    /* Renkleri ve Çerçeveleri Belirginleştir */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .card {
+        border: 1px solid #ccc !important;
+        background-color: white !important;
+    }
 }
 </style>
 </head>
@@ -1340,48 +1373,60 @@ div.swal2-container {
             </div>
         </div>
     </div>
-<div class="card border-0 shadow-sm p-4 mb-4" style="background: linear-gradient(to right, #ffffff, #f8f9fa); border-left: 5px solid #0f766e; overflow: visible !important;">
-    <div class="row g-2 align-items-center">
-    
-    <div class="col-md-4 position-relative">
-        <label class="small fw-bold text-primary mb-1 ms-1">Müşteri Ara</label>
-        <div class="input-group shadow-sm">
-            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-            <input type="text" class="form-control border-start-0 ps-0 fw-bold" id="repMemberSearch" placeholder="İsim yazın..." autocomplete="off">
-            <input type="hidden" id="repSelectedMemberId">
+    <div class="card border-0 shadow-sm p-4 mb-4 no-print" 
+             style="background: linear-gradient(to right, #ffffff, #f8f9fa); border-left: 5px solid #0f766e; overflow: visible !important; position: relative; z-index: 1000;">
+            
+            <div class="row g-3 align-items-end">
+                
+                <div class="col-lg-4 col-md-12 position-relative">
+                    <label class="small fw-bold text-primary mb-1 ms-1">Müşteri Seçimi</label>
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0 text-primary"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0 fw-bold text-dark" 
+                               id="repMemberSearch" placeholder=" Ara" autocomplete="off" 
+                               style="height: 45px; font-size: 1rem;">
+                        <input type="hidden" id="repSelectedMemberId">
+                    </div>
+                    
+                    <div id="repMemberSearchResults" class="list-group position-absolute w-100 shadow-lg" 
+                         style="z-index: 99999; top: 100%; display: none; max-height: 350px; overflow-y: auto; border-radius: 0 0 10px 10px; margin-top: 2px; background-color: white; border: 1px solid #e2e8f0;">
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="small fw-bold text-primary mb-1 ms-1">Dönem</label>
+                    <input type="month" class="form-control shadow-sm fw-bold text-center" 
+                           id="repAccountMonth" style="cursor: pointer; height: 45px; font-size: 1rem;">
+                </div>
+
+                <div class="col-lg-6 col-md-12">
+                    <div class="d-flex gap-2 w-100">
+                        
+                        <button class="btn btn-primary-custom flex-fill shadow-sm fw-bold d-flex align-items-center justify-content-center" 
+                                onclick="ureticiHesapOzetiGetir()" style="height: 45px;">
+                            <i class="fa-solid fa-rotate me-2"></i> GETİR
+                        </button>
+
+                        <button class="btn btn-dark flex-fill shadow-sm fw-bold d-flex align-items-center justify-content-center" 
+                                onclick="raporYazdir()" style="height: 45px;">
+                            <i class="fa-solid fa-print me-2"></i> YAZDIR
+                        </button>
+
+                        <button class="btn btn-danger flex-fill shadow-sm fw-bold d-flex align-items-center justify-content-center" 
+                                onclick="raporPdfIndir()" style="height: 45px;">
+                            <i class="fa-solid fa-file-pdf me-2"></i> PDF
+                        </button>
+
+                        <button class="btn flex-fill shadow-sm fw-bold text-white d-flex align-items-center justify-content-center" 
+                                style="background-color: #25D366; height: 45px;" onclick="whatsappRaporGonder()">
+                            <i class="fa-brands fa-whatsapp me-2 fa-lg"></i> WHATSAPP
+                        </button>
+
+                    </div>
+                </div>
+
+            </div>
         </div>
-        <div id="repMemberSearchResults" class="list-group position-absolute w-100 shadow-lg" 
-             style="z-index: 9999; top: 100%; display: none; max-height: 300px; overflow-y: auto; border-radius: 0 0 10px 10px; margin-top: 5px;">
-        </div>
-    </div>
-
-    <div class="col-md-2">
-        <label class="small fw-bold text-primary mb-1 ms-1">Dönem</label>
-        <input type="month" class="form-control shadow-sm fw-bold" id="repAccountMonth" style="cursor: pointer;">
-    </div>
-
-    <div class="col-md-2">
-        <label class="d-none d-md-block small fw-bold text-white mb-1">.</label>
-        <button class="btn btn-primary-custom w-100 shadow-sm py-2" onclick="ureticiHesapOzetiGetir()">
-            <i class="fa-solid fa-file-invoice me-2"></i> GETİR
-        </button>
-    </div>
-
-    <div class="col-md-2">
-        <label class="d-none d-md-block small fw-bold text-white mb-1">.</label>
-        <button class="btn btn-dark w-100 shadow-sm py-2 fw-bold" onclick="raporYazdir()">
-            <i class="fa-solid fa-print me-2"></i> YAZDIR
-        </button>
-    </div>
-
-    <div class="col-md-2">
-        <label class="d-none d-md-block small fw-bold text-white mb-1">.</label>
-        <button class="btn w-100 shadow-sm py-2 text-white fw-bold" style="background-color: #25D366;" onclick="whatsappRaporGonder()">
-            <i class="fa-brands fa-whatsapp me-2"></i> GÖNDER
-        </button>
-    </div>
-</div>
-    </div>
 
     <div id="accountReportContent"></div>
 </div>
@@ -4483,7 +4528,63 @@ window.evrakiKaydet = async function() {
             });
         });
     }
+// --- PDF İNDİRME FONKSİYONU ---
+    window.raporPdfIndir = function() {
+        const element = document.getElementById('accountReportContent');
+        
+        // Rapor var mı kontrol et
+        if (!element || element.innerText.trim() === "") {
+            Swal.fire("Uyarı", "İndirilecek rapor bulunamadı. Lütfen önce 'GETİR' butonuna basınız.", "warning");
+            return;
+        }
 
+        // Dosya Adını Dinamik Oluştur (Müşteri Adı + Dönem)
+        // Raporun içindeki başlıktan ismi çekiyoruz (h3 etiketinden)
+        let dosyaAdi = "Hesap_Ekstresi";
+        try {
+            const isimElement = element.querySelector("h3"); // Rapordaki İsim Başlığı
+            const donemElement = document.getElementById("repAccountMonth");
+            
+            if(isimElement) {
+                // Türkçe karakterleri ve boşlukları dosya adı için temizle
+                let isim = isimElement.innerText.trim();
+                dosyaAdi = isim.replace(/ /g, "_").replace(/ı/g, "i").replace(/ö/g, "o").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ğ/g, "g").replace(/ç/g, "c").replace(/İ/g, "I").replace(/Ö/g, "O").replace(/Ü/g, "U").replace(/Ş/g, "S").replace(/Ğ/g, "G").replace(/Ç/g, "C");
+            }
+            if(donemElement && donemElement.value) {
+                dosyaAdi += "_" + donemElement.value + "_Ekstresi";
+            }
+        } catch(e) {
+            console.error("Dosya adı oluşturma hatası", e);
+        }
+
+        // PDF Ayarları
+        const opt = {
+            margin:       5, // Kenar boşluğu (mm)
+            filename:     dosyaAdi + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true }, // Yüksek çözünürlük
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // İndirme İşlemi Başlat
+        Swal.fire({
+            title: 'PDF Hazırlanıyor...',
+            text: 'Lütfen bekleyin.',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            Swal.close();
+            Swal.fire({
+                icon: 'success',
+                title: 'İndirildi',
+                text: 'Dosya başarıyla kaydedildi.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    }
     // Bu fonksiyonu "onAuthStateChanged" içinde, "sirketBilgileriniDinle"nin altına ekle:
     // stoklariDinle();  <-- Bunu unutma!
 
@@ -6204,52 +6305,85 @@ window.yayiniKaldir = async function() {
         document.querySelector('.sidebar').classList.remove('active');
         document.querySelector('.sidebar-overlay').classList.remove('active');
     }
-    // --- 1. OTOMATİK TAMAMLAMA (AUTOCOMPLETE) MANTIĞI (DÜZELTİLMİŞ) ---
-    // Hata Çözümü: Değişken isimleri değiştirildi (repSearchInput)
+   
+
+    // --- 1. GELİŞMİŞ MÜŞTERİ ARAMA (TÜM SONUÇLARI GÖSTERİR) ---
     const repSearchInput = document.getElementById('repMemberSearch');
     const repResultsDiv = document.getElementById('repMemberSearchResults');
     const repHiddenId = document.getElementById('repSelectedMemberId');
 
     if(repSearchInput) {
+        // 1. Yazı yazıldıkça çalışır
         repSearchInput.addEventListener('input', function() {
-            const val = this.value.toLocaleLowerCase('tr');
-            repResultsDiv.innerHTML = '';
+            const val = this.value.toLocaleLowerCase('tr').trim(); // Türkçe karakter uyumlu küçültme
+            repResultsDiv.innerHTML = ''; // Önceki sonuçları temizle
             
-            if(val.length < 2) {
+            // Eğer kutu boşsa listeyi gizle
+            if(val.length === 0) {
                 repResultsDiv.style.display = 'none';
                 return;
             }
 
-            // Filtreleme (Sadece İsim Soyad)
-            const matches = allMembers.filter(m => 
-                `${m.ad} ${m.soyad}`.toLocaleLowerCase('tr').includes(val)
-            );
+            // 2. Filtreleme (İsim veya Soyad içinde aranan kelime var mı?)
+            // 'allMembers' listesi sistem açıldığında otomatik yükleniyor.
+            const matches = allMembers.filter(m => {
+                const tamAd = `${m.ad} ${m.soyad}`.toLocaleLowerCase('tr');
+                return tamAd.includes(val);
+            });
 
+            // 3. Sonuçları Ekrana Bas
             if(matches.length > 0) {
                 matches.forEach(m => {
                     const item = document.createElement('a');
-                    item.className = 'list-group-item list-group-item-action border-0 py-2';
+                    item.className = 'list-group-item list-group-item-action border-0 py-2 px-3 d-flex align-items-center';
                     item.style.cursor = 'pointer';
-                    // Rota bilgisi olmadan sadece isim gösteriyoruz
-                    item.innerHTML = `<i class="fa-solid fa-user me-2 text-muted"></i><strong>${m.ad} ${m.soyad}</strong>`;
+                    item.style.borderBottom = '1px solid #f1f5f9'; // Hafif çizgi
                     
-                    // Tıklayınca Seç
+                    // İçerik: İkon + İsim + Köy
+                    item.innerHTML = `
+                        <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px;">
+                            <i class="fa-solid fa-user small"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size: 0.95rem;">${m.ad} ${m.soyad}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot me-1"></i>${m.koy || 'Merkez'}</small>
+                        </div>
+                    `;
+                    
+                    // Tıklayınca Seçimi Yap
                     item.onclick = function() {
-                        repSearchInput.value = `${m.ad} ${m.soyad}`; // Kutuyu doldur
-                        repHiddenId.value = m.id; // Gizli ID'yi doldur
-                        repResultsDiv.style.display = 'none'; // Listeyi gizle
+                        repSearchInput.value = `${m.ad} ${m.soyad}`; // İsmi kutuya yaz
+                        repHiddenId.value = m.id; // Gizli ID'yi güncelle
+                        repResultsDiv.style.display = 'none'; // Listeyi kapat
                     };
+                    
                     repResultsDiv.appendChild(item);
                 });
+                
+                // Listeyi Görünür Yap
                 repResultsDiv.style.display = 'block';
+                
             } else {
-                repResultsDiv.style.display = 'none';
+                // Sonuç Yoksa Bilgi Ver
+                repResultsDiv.innerHTML = `
+                    <div class="p-3 text-center text-muted small">
+                        <i class="fa-regular fa-face-frown mb-1"></i><br>
+                        "${this.value}" isminde kayıt bulunamadı.
+                    </div>`;
+                repResultsDiv.style.display = 'block';
             }
         });
 
-        // Boşluğa tıklayınca listeyi kapat
+        // 4. Kutuya Tıklayınca Tekrar Aç (Doluysa)
+        repSearchInput.addEventListener('click', function() {
+            if(this.value.length > 0) {
+                this.dispatchEvent(new Event('input'));
+            }
+        });
+
+        // 5. Boşluğa Tıklayınca Kapat
         document.addEventListener('click', function(e) {
-            if (e.target !== repSearchInput && e.target !== repResultsDiv) {
+            if (e.target !== repSearchInput && !repResultsDiv.contains(e.target)) {
                 repResultsDiv.style.display = 'none';
             }
         });
@@ -6339,68 +6473,102 @@ window.yayiniKaldir = async function() {
             const genelToplamBorc = devirBorc + satisTutar + totalCikan;
             const netDurum = data.sonucBakiye || 0;
 
-            // --- HTML OLUŞTUR (KOMPAKT & DÜZENLİ) ---
-            
-            // 1. Devir Satırı: 'd-flex' ve 'justify-content-between' ile tam hizalama sağlandı.
-            let devirHtml = devir !== 0 
-                ? `<div class="card border-0 mb-2 shadow-sm"><div class="card-body p-2 px-3 d-flex justify-content-between align-items-center" style="${devir > 0 ? 'background-color:#fff3cd' : 'background-color:#d1e7dd'}"><span class="fw-bold text-dark small">DÖNEM BAŞI DEVİR</span><span class="fw-bold ${devir > 0 ? 'text-danger' : 'text-success'}">${fmt(Math.abs(devir))} ${devir > 0 ? 'BORÇLU' : 'ALACAKLI'}</span></div></div>`
-                : `<div class="card border-0 mb-2 shadow-sm"><div class="card-body p-2 px-3 bg-light text-muted fw-bold d-flex justify-content-between align-items-center"><span class="small">DÖNEM BAŞI DEVİR</span><span>0,00 ₺</span></div></div>`;
 
+// --- HTML OLUŞTUR (MÜREKKEP DOSTU: BEYAZ ZEMİN, RENKLİ ÇERÇEVE) ---
+            
+            // 1. DÖNEM BAŞI DEVİR (Zemin Beyaz, Çerçeve Gri, Yazı Renkli - YAN YANA)
+            let devirHtml = `
+            <div class="mb-4 rounded-3 d-flex justify-content-between align-items-center p-3" 
+                 style="background-color: #fff !important; border: 2px solid #e9ecef; break-inside: avoid;">
+                <span class="fw-bold text-secondary text-uppercase" style="font-size: 1.1rem; letter-spacing: 0.5px;">DÖNEM BAŞI DEVİR</span>
+                <span class="fw-bold" style="font-size: 1.4rem; color: ${devir > 0 ? '#dc2626' : (devir < 0 ? '#166534' : '#64748b')} !important;">
+                    ${fmt(Math.abs(devir))} ${devir !== 0 ? (devir > 0 ? '<small style="font-size:0.9rem">(BORÇLU)</small>' : '<small style="font-size:0.9rem">(ALACAKLI)</small>') : ''}
+                </span>
+            </div>`;
+
+            // 2. HESAPLAMA DETAYI (Zemin Yok, Renkli Çerçeveler - YAN YANA SÜTUNLAR)
             let detayTabloHtml = `
-            <div class="card border-0 shadow-sm mb-4 mt-3">
-                <div class="card-header bg-white border-0 pt-3 pb-1"><h6 class="fw-bold text-dark m-0 small">HESAPLAMA DETAYI</h6></div>
-                <div class="card-body p-3 pt-0">
-                    <div class="mb-3">
-                        <h6 class="fw-bold text-success mb-2" style="font-size: 0.75rem;">+ ALACAKLAR (Giriş)</h6>
-                        ${devirSatiriAlacak}
-                        <div class="d-flex justify-content-between mb-1 border-bottom border-light"><span class="text-secondary small">Süt Bedelleri</span><span class="fw-bold text-dark small">+ ${fmt(sutTutar)}</span></div>
-                        <div class="d-flex justify-content-between mb-2"><span class="text-secondary small">Nakit Tahsilatlar</span><span class="fw-bold text-dark small">+ ${fmt(totalGiren)}</span></div>
-                        <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #d1e7dd;"><span class="fw-bold text-success small">TOPLAM ALACAK</span><span class="fw-bold text-dark small">${fmt(genelToplamAlacak)}</span></div>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold text-danger mb-2" style="font-size: 0.75rem;">- BORÇLAR (Çıkış)</h6>
-                        ${devirSatiriBorc}
-                        <div class="d-flex justify-content-between mb-1 border-bottom border-light"><span class="text-secondary small">Mal/Hizmet Satışı</span><span class="fw-bold text-dark small">- ${fmt(satisTutar)}</span></div>
-                        <div class="d-flex justify-content-between mb-2"><span class="text-secondary small">Ödemeler (Avans)</span><span class="fw-bold text-dark small">- ${fmt(totalCikan)}</span></div>
-                        <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #f8d7da;"><span class="fw-bold text-danger small">TOPLAM BORÇ</span><span class="fw-bold text-dark small">${fmt(genelToplamBorc)}</span></div>
+            <div class="card border-0 mb-4 mt-4" style="border: 1px solid #e2e8f0 !important; border-radius: 12px; break-inside: avoid;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-4 small text-uppercase border-bottom pb-2">HESAPLAMA DETAYI</h5>
+
+                    <div class="row gx-5">
+                        
+                        <div class="col-6" style="border-right: 1px dashed #e2e8f0;">
+                            <h6 class="fw-bold mb-3" style="color: #166534 !important; font-size: 1rem;">+ ALACAKLAR (Giriş)</h6>
+                            
+                            ${devir < 0 ? `<div class="d-flex justify-content-between mb-2 small w-100"><span class="text-secondary">Devir Alacağı</span><span class="fw-bold text-dark">+ ${fmt(Math.abs(devir))}</span></div>` : ''}
+                            <div class="d-flex justify-content-between mb-2 small w-100"><span class="text-secondary">Süt Bedelleri</span><span class="fw-bold text-dark">+ ${fmt(sutTutar)}</span></div>
+                            <div class="d-flex justify-content-between mb-3 small w-100"><span class="text-secondary">Nakit Tahsilatlar</span><span class="fw-bold text-dark">+ ${fmt(totalGiren)}</span></div>
+
+                            <div class="p-2 rounded-3 d-flex justify-content-between align-items-center px-3 mt-3 w-100" 
+                                 style="background-color: #fff !important; border: 2px solid #198754; color: #198754;">
+                                <span class="fw-bold small">TOPLAM ALACAK</span>
+                                <span class="fw-bold fs-5">${fmt(genelToplamAlacak)}</span>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <h6 class="fw-bold mb-3" style="color: #dc2626 !important; font-size: 1rem;">- BORÇLAR (Çıkış)</h6>
+                            
+                            ${devir > 0 ? `<div class="d-flex justify-content-between mb-2 small w-100"><span class="text-secondary">Devir Borcu</span><span class="fw-bold text-dark">- ${fmt(devir)}</span></div>` : ''}
+                            <div class="d-flex justify-content-between mb-2 small w-100"><span class="text-secondary">Mal/Hizmet Satışı</span><span class="fw-bold text-dark">- ${fmt(satisTutar)}</span></div>
+                            <div class="d-flex justify-content-between mb-3 small w-100"><span class="text-secondary">Ödemeler (Avans)</span><span class="fw-bold text-dark">- ${fmt(totalCikan)}</span></div>
+
+                            <div class="p-2 rounded-3 d-flex justify-content-between align-items-center px-3 mt-3 w-100" 
+                                 style="background-color: #fff !important; border: 2px solid #dc2626; color: #dc2626;">
+                                <span class="fw-bold small">TOPLAM BORÇ</span>
+                                <span class="fw-bold fs-5">${fmt(genelToplamBorc)}</span>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>`;
 
-            let sonucHtml = `<div class="card text-white text-center p-2 shadow" style="background:${netDurum > 0 ? '#198754' : (netDurum < 0 ? '#dc3545' : '#6c757d')}">
-                <small style="font-size:0.7rem; opacity:0.9;">DÖNEM SONU NET DURUM</small><h4 class="m-0 fw-bold">${netDurum > 0 ? fmt(netDurum) + ' ALACAKLI' : (netDurum < 0 ? fmt(Math.abs(netDurum)) + ' BORÇLU' : 'HESAP KAPALI')}</h4></div>`;
+           // 3. NET SONUÇ (DAHA AZ YER KAPLAYAN, KİBAR VERSİYON)
+            let sonucRenk = netDurum > 0 ? '#166534' : (netDurum < 0 ? '#dc2626' : '#64748b');
+            let sonucHtml = `
+            <div class="p-2 text-center mt-3" 
+                 style="background-color: #fff !important; border: 2px solid ${sonucRenk}; border-radius: 8px; break-inside: avoid; max-width: 60%; margin-left: auto; margin-right: auto;">
+                <div class="small text-uppercase fw-bold" style="color: ${sonucRenk} !important; opacity: 0.9; font-size: 0.7rem;">DÖNEM SONU NET DURUM</div>
+                <div class="fw-bold" style="font-size: 1.25rem; color: ${sonucRenk} !important;">
+                    ${netDurum > 0 ? fmt(netDurum) + ' ALACAKLI' : (netDurum < 0 ? fmt(Math.abs(netDurum)) + ' BORÇLU' : 'HESAP KAPALI')}
+                </div>
+            </div>`;
 
-            // ANA ÇIKTI (Boşluklar p-4 -> p-3 yapıldı, başlık marjları azaltıldı)
+            // ANA ÇIKTI (Fontlar optimize edildi)
             container.innerHTML = `
-                <div class="bg-white p-3 rounded-4 shadow-sm border" style="max-width:800px; margin:0 auto;">
-                    <div class="text-center border-bottom pb-2 mb-2">
-                        <h5 class="fw-bold m-0">${data.memberName}</h5>
-                        <small class="text-muted">${period} Ekstresi</small>
+                <div class="bg-white p-4 rounded-4 shadow-sm border" style="max-width:100%; margin:0 auto; font-family: 'Segoe UI', sans-serif;">
+                    
+                    <div class="text-center border-bottom pb-4 mb-4">
+                        <h2 class="fw-bold m-0 text-dark">${data.memberName}</h2>
+                        <div class="text-muted fs-6">${period} Ekstresi</div>
                     </div>
                     
                     ${devirHtml}
                     
-                    <h6 class="text-success border-bottom pb-1 mt-3 small fw-bold">1. SÜT BEDELLERİ</h6>
-                    <div class="table-responsive mb-2">
-                        <table class="table table-sm table-striped mb-0 align-middle small">
+                    <h6 class="fw-bold small mb-2 text-uppercase ps-1 border-bottom pb-1" style="color: #166534 !important;">1. SÜT BEDELLERİ</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-striped mb-0 align-middle small w-100">
                             <thead class="table-light"><tr class="text-center"><th>Akşam</th><th>Sabah</th><th>Top.</th><th>Fiyat</th><th class="text-end">Tutar</th></tr></thead>
                             <tbody>${sutRows}</tbody>
-                            <tfoot class="bg-success bg-opacity-10 fw-bold"><tr><td colspan="4" class="text-end pe-2">SÜT TOPLAMI:</td><td class="text-end text-success pe-3">${fmt(sutTutar)}</td></tr></tfoot>
+                            <tfoot class="fw-bold" style="border-top: 2px solid #166534; color: #166534 !important;"><tr><td colspan="4" class="text-end pe-2">SÜT TOPLAMI:</td><td class="text-end pe-3">${fmt(sutTutar)}</td></tr></tfoot>
                         </table>
                     </div>
 
-                    <h6 class="text-danger border-bottom pb-1 mt-3 small fw-bold">2. MAL/HİZMET ALIMLARI</h6>
-                    <div class="table-responsive mb-2">
-                        <table class="table table-sm table-striped mb-0 align-middle small">
+                    <h6 class="fw-bold small mb-2 text-uppercase ps-1 border-bottom pb-1" style="color: #dc2626 !important;">2. MAL/HİZMET ALIMLARI</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-striped mb-0 align-middle small w-100">
                             <thead class="table-light"><tr><th>Ürün</th><th class="text-center">Miktar</th><th class="text-end">Birim F.</th><th class="text-end">Tutar</th></tr></thead>
                             <tbody>${satisRows}</tbody>
-                            <tfoot class="bg-danger bg-opacity-10 fw-bold"><tr><td colspan="3" class="text-end pe-2">BORÇ TOPLAMI:</td><td class="text-end text-danger pe-3">${fmt(satisTutar)}</td></tr></tfoot>
+                            <tfoot class="fw-bold" style="border-top: 2px solid #dc2626; color: #dc2626 !important;"><tr><td colspan="3" class="text-end pe-2">BORÇ TOPLAMI:</td><td class="text-end pe-3">${fmt(satisTutar)}</td></tr></tfoot>
                         </table>
                     </div>
 
-                    <h6 class="text-secondary border-bottom pb-1 mt-3 small fw-bold">3. NAKİT VE DİĞER İŞLEMLER</h6>
+                    <h6 class="fw-bold small mb-2 text-uppercase ps-1 border-bottom pb-1" style="color: #64748b !important;">3. NAKİT VE DİĞER İŞLEMLER</h6>
                     <div class="table-responsive mb-2">
-                        <table class="table table-sm table-striped mb-0 align-middle small">
+                        <table class="table table-sm table-striped mb-0 align-middle small w-100">
                             <thead class="table-light"><tr><th>Tarih</th><th>Açıklama</th><th class="text-end">Giriş</th><th class="text-end">Çıkış</th></tr></thead>
                             <tbody>${nakitRows}</tbody>
                         </table>
@@ -6408,6 +6576,10 @@ window.yayiniKaldir = async function() {
                     
                     ${detayTabloHtml}
                     ${sonucHtml}
+                    
+                    <div class="text-center mt-5 text-muted small border-top pt-2">
+                        Bu belge KoopSistem tarafından ${new Date().toLocaleDateString('tr-TR')} tarihinde oluşturulmuştur.
+                    </div>
                 </div>`;
 
         } catch (error) {
