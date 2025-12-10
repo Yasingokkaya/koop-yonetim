@@ -810,49 +810,70 @@ div.swal2-container {
         backdrop-filter: blur(2px);
     }
     .sidebar-overlay.active { display: block; }
-    /* --- YAZDIRMA AYARLARI (PRINT CSS) --- */
+
+
+/* --- YAZDIRMA AYARLARI (GARANTİLİ ÇÖZÜM) --- */
 @media print {
-    body * {
-        visibility: hidden; /* Her şeyi gizle */
+    @page { margin: 5mm; size: A4 portrait; }
+    
+    body { background-color: white !important; -webkit-print-color-adjust: exact; }
+
+    /* Ekranda görünen ama kağıtta olmaması gereken her şeyi YOK ET */
+    .sidebar, .admin-header, .bottom-nav, .modal, .modal-backdrop, .btn, .no-print,
+    #dashboard, #members, #stocks, #settings, #milk-management, #announcements,
+    #reports-main-menu, 
+    #rep-account-summary > div:not(#accountReportContent) /* Arama kutusunu gizle */
+    { 
+        display: none !important; 
     }
-    #accountReportContent, #accountReportContent * {
-        visibility: visible; /* Sadece rapor alanını göster */
+
+    /* Rapor Kapsayıcılarını Serbest Bırak */
+    .main-content, .content-wrapper, #advanced-reports, #rep-account-summary {
+        display: block !important;
+        visibility: visible !important;
+        margin: 0 !important; padding: 0 !important;
+        width: 100% !important; height: auto !important;
+        position: static !important;
+        background: transparent !important;
+        box-shadow: none !important; border: none !important;
+        overflow: visible !important;
     }
+
+    /* Raporun Kendisini Kağıda Yerleştir */
     #accountReportContent {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
+        display: block !important;
+        visibility: visible !important;
+        position: relative !important; /* Absolute yerine Relative */
+        left: 0 !important; top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important; padding: 0 !important;
+        z-index: 9999;
     }
-    .no-print {
-        display: none !important; /* Yazdır butonunun kendisini kağıtta gizle */
-    }
-    /* Arka plan renklerini (yeşil/kırmızı kutular) yazıcıda zorla çıkar */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
+    
+    /* İçerik Görünürlüğü */
+    #accountReportContent * { visibility: visible !important; }
+    
+    /* Renkleri Zorla */
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
 </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <div class="sidebar-brand d-flex justify-content-between align-items-center pe-4" id="brandTitle">
-    <div class="d-flex align-items-center gap-2">
-        <i class="fa-solid fa-cube"></i> KOOP SİSTEM
+   <div class="sidebar-brand d-flex justify-content-between align-items-center px-3" id="brandTitle">
+    <div class="d-flex align-items-center">
+        <img src="web-logo.jpg" alt="KoopSistem" style="height: 40px; width: auto; border-radius: 4px; object-fit: contain;">
     </div>
     
-    <button class="btn btn-link text-white-50 d-lg-none p-0" onclick="closeSidebar()" style="font-size: 1.8rem; text-decoration: none;">
+    <button class="btn btn-link text-white d-lg-none p-2" onclick="closeSidebar()" style="font-size: 1.5rem; text-decoration: none; opacity: 0.8;">
         <i class="fa-solid fa-xmark"></i>
     </button>
 </div>
     
     <div class="d-flex flex-column flex-grow-1 mt-4">
         <a class="nav-link active" onclick="switchTab('dashboard', this)">
-            <i class="fa-solid fa-chart-pie" style="width:20px"></i> Ana Sayfa
+            <i class="fa-solid fa-chart-pie" style="width:20px"></i> Hızlı İşlemler
         </a>
         <a class="nav-link" onclick="switchTab('reports', this)">
     <i class="fa-solid fa-chart-line" style="width:20px"></i> Dashboard
@@ -911,7 +932,7 @@ div.swal2-container {
             </div>
             
            <div class="d-flex align-items-center gap-3">
-    <img src="web-logo.jpg" alt="Logo" style="height: 38px; width: auto; border-radius: 4px;">
+    
 
     <div id="licenseInfoBox" class="px-2 py-1 rounded-pill fw-bold small shadow-sm d-none align-items-center" 
          style="background: white; min-height: 30px; display: flex;">
@@ -1315,13 +1336,13 @@ div.swal2-container {
         </div>
     </div>
 <div class="card border-0 shadow-sm p-4 mb-4" style="background: linear-gradient(to right, #ffffff, #f8f9fa); border-left: 5px solid #0f766e; overflow: visible !important;">
-      <div class="row g-2 align-items-center">
+    <div class="row g-2 align-items-center">
     
-    <div class="col-md-5 position-relative">
+    <div class="col-md-4 position-relative">
         <label class="small fw-bold text-primary mb-1 ms-1">Müşteri Ara</label>
         <div class="input-group shadow-sm">
             <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-            <input type="text" class="form-control border-start-0 ps-0 fw-bold" id="repMemberSearch" placeholder="İsim yazmaya başlayın..." autocomplete="off">
+            <input type="text" class="form-control border-start-0 ps-0 fw-bold" id="repMemberSearch" placeholder="İsim yazın..." autocomplete="off">
             <input type="hidden" id="repSelectedMemberId">
         </div>
         <div id="repMemberSearchResults" class="list-group position-absolute w-100 shadow-lg" 
@@ -1329,7 +1350,7 @@ div.swal2-container {
         </div>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-2">
         <label class="small fw-bold text-primary mb-1 ms-1">Dönem</label>
         <input type="month" class="form-control shadow-sm fw-bold" id="repAccountMonth" style="cursor: pointer;">
     </div>
@@ -1338,6 +1359,13 @@ div.swal2-container {
         <label class="d-none d-md-block small fw-bold text-white mb-1">.</label>
         <button class="btn btn-primary-custom w-100 shadow-sm py-2" onclick="ureticiHesapOzetiGetir()">
             <i class="fa-solid fa-file-invoice me-2"></i> GETİR
+        </button>
+    </div>
+
+    <div class="col-md-2">
+        <label class="d-none d-md-block small fw-bold text-white mb-1">.</label>
+        <button class="btn btn-dark w-100 shadow-sm py-2 fw-bold" onclick="raporYazdir()">
+            <i class="fa-solid fa-print me-2"></i> YAZDIR
         </button>
     </div>
 
@@ -4603,7 +4631,17 @@ window.yeniUrunModalAc = function() {
             }
         }
     }
-
+// --- RAPOR YAZDIRMA FONKSİYONU ---
+    window.raporYazdir = function() {
+        // Önce rapor var mı kontrol et
+        const icerik = document.getElementById("accountReportContent").innerHTML;
+        if(!icerik || icerik.trim() === "") {
+            Swal.fire("Uyarı", "Yazdırılacak rapor yok. Lütfen önce 'GETİR' butonuna basınız.", "warning");
+            return;
+        }
+        // Yazdırma penceresini aç (CSS ayarları sayesinde sadece rapor çıkar)
+        window.print();
+    }
     // --- ŞİFRE SIFIRLAMA (E-Posta Gönderme) ---
     // Not: Güvenlik nedeniyle admin direkt şifre değiştiremez, sıfırlama maili atar.
     window.sifreSifirlamaGonder = async function(email) {
@@ -4821,7 +4859,7 @@ window.urunDuzenle = function(id) {
         }
     }
     
-    // Hızlı Tahsilat (Ana Sayfa İçin)
+    // Hızlı Tahsilat (Hızlı İşlemler İçin)
 window.hizliTahsilatBaslat = async function() {
     // 1. Tüm üyeleri selectbox için hazırla
     let options = {};
@@ -6296,43 +6334,73 @@ window.yayiniKaldir = async function() {
             const genelToplamBorc = devirBorc + satisTutar + totalCikan;
             const netDurum = data.sonucBakiye || 0;
 
-            // --- HTML OLUŞTUR ---
+            // --- HTML OLUŞTUR (KOMPAKT & DÜZENLİ) ---
+            
+            // 1. Devir Satırı: 'd-flex' ve 'justify-content-between' ile tam hizalama sağlandı.
             let devirHtml = devir !== 0 
-                ? `<div class="card border-0 mb-3 shadow-sm"><div class="card-body p-3 d-flex justify-content-between" style="${devir > 0 ? 'background-color:#fff3cd' : 'background-color:#d1e7dd'}"><span class="fw-bold text-dark">DÖNEM BAŞI DEVİR</span><span class="fw-bold ${devir > 0 ? 'text-danger' : 'text-success'}">${fmt(Math.abs(devir))} ${devir > 0 ? 'BORÇLU' : 'ALACAKLI'}</span></div></div>`
-                : `<div class="card border-0 mb-3 shadow-sm"><div class="card-body p-3 bg-light text-muted fw-bold d-flex justify-content-between"><span>DÖNEM BAŞI DEVİR</span><span>0,00 ₺</span></div></div>`;
+                ? `<div class="card border-0 mb-2 shadow-sm"><div class="card-body p-2 px-3 d-flex justify-content-between align-items-center" style="${devir > 0 ? 'background-color:#fff3cd' : 'background-color:#d1e7dd'}"><span class="fw-bold text-dark small">DÖNEM BAŞI DEVİR</span><span class="fw-bold ${devir > 0 ? 'text-danger' : 'text-success'}">${fmt(Math.abs(devir))} ${devir > 0 ? 'BORÇLU' : 'ALACAKLI'}</span></div></div>`
+                : `<div class="card border-0 mb-2 shadow-sm"><div class="card-body p-2 px-3 bg-light text-muted fw-bold d-flex justify-content-between align-items-center"><span class="small">DÖNEM BAŞI DEVİR</span><span>0,00 ₺</span></div></div>`;
 
             let detayTabloHtml = `
-            <div class="card border-0 shadow-sm mb-4 mt-4">
-                <div class="card-header bg-white border-0 pt-4 pb-2"><h6 class="fw-bold text-dark m-0">DÖNEM SONU HESAPLAMA DETAYI</h6></div>
+            <div class="card border-0 shadow-sm mb-4 mt-3">
+                <div class="card-header bg-white border-0 pt-3 pb-1"><h6 class="fw-bold text-dark m-0 small">HESAPLAMA DETAYI</h6></div>
                 <div class="card-body p-3 pt-0">
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-success mb-3" style="font-size: 0.8rem;">+ ALACAKLAR (Giriş)</h6>
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-success mb-2" style="font-size: 0.75rem;">+ ALACAKLAR (Giriş)</h6>
                         ${devirSatiriAlacak}
-                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light"><span class="text-secondary small">Cari Ay Süt Bedelleri</span><span class="fw-bold text-dark">+ ${fmt(sutTutar)}</span></div>
-                        <div class="d-flex justify-content-between mb-3"><span class="text-secondary small">Cari Ay Nakit Tahsilatlar</span><span class="fw-bold text-dark">+ ${fmt(totalGiren)}</span></div>
-                        <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #d1e7dd;"><span class="fw-bold text-success small">TOPLAM ALACAK</span><span class="fw-bold text-dark">${fmt(genelToplamAlacak)}</span></div>
+                        <div class="d-flex justify-content-between mb-1 border-bottom border-light"><span class="text-secondary small">Süt Bedelleri</span><span class="fw-bold text-dark small">+ ${fmt(sutTutar)}</span></div>
+                        <div class="d-flex justify-content-between mb-2"><span class="text-secondary small">Nakit Tahsilatlar</span><span class="fw-bold text-dark small">+ ${fmt(totalGiren)}</span></div>
+                        <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #d1e7dd;"><span class="fw-bold text-success small">TOPLAM ALACAK</span><span class="fw-bold text-dark small">${fmt(genelToplamAlacak)}</span></div>
                     </div>
                     <div>
-                        <h6 class="fw-bold text-danger mb-3" style="font-size: 0.8rem;">- BORÇLAR (Çıkış)</h6>
+                        <h6 class="fw-bold text-danger mb-2" style="font-size: 0.75rem;">- BORÇLAR (Çıkış)</h6>
                         ${devirSatiriBorc}
-                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light"><span class="text-secondary small">Cari Ay Mal/Hizmet Satışları</span><span class="fw-bold text-dark">- ${fmt(satisTutar)}</span></div>
-                        <div class="d-flex justify-content-between mb-3"><span class="text-secondary small">Cari Ay Ödemeler (Avans)</span><span class="fw-bold text-dark">- ${fmt(totalCikan)}</span></div>
-                        <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #f8d7da;"><span class="fw-bold text-danger small">TOPLAM BORÇ</span><span class="fw-bold text-dark">${fmt(genelToplamBorc)}</span></div>
+                        <div class="d-flex justify-content-between mb-1 border-bottom border-light"><span class="text-secondary small">Mal/Hizmet Satışı</span><span class="fw-bold text-dark small">- ${fmt(satisTutar)}</span></div>
+                        <div class="d-flex justify-content-between mb-2"><span class="text-secondary small">Ödemeler (Avans)</span><span class="fw-bold text-dark small">- ${fmt(totalCikan)}</span></div>
+                        <div class="d-flex justify-content-between p-2 rounded align-items-center" style="background-color: #f8d7da;"><span class="fw-bold text-danger small">TOPLAM BORÇ</span><span class="fw-bold text-dark small">${fmt(genelToplamBorc)}</span></div>
                     </div>
                 </div>
             </div>`;
 
-            let sonucHtml = `<div class="card text-white text-center p-3 shadow" style="background:${netDurum > 0 ? '#198754' : (netDurum < 0 ? '#dc3545' : '#6c757d')}">
-                <small>DÖNEM SONU NET DURUM</small><h3 class="m-0 fw-bold">${netDurum > 0 ? fmt(netDurum) + ' ALACAKLI' : (netDurum < 0 ? fmt(Math.abs(netDurum)) + ' BORÇLU' : 'HESAP KAPALI')}</h3></div>`;
+            let sonucHtml = `<div class="card text-white text-center p-2 shadow" style="background:${netDurum > 0 ? '#198754' : (netDurum < 0 ? '#dc3545' : '#6c757d')}">
+                <small style="font-size:0.7rem; opacity:0.9;">DÖNEM SONU NET DURUM</small><h4 class="m-0 fw-bold">${netDurum > 0 ? fmt(netDurum) + ' ALACAKLI' : (netDurum < 0 ? fmt(Math.abs(netDurum)) + ' BORÇLU' : 'HESAP KAPALI')}</h4></div>`;
 
-            // ANA ÇIKTI
+            // ANA ÇIKTI (Boşluklar p-4 -> p-3 yapıldı, başlık marjları azaltıldı)
             container.innerHTML = `
-                <div class="bg-white p-4 rounded-4 shadow-sm border" style="max-width:800px; margin:0 auto;">
-                    <div class="text-center border-bottom pb-2 mb-3"><h5 class="fw-bold m-0">${data.memberName}</h5><small>${period} Ekstresi</small></div>
+                <div class="bg-white p-3 rounded-4 shadow-sm border" style="max-width:800px; margin:0 auto;">
+                    <div class="text-center border-bottom pb-2 mb-2">
+                        <h5 class="fw-bold m-0">${data.memberName}</h5>
+                        <small class="text-muted">${period} Ekstresi</small>
+                    </div>
+                    
                     ${devirHtml}
-                    <h6 class="text-success border-bottom pb-1">1. SÜT BEDELLERİ</h6><div class="table-responsive mb-3"><table class="table table-sm table-striped mb-0 align-middle small"><thead class="table-light"><tr class="text-center"><th>Akşam</th><th>Sabah</th><th>Top.</th><th>Fiyat</th><th class="text-end">Tutar</th></tr></thead><tbody>${sutRows}</tbody><tfoot class="bg-success bg-opacity-10 fw-bold"><tr><td colspan="4" class="text-end pe-2">SÜT TOPLAMI:</td><td class="text-end text-success pe-3">${fmt(sutTutar)}</td></tr></tfoot></table></div>
-                    <h6 class="text-danger border-bottom pb-1">2. MAL/HİZMET ALIMLARI</h6><div class="table-responsive mb-3"><table class="table table-sm table-striped mb-0 align-middle small"><thead class="table-light"><tr><th>Ürün</th><th>Miktar</th><th>Birim F.</th><th class="text-end">Tutar</th></tr></thead><tbody>${satisRows}</tbody><tfoot class="bg-danger bg-opacity-10 fw-bold"><tr><td colspan="3" class="text-end pe-2">BORÇ TOPLAMI:</td><td class="text-end text-danger pe-3">${fmt(satisTutar)}</td></tr></tfoot></table></div>
-                    <h6 class="text-secondary border-bottom pb-1">3. NAKİT VE DİĞER İŞLEMLER</h6><div class="table-responsive mb-3"><table class="table table-sm table-striped mb-0 align-middle small"><thead class="table-light"><tr><th>Tarih</th><th>Açıklama</th><th class="text-end">Giriş</th><th class="text-end">Çıkış</th></tr></thead><tbody>${nakitRows}</tbody></table></div>
+                    
+                    <h6 class="text-success border-bottom pb-1 mt-3 small fw-bold">1. SÜT BEDELLERİ</h6>
+                    <div class="table-responsive mb-2">
+                        <table class="table table-sm table-striped mb-0 align-middle small">
+                            <thead class="table-light"><tr class="text-center"><th>Akşam</th><th>Sabah</th><th>Top.</th><th>Fiyat</th><th class="text-end">Tutar</th></tr></thead>
+                            <tbody>${sutRows}</tbody>
+                            <tfoot class="bg-success bg-opacity-10 fw-bold"><tr><td colspan="4" class="text-end pe-2">SÜT TOPLAMI:</td><td class="text-end text-success pe-3">${fmt(sutTutar)}</td></tr></tfoot>
+                        </table>
+                    </div>
+
+                    <h6 class="text-danger border-bottom pb-1 mt-3 small fw-bold">2. MAL/HİZMET ALIMLARI</h6>
+                    <div class="table-responsive mb-2">
+                        <table class="table table-sm table-striped mb-0 align-middle small">
+                            <thead class="table-light"><tr><th>Ürün</th><th class="text-center">Miktar</th><th class="text-end">Birim F.</th><th class="text-end">Tutar</th></tr></thead>
+                            <tbody>${satisRows}</tbody>
+                            <tfoot class="bg-danger bg-opacity-10 fw-bold"><tr><td colspan="3" class="text-end pe-2">BORÇ TOPLAMI:</td><td class="text-end text-danger pe-3">${fmt(satisTutar)}</td></tr></tfoot>
+                        </table>
+                    </div>
+
+                    <h6 class="text-secondary border-bottom pb-1 mt-3 small fw-bold">3. NAKİT VE DİĞER İŞLEMLER</h6>
+                    <div class="table-responsive mb-2">
+                        <table class="table table-sm table-striped mb-0 align-middle small">
+                            <thead class="table-light"><tr><th>Tarih</th><th>Açıklama</th><th class="text-end">Giriş</th><th class="text-end">Çıkış</th></tr></thead>
+                            <tbody>${nakitRows}</tbody>
+                        </table>
+                    </div>
+                    
                     ${detayTabloHtml}
                     ${sonucHtml}
                 </div>`;
@@ -6395,88 +6463,20 @@ window.whatsappRaporGonder = async function() {
         else if(net < 0) bakiyeMesaji = `🔴 *BORÇLUSUNUZ: ${fmt(Math.abs(net))} TL*`;
         else bakiyeMesaji = "⚪ *HESAP KAPALI (0 TL)*";
 
-        // --- DETAYLARI METNE DÖKME (YENİ) ---
-        
-        // 1. Süt Listesi Metni
-        let strSut = "";
-        if (data.sutListesi && data.sutListesi.length > 0) {
-            data.sutListesi.forEach(s => {
-                const lt = (Number(s.sabah) || 0) + (Number(s.aksam) || 0);
-                strSut += `• Müstahsil: *${lt}* Lt x *${fmt(s.fiyat)}* TL\n`;
-            });
-        }
-        strSut += `• *Toplam Süt Bedeli: ${fmt(data.sutToplam)} TL*`;
-
-        // 2. Yem/Malzeme Listesi Metni
-        let strYem = "";
-        if (data.satisListesi && data.satisListesi.length > 0) {
-            data.satisListesi.forEach(s => {
-                // Örn: 10 Adet - Süt Yemi (x 350,00)
-                strYem += `• ${s.qty || 1} ${s.unit || 'Adet'} - ${s.name} (x ${fmt(s.price)})\n`;
-            });
-        } else {
-            strYem = "• (Bu dönem ürün alımı yok)\n";
-        }
-        strYem += `*Toplam Malzeme: -${fmt(data.satisToplam)} TL*`;
-
-        // 3. Nakit/Avans Listesi Metni
-        let strNakit = "";
-        if (data.nakitListesi && data.nakitListesi.length > 0) {
-            data.nakitListesi.forEach(n => {
-                // Tarihi formatla
-                let tDate = '-';
-                if(n.date && n.date.seconds) tDate = new Date(n.date.seconds * 1000).toLocaleDateString('tr-TR', {day:'numeric', month:'numeric'});
-                
-                // Borçsa (Ödeme/Avans) başına eksi koy
-                const isBorc = n.type !== 'alacak';
-                const isaret = isBorc ? "-" : "+";
-                
-                strNakit += `• ${tDate} ${n.desc}: ${isaret}${fmt(n.amount)}\n`;
-            });
-        } else {
-            strNakit = "• (Nakit işlem yok)\n";
-        }
-        // Nakit toplamını göster (Negatifse zaten eksi gelir)
-        const nakitNet = data.nakitToplam || 0;
-        const nakitIsaret = nakitNet > 0 ? "+" : ""; 
-        strNakit += `*Nakit Dengesi: ${nakitIsaret}${fmt(nakitNet)} TL*`;
-
-        // 4. ŞİRKET ADI (Headerdan alıyoruz)
-        const sirketAdi = document.getElementById('lblCompanyName') ? document.getElementById('lblCompanyName').innerText : 'Kooperatif Yönetimi';
-
-        // 5. YENİ MESAJ FORMATI
+        // 4. Mesaj Metni
         const mesaj = 
 `Sayın *${data.memberName}*,
-Kooperatifimizdeki ${donemAdi} hesap detaylarınız aşağıdadır:
+${donemAdi} dönemi hesap özetiniz:
 
-🥛 *SÜT ALIMI (GELİRİNİZ)*
+🥛 *Süt Bedeli:* ${fmt(data.sutToplam)} TL
+📦 *Yem/Malzeme:* -${fmt(data.satisToplam)} TL
+💵 *Nakit/Avans:* -${fmt(data.nakitToplam)} TL
+🔄 *Devir:* ${fmt(data.devirBakiye)} TL
+
 -------------------------
-${strSut}
-
-📦 *YEM & MALZEME (GİDERİNİZ)*
--------------------------
-${strYem}
-
-💵 *NAKİT & AVANS*
--------------------------
-${strNakit}
-
-🔄 *ÖNCEKİ DÖNEM*
--------------------------
-• Geçen Aydan Devir: ${fmt(data.devirBakiye)} TL
-
-════════════════════
-📊 *HESAP ÖZETİ*
-════════════════════
-Süt Alacağı : +${fmt(data.sutToplam)}
-Malzeme     : -${fmt(data.satisToplam)}
-Nakit Akışı : ${nakitIsaret}${fmt(data.nakitToplam)}
-Devir Farkı : ${fmt(data.devirBakiye)}
-
 ${bakiyeMesaji}
-
-Bereketli olsun.
-~ ${sirketAdi}`;
+-------------------------
+Sağlıklı günler dileriz.`;
 
         // 5. Gönder
         const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(mesaj)}`;
@@ -6493,7 +6493,7 @@ Bereketli olsun.
 <div class="bottom-nav d-lg-none">
     <a class="b-nav-item active" onclick="switchTab('dashboard', this); closeSidebar()">
         <i class="fa-solid fa-chart-pie"></i>
-        <span>Ana Sayfa</span>
+        <span>Hızlı İşlemler</span>
     </a>
     <a class="b-nav-item" onclick="switchTab('members', this); closeSidebar()">
         <i class="fa-solid fa-users"></i>
