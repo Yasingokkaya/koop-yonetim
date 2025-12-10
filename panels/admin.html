@@ -6400,13 +6400,36 @@ window.whatsappRaporGonder = async function() {
 `Sayın *${data.memberName}*,
 ${donemAdi} dönemi hesap özetiniz:
 
-🥛 *Süt Bedeli:* ${fmt(data.sutToplam)} TL
-📦 *Yem/Malzeme:* -${fmt(data.satisToplam)} TL
-💵 *Nakit/Avans:* -${fmt(data.nakitToplam)} TL
-🔄 *Devir:* ${fmt(data.devirBakiye)} TL
-
+🥛 *SÜT ALIMI (GELİRİNİZ)*
 -------------------------
-${bakiyeMesaji}
+• Müstahsil: *{LITRE}* Lt x *{BIRIM_FIYAT}* TL
+• Süt Bedeli: *{SUT_TOPLAM_TUTAR}* TL
+*(Varsa Stopaj/Kesinti: -{STOPAJ} TL)*
+
+📦 *YEM & MALZEME (GİDERİNİZ)*
+-------------------------
+{YEM_VE_URUN_DONGUSU_BURAYA_GELECEK}
+*(Örn: 10 Adet - Süt Yemi x 350 TL)*
+*Toplam Malzeme: -{YEM_TOPLAM} TL*
+
+💵 *NAKİT & AVANS*
+-------------------------
+{AVANS_LISTESI_DONGUSU_BURAYA_GELECEK}
+*(Örn: 15.12.2025 Banka: -2000 TL)*
+*Toplam Nakit: -{AVANS_TOPLAM} TL*
+
+🔄 *ÖNCEKİ DÖNEM*
+-------------------------
+• Geçen Aydan Devir: {DEVIR_BAKIYE} TL
+
+════════════════════
+📊 *GENEL TABLO*
+════════════════════
+Süt Alacağı : +{SUT_TOPLAM_TUTAR} TL
+Kesintiler  : -{TOPLAM_GIDERLER} TL
+Devir Durumu: {DEVIR_BAKIYE} TL
+
+✅ *{HESAP_DURUMU_MESAJI}: {NET_ODENECEK_TUTAR} TL*
 -------------------------
 Sağlıklı günler dileriz.`;
 
