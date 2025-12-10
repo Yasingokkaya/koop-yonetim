@@ -175,12 +175,14 @@
 
     .hidden-section { display: none !important; }
 
-    /* MOBİL AYARLAR */
+  /* MOBİL AYARLAR (DÜZELTİLDİ) */
     @media (max-width: 992px) {
         .sidebar { transform: translateX(-100%); }
         .main-content { margin-left: 0; }
-        .admin-header { padding: 20px 20px 40px 20px; text-align: center; }
-        .content-wrapper { margin-top: -20px; padding: 0 20px 20px 20px; }
+        /* Header alt boşluğunu azalttık */
+        .admin-header { padding: 20px 20px 20px 20px; text-align: center; }
+        /* Margin eksi değerini kaldırdık, artık üzerine binmeyecek */
+        .content-wrapper { margin-top: 0; padding: 20px; }
         .d-flex.justify-content-between { flex-direction: column; gap: 15px; }
         .user-badge { align-self: center; }
     }
@@ -812,48 +814,49 @@ div.swal2-container {
     .sidebar-overlay.active { display: block; }
 
 
-/* --- YAZDIRMA AYARLARI (GARANTİLİ ÇÖZÜM) --- */
+/* --- YAZDIRMA AYARLARI (BOŞ SAYFA SORUNU ÇÖZÜMÜ) --- */
 @media print {
     @page { margin: 5mm; size: A4 portrait; }
     
-    body { background-color: white !important; -webkit-print-color-adjust: exact; }
+    /* Arka plan ve genel ayarlar */
+    body, html { 
+        background-color: white !important; 
+        width: 100% !important; height: auto !important;
+        margin: 0 !important; padding: 0 !important;
+        overflow: visible !important;
+    }
 
-    /* Ekranda görünen ama kağıtta olmaması gereken her şeyi YOK ET */
+    /* Ekranda olan ama kağıtta İSTENMEYEN her şeyi YOK ET (Display: None) */
     .sidebar, .admin-header, .bottom-nav, .modal, .modal-backdrop, .btn, .no-print,
-    #dashboard, #members, #stocks, #settings, #milk-management, #announcements,
-    #reports-main-menu, 
+    #dashboard, #members, #stocks, #settings, #milk-management, #announcements, #reports-main-menu,
     #rep-account-summary > div:not(#accountReportContent) /* Arama kutusunu gizle */
     { 
         display: none !important; 
     }
 
-    /* Rapor Kapsayıcılarını Serbest Bırak */
+    /* Raporun Kapsayıcılarını Görünür ve Serbest Yap */
     .main-content, .content-wrapper, #advanced-reports, #rep-account-summary {
         display: block !important;
         visibility: visible !important;
+        position: static !important;
         margin: 0 !important; padding: 0 !important;
         width: 100% !important; height: auto !important;
-        position: static !important;
         background: transparent !important;
-        box-shadow: none !important; border: none !important;
+        border: none !important; box-shadow: none !important;
         overflow: visible !important;
     }
 
-    /* Raporun Kendisini Kağıda Yerleştir */
+    /* Rapor İçeriğini Kağıda Yerleştir */
     #accountReportContent {
         display: block !important;
         visibility: visible !important;
-        position: relative !important; /* Absolute yerine Relative */
+        position: relative !important;
         left: 0 !important; top: 0 !important;
         width: 100% !important;
-        margin: 0 !important; padding: 0 !important;
         z-index: 9999;
     }
     
-    /* İçerik Görünürlüğü */
-    #accountReportContent * { visibility: visible !important; }
-    
-    /* Renkleri Zorla */
+    /* Renkleri Zorla Çıkar */
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
 </style>
@@ -861,14 +864,16 @@ div.swal2-container {
 <body>
 
 <div class="sidebar">
-   <div class="sidebar-brand d-flex justify-content-between align-items-center px-3" id="brandTitle">
+  <div class="sidebar-brand d-flex justify-content-between align-items-center px-3" id="brandTitle" style="height: 80px;">
+    
     <div class="d-flex align-items-center">
-        <img src="web-logo.jpg" alt="KoopSistem" style="height: 40px; width: auto; border-radius: 4px; object-fit: contain;">
+        <img src="web-logo.jpg" alt="KoopSistem" style="height: 40px; width: auto; object-fit: contain;">
     </div>
     
-    <button class="btn btn-link text-white d-lg-none p-2" onclick="closeSidebar()" style="font-size: 1.5rem; text-decoration: none; opacity: 0.8;">
+    <button class="btn btn-link text-white d-lg-none p-2" onclick="closeSidebar()" style="font-size: 1.8rem; text-decoration: none; opacity: 0.9; line-height: 1;">
         <i class="fa-solid fa-xmark"></i>
     </button>
+
 </div>
     
     <div class="d-flex flex-column flex-grow-1 mt-4">
