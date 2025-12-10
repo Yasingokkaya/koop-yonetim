@@ -6395,43 +6395,88 @@ window.whatsappRaporGonder = async function() {
         else if(net < 0) bakiyeMesaji = `🔴 *BORÇLUSUNUZ: ${fmt(Math.abs(net))} TL*`;
         else bakiyeMesaji = "⚪ *HESAP KAPALI (0 TL)*";
 
-        // 4. Mesaj Metni
+        // --- DETAYLARI METNE DÖKME (YENİ) ---
+        
+        // 1. Süt Listesi Metni
+        let strSut = "";
+        if (data.sutListesi && data.sutListesi.length > 0) {
+            data.sutListesi.forEach(s => {
+                const lt = (Number(s.sabah) || 0) + (Number(s.aksam) || 0);
+                strSut += `• Müstahsil: *${lt}* Lt x *${fmt(s.fiyat)}* TL\n`;
+            });
+        }
+        strSut += `• *Toplam Süt Bedeli: ${fmt(data.sutToplam)} TL*`;
+
+        // 2. Yem/Malzeme Listesi Metni
+        let strYem = "";
+        if (data.satisListesi && data.satisListesi.length > 0) {
+            data.satisListesi.forEach(s => {
+                // Örn: 10 Adet - Süt Yemi (x 350,00)
+                strYem += `• ${s.qty || 1} ${s.unit || 'Adet'} - ${s.name} (x ${fmt(s.price)})\n`;
+            });
+        } else {
+            strYem = "• (Bu dönem ürün alımı yok)\n";
+        }
+        strYem += `*Toplam Malzeme: -${fmt(data.satisToplam)} TL*`;
+
+        // 3. Nakit/Avans Listesi Metni
+        let strNakit = "";
+        if (data.nakitListesi && data.nakitListesi.length > 0) {
+            data.nakitListesi.forEach(n => {
+                // Tarihi formatla
+                let tDate = '-';
+                if(n.date && n.date.seconds) tDate = new Date(n.date.seconds * 1000).toLocaleDateString('tr-TR', {day:'numeric', month:'numeric'});
+                
+                // Borçsa (Ödeme/Avans) başına eksi koy
+                const isBorc = n.type !== 'alacak';
+                const isaret = isBorc ? "-" : "+";
+                
+                strNakit += `• ${tDate} ${n.desc}: ${isaret}${fmt(n.amount)}\n`;
+            });
+        } else {
+            strNakit = "• (Nakit işlem yok)\n";
+        }
+        // Nakit toplamını göster (Negatifse zaten eksi gelir)
+        const nakitNet = data.nakitToplam || 0;
+        const nakitIsaret = nakitNet > 0 ? "+" : ""; 
+        strNakit += `*Nakit Dengesi: ${nakitIsaret}${fmt(nakitNet)} TL*`;
+
+        // 4. ŞİRKET ADI (Headerdan alıyoruz)
+        const sirketAdi = document.getElementById('lblCompanyName') ? document.getElementById('lblCompanyName').innerText : 'Kooperatif Yönetimi';
+
+        // 5. YENİ MESAJ FORMATI
         const mesaj = 
 `Sayın *${data.memberName}*,
-${donemAdi} dönemi hesap özetiniz:
+Kooperatifimizdeki ${donemAdi} hesap detaylarınız aşağıdadır:
 
 🥛 *SÜT ALIMI (GELİRİNİZ)*
 -------------------------
-• Müstahsil: *{LITRE}* Lt x *{BIRIM_FIYAT}* TL
-• Süt Bedeli: *{SUT_TOPLAM_TUTAR}* TL
-*(Varsa Stopaj/Kesinti: -{STOPAJ} TL)*
+${strSut}
 
 📦 *YEM & MALZEME (GİDERİNİZ)*
 -------------------------
-{YEM_VE_URUN_DONGUSU_BURAYA_GELECEK}
-*(Örn: 10 Adet - Süt Yemi x 350 TL)*
-*Toplam Malzeme: -{YEM_TOPLAM} TL*
+${strYem}
 
 💵 *NAKİT & AVANS*
 -------------------------
-{AVANS_LISTESI_DONGUSU_BURAYA_GELECEK}
-*(Örn: 15.12.2025 Banka: -2000 TL)*
-*Toplam Nakit: -{AVANS_TOPLAM} TL*
+${strNakit}
 
 🔄 *ÖNCEKİ DÖNEM*
 -------------------------
-• Geçen Aydan Devir: {DEVIR_BAKIYE} TL
+• Geçen Aydan Devir: ${fmt(data.devirBakiye)} TL
 
 ════════════════════
-📊 *GENEL TABLO*
+📊 *HESAP ÖZETİ*
 ════════════════════
-Süt Alacağı : +{SUT_TOPLAM_TUTAR} TL
-Kesintiler  : -{TOPLAM_GIDERLER} TL
-Devir Durumu: {DEVIR_BAKIYE} TL
+Süt Alacağı : +${fmt(data.sutToplam)}
+Malzeme     : -${fmt(data.satisToplam)}
+Nakit Akışı : ${nakitIsaret}${fmt(data.nakitToplam)}
+Devir Farkı : ${fmt(data.devirBakiye)}
 
-✅ *{HESAP_DURUMU_MESAJI}: {NET_ODENECEK_TUTAR} TL*
--------------------------
-Sağlıklı günler dileriz.`;
+${bakiyeMesaji}
+
+Bereketli olsun.
+~ ${sirketAdi}`;
 
         // 5. Gönder
         const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(mesaj)}`;
