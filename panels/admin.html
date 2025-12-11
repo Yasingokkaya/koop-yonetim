@@ -10,9 +10,10 @@
     <link rel="icon" type="image/jpeg" href="app-logo.jpg">
     <link rel="apple-touch-icon" href="app-logo.jpg">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+
     <link rel="manifest" href="../manifest.json">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
   <style>
     :root {
         --primary-color: #0f766e;
@@ -892,6 +893,20 @@ div.swal2-container {
         background-color: white !important;
     }
 }
+/* Süt Fark Göstergeleri */
+.diff-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-left: 8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.diff-up { color: #166534; background-color: #dcfce7; } /* Yeşil Artış */
+.diff-down { color: #991b1b; background-color: #fee2e2; } /* Kırmızı Düşüş */
+.diff-neutral { color: #64748b; background-color: #f1f5f9; } /* Değişim Yok */
 </style>
 </head>
 <body>
@@ -1557,7 +1572,7 @@ div.swal2-container {
                                 <th style="width: 40px;" class="text-center">
                                     <input type="checkbox" class="form-check-input" id="selectAllMembers" onclick="tumunuSec(this)">
                                 </th>
-                                <th style="width: 60px;" class="text-center">Sıra</th>
+                                
                                 <th>Ad Soyad / Unvan</th>
                                 <th>TC / Vergi No</th>
                                 <th class="text-center">Tip</th>
@@ -1603,7 +1618,6 @@ div.swal2-container {
 
 <div id="milk-management" class="content-section hidden-section">
     <div class="row g-4">
-        
         <div class="col-md-6 col-lg-5">
             <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);">
                 <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
@@ -1614,10 +1628,9 @@ div.swal2-container {
                     <p class="text-muted small mb-4">
                         Belirlenen tarih aralığındaki toplanan sütleri hesaplayıp, üyelerin cari hesabına "Alacak" olarak işler.
                     </p>
-                    <button class="btn btn-warning w-100 fw-bold py-3 rounded-3 shadow-sm text-dark" 
-        onclick="sutHesaplamaModalAc()">
-    <i class="fa-solid fa-play me-2"></i> HESAPLAMA BAŞLAT
-</button>
+                    <button class="btn btn-warning w-100 fw-bold py-3 rounded-3 shadow-sm text-dark" onclick="sutHesaplamaModalAc()">
+                        <i class="fa-solid fa-play me-2"></i> HESAPLAMA BAŞLAT
+                    </button>
                 </div>
             </div>
         </div>
@@ -1646,14 +1659,32 @@ div.swal2-container {
     </div> 
 
     <div class="card border-0 shadow-sm mt-4">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 fw-bold text-dark">
-                <i class="fa-solid fa-list-check me-2 text-primary"></i>Son Süt Girişleri
-            </h6>
-            <button class="btn btn-sm btn-light border" onclick="sutListesiniGetir()">
-                <i class="fa-solid fa-rotate me-1"></i> Yenile
-            </button>
+        <div class="card-header bg-white py-3">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <h6 class="m-0 fw-bold text-dark">
+                        <i class="fa-solid fa-list-check me-2 text-primary"></i>Süt Giriş Listesi
+                    </h6>
+                </div>
+                <div class="col-md-8">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <select id="sutAramaUye" class="form-select form-select-sm fw-bold text-dark" style="max-width: 200px;">
+                            <option value="">Tüm Üreticiler</option>
+                        </select>
+                        <input type="date" id="sutAramaTarih" class="form-control form-control-sm" style="max-width: 150px;">
+                        
+                        <button class="btn btn-sm btn-primary-custom" onclick="sutListesiniGetir(true)">
+                            <i class="fa-solid fa-search me-1"></i> Bul
+                        </button>
+                        
+                        <button class="btn btn-sm btn-light border" onclick="sutListesiniGetir(false)" title="Listeyi Sıfırla">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -1663,12 +1694,13 @@ div.swal2-container {
                         <th>Şoför/Giren</th>
                         <th class="text-center">Dönem</th>
                         <th class="text-center">Miktar</th>
+                        <th class="text-center" style="width: 110px;">Fark</th>
                         <th class="text-end">Durum</th>
                         <th class="text-end">Sil</th>
                     </tr>
                 </thead>
                 <tbody id="milkTableBody">
-                    <tr><td colspan="7" class="text-center p-4 text-muted">Yükleniyor...</td></tr>
+                    <tr><td colspan="8" class="text-center p-4 text-muted">Yükleniyor...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -2439,7 +2471,8 @@ import {
     arrayRemove, 
     orderBy, 
     limit, 
-    writeBatch 
+    writeBatch,
+    increment
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2458,6 +2491,19 @@ const db = getFirestore(app);
 
 // --- GLOBAL DEĞİŞKENLER (TEK SEFER TANIMLANMALI) ---
 let currentCoopId = null;
+// --- KÜTÜPHANE YÜKLEYİCİ (PERFORMANS İÇİN) ---
+window.kututuphaneYukle = function(url) {
+    return new Promise((resolve, reject) => {
+        // Zaten yüklüyse tekrar yükleme, hemen bitir
+        if (document.querySelector(`script[src="${url}"]`)) { resolve(); return; }
+        
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
 let activeMemberId = null;
 let duzenlenecekEvrakId = null;
 let aktifCariTipi = 'musteri';
@@ -2521,7 +2567,7 @@ export { app, auth, db, doc, setDoc, deleteDoc, updateDoc };
                     // VERİLERİ ÇEK
                     if(currentCoopId) {
                         if(typeof sirketBilgileriniDinle === 'function') sirketBilgileriniDinle(currentCoopId);
-                        if(typeof canliUyeDinle === 'function') canliUyeDinle();
+                        if(typeof uyeleriGetir === 'function') uyeleriGetir();
                         if(typeof stoklariDinle === 'function') stoklariDinle();
                     } else if (rol === 'superadmin') {
                         // Eğer süper adminse ve kurum seçili değilse uyarmasın, sadece boş göstersin
@@ -2644,30 +2690,51 @@ function ayarlarListesiniCiz() {
     }
 
     
+// --- ÜYELERİ GETİR (PERFORMANSLI VE FULL VERSİYON) ---
+    window.uyeleriGetir = async function() {
+        if(!currentCoopId) return;
 
-   // Global değişken allMembers zaten var, onu kullanıyoruz.
-function canliUyeDinle() {
-    const q = query(collection(db, "members"), where("coopId", "==", currentCoopId));
-    onSnapshot(q, (snapshot) => {
+        const q = query(collection(db, "members"), where("coopId", "==", currentCoopId));
+        
+        // Veriyi bekle ve çek (onSnapshot yerine getDocs kullanarak performansı koruyoruz)
+        const snapshot = await getDocs(q);
+
         allMembers = [];
         snapshot.forEach((doc) => { 
             let d = doc.data(); 
             d.id = doc.id; 
-            // Eğer veritabanında "tip" yoksa (eski kayıtlar) varsayılan "musteri" kabul et
             if(!d.tip) d.tip = 'musteri'; 
             allMembers.push(d); 
         });
         
-        // Sıralama
+        // Sıralama (Listede sıra numarasına göre düzgün görünsün)
         allMembers.sort((a,b) => (Number(a.sira) || 999) - (Number(b.sira) || 999));
         
-        // Veri geldiğinde ekrana, o an hangi menü seçiliyse onu çiz
-        listeyiFiltreleVeCiz();
+        // 1. Ana Listeyi Ekrana Çiz
+        if(typeof listeyiFiltreleVeCiz === 'function') {
+            listeyiFiltreleVeCiz();
+        }
         
+        // 2. Dashboard Sayısını Güncelle
         const dashTotal = document.getElementById("dashTotalMember");
         if(dashTotal) dashTotal.innerText = allMembers.length;
-    });
-}
+
+        // 3. Süt Arama Kutusunu Doldur (YENİ EKLENEN KISIM)
+        const sutSelect = document.getElementById("sutAramaUye");
+        if(sutSelect) {
+            sutSelect.innerHTML = '<option value="">Tüm Üreticiler</option>';
+            
+            // İsme göre alfabetik sıralı kopya oluştur
+            const siraliIsim = [...allMembers].sort((a,b) => a.ad.localeCompare(b.ad));
+            
+            siraliIsim.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m.id;
+                opt.text = `${m.ad} ${m.soyad}`;
+                sutSelect.appendChild(opt);
+            });
+        }
+    }
 
 // YENİ FONKSİYON: Listeyi o anki seçime göre filtreleyip çizer
 function listeyiFiltreleVeCiz() {
@@ -3050,6 +3117,7 @@ if(searchInput) {
                     await addDoc(collection(db, "members"), veri);
                     Swal.fire({ icon: 'success', title: 'Eklendi', timer: 1000, showConfirmButton: false });
                 }
+                uyeleriGetir();
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addMemberModal'));
                 modal.hide();
                 formuTemizle();
@@ -3138,51 +3206,71 @@ if(searchInput) {
     window.uyeSil = async function(id) { 
         if((await Swal.fire({title:'Silinsin mi?',icon:'warning',showCancelButton:true})).isConfirmed) await deleteDoc(doc(db,"members",id)); 
     }
-
+    uyeleriGetir();
     document.getElementById("logoutBtn").addEventListener("click", async()=>{ 
         await signOut(auth); window.location.href="../index.html"; 
     });
-window.switchTab = function(tabId, el) { 
+
+ window.switchTab = function(tabId, el) { 
         // 1. Tüm sayfaları gizle
-        document.querySelectorAll('.content-section').forEach(e=>e.classList.add('hidden-section')); 
+        document.querySelectorAll('.content-section').forEach(e => e.classList.add('hidden-section')); 
         
         // 2. Seçilen sayfayı aç
-        document.getElementById(tabId).classList.remove('hidden-section');
+        const targetPage = document.getElementById(tabId);
+        if(targetPage) {
+            targetPage.classList.remove('hidden-section');
+        } else {
+            console.error("Hata: Sayfa bulunamadı ->", tabId);
+            return;
+        }
         
         // 3. Menüdeki aktifliği değiştir
-        document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active'));
         if(el) el.classList.add('active');
         
-        // 4. Başlığı Ayarla
+        // 4. Eğer Hesap Detay sayfasından çıkıyorsak Header'ı geri getir
+        if(tabId !== 'account-detail-page') {
+            const header = document.querySelector('.admin-header');
+            if(header) header.classList.remove('d-none');
+        }
+
+        // 5. Başlığı Ayarla
         let t = "Genel Durum";
         
-        if(tabId==='members') t = window.firmaTuru ==='sahis' ? "Cari İşlemleri" : "Üye İşlemleri";
-        if(tabId==='stocks') t = "Stok Yönetimi";
-        if(tabId==='settings') t = "Ayarlar";
-        if(tabId==='milk-management') {
+        if(tabId === 'members') t = (typeof window.firmaTuru !== 'undefined' && window.firmaTuru === 'sahis') ? "Cari İşlemleri" : "Üye İşlemleri";
+        if(tabId === 'stocks') t = "Stok Yönetimi";
+        if(tabId === 'settings') t = "Ayarlar";
+        
+        if(tabId === 'milk-management') {
             t = "Süt Toplama & Hesaplama";
             if(typeof sutListesiniGetir === 'function') sutListesiniGetir(); 
         }
+
+        // Raporlara tıklayınca ana menüye dön
         if(tabId === 'advanced-reports') {
-        t = "Rapor Merkezi"; // Sayfa başlığı
-    }
-        // --- YENİ EKLENEN KISIM ---
-        if(tabId==='reports') {
-            t = "Raporlar & Analiz";
-            // Tarih kutuları boşsa otomatik son 1 ayı ayarla
-            if(!document.getElementById("reportStartDate").value) {
+            t = "Rapor Merkezi"; 
+            document.querySelectorAll(".sub-report").forEach(el => el.classList.add("d-none"));
+            const mainMenu = document.getElementById("reports-main-menu");
+            if(mainMenu) mainMenu.classList.remove("d-none");
+        }
+
+        // Dashboard/Raporlar sekmesi
+        if(tabId === 'reports') {
+            t = "Dashboard & Analiz"; 
+            // Tarih filtreleri boşsa otomatik doldur
+            const startInput = document.getElementById("reportStartDate");
+            if(startInput && !startInput.value) {
                 const bugun = new Date();
                 const birAyOnce = new Date();
-                birAyOnce.setDate(bugun.getDate() - 30); // Son 30 gün
+                birAyOnce.setDate(bugun.getDate() - 30);
                 document.getElementById("reportEndDate").valueAsDate = bugun;
-                document.getElementById("reportStartDate").valueAsDate = birAyOnce;
+                startInput.valueAsDate = birAyOnce;
             }
-            // Sayfa açılır açılmaz raporu getir
             if(typeof raporlariGetir === 'function') raporlariGetir();
         }
-        // --------------------------
 
-        document.getElementById('page-title').innerText = t;
+        const titleEl = document.getElementById('page-title');
+        if(titleEl) titleEl.innerText = t;
     }
 
     
@@ -3369,7 +3457,7 @@ function tabloyuCiz(data) {
                     <td class="text-center">
                         <input type="checkbox" class="form-check-input member-checkbox" value="${uye.id}" onclick="secimKontrol()">
                     </td>
-                    <td class="text-center">${siraNoHtml}</td>
+                    
                     
                     <td>
                         <div class="fw-bold text-dark fs-6">${uye.ad} ${uye.soyad}</div>
@@ -3552,7 +3640,10 @@ function tabloyuCiz(data) {
                 batchId: batchId, // <--- KRİTİK: İşlem Kimliği Eklendi
                 createdAt: new Date()
             });
-
+                const uyeRef = doc(db, "members", memId);
+                batch.update(uyeRef, { 
+                    guncelBakiye: increment(-toplamTutar) 
+                });
             // Süt Kayıtlarını Kilitle ve Kimliği Bas
             val.docs.forEach(docId => {
                 const milkRef = doc(db, "milk_records", docId);
@@ -4163,7 +4254,12 @@ window.evrakDetayGoster = async function(docId) {
                     description: formValues.desc || formValues.cat,
                     date: islemTarihi // Seçilen tarih
                 });
+                const degisim = (kayitTipi === 'borc') ? Number(formValues.amt) : -Number(formValues.amt);
+                const uyeRef = doc(db, "members", activeMemberId);
                 
+                await updateDoc(uyeRef, {
+                    guncelBakiye: increment(degisim)
+                });
                 const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1000});
                 Toast.fire({ icon: 'success', title: 'İşlem Kaydedildi' });
                 
@@ -4498,6 +4594,13 @@ window.evrakiKaydet = async function() {
             Swal.fire({icon: 'success', title: 'Güncellendi', timer: 1500, showConfirmButton: false});
         } else {
             await addDoc(collection(db, "transactions"), faturaVerisi);
+            const islemTutar = Number(grandTotal);
+            const degisim = (evrakTuru === 'satis') ? islemTutar : -islemTutar; // Satış borç artırır (+), İade düşürür (-)
+            
+            const uyeRef = doc(db, "members", activeMemberId);
+            await updateDoc(uyeRef, {
+                guncelBakiye: increment(degisim)
+            });
             Swal.fire({icon: 'success', title: 'Kaydedildi', timer: 1500, showConfirmButton: false});
         }
 
@@ -4580,65 +4683,45 @@ window.evrakiKaydet = async function() {
             });
         });
     }
-// --- PDF İNDİRME FONKSİYONU ---
-    window.raporPdfIndir = function() {
+  
+    window.raporPdfIndir = async function() {
         const element = document.getElementById('accountReportContent');
-        
-        // Rapor var mı kontrol et
         if (!element || element.innerText.trim() === "") {
-            Swal.fire("Uyarı", "İndirilecek rapor bulunamadı. Lütfen önce 'GETİR' butonuna basınız.", "warning");
+            Swal.fire("Uyarı", "İndirilecek rapor yok.", "warning");
             return;
         }
 
-        // Dosya Adını Dinamik Oluştur (Müşteri Adı + Dönem)
-        // Raporun içindeki başlıktan ismi çekiyoruz (h3 etiketinden)
-        let dosyaAdi = "Hesap_Ekstresi";
-        try {
-            const isimElement = element.querySelector("h3"); // Rapordaki İsim Başlığı
-            const donemElement = document.getElementById("repAccountMonth");
-            
-            if(isimElement) {
-                // Türkçe karakterleri ve boşlukları dosya adı için temizle
-                let isim = isimElement.innerText.trim();
-                dosyaAdi = isim.replace(/ /g, "_").replace(/ı/g, "i").replace(/ö/g, "o").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ğ/g, "g").replace(/ç/g, "c").replace(/İ/g, "I").replace(/Ö/g, "O").replace(/Ü/g, "U").replace(/Ş/g, "S").replace(/Ğ/g, "G").replace(/Ç/g, "C");
-            }
-            if(donemElement && donemElement.value) {
-                dosyaAdi += "_" + donemElement.value + "_Ekstresi";
-            }
-        } catch(e) {
-            console.error("Dosya adı oluşturma hatası", e);
-        }
-
-        // PDF Ayarları
-        const opt = {
-            margin:       5, // Kenar boşluğu (mm)
-            filename:     dosyaAdi + '.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true }, // Yüksek çözünürlük
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        // İndirme İşlemi Başlat
         Swal.fire({
-            title: 'PDF Hazırlanıyor...',
-            text: 'Lütfen bekleyin.',
+            title: 'PDF Modülü Yükleniyor...',
+            text: 'Lütfen bekleyin, ilk seferde 2-3 saniye sürebilir.',
             allowOutsideClick: false,
             didOpen: () => { Swal.showLoading(); }
         });
 
+        // Kütüphaneyi şimdi yüklüyoruz
+        await kututuphaneYukle("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+
+        let dosyaAdi = "Hesap_Ekstresi";
+        try {
+            const isim = element.querySelector("h2") ? element.querySelector("h2").innerText.trim() : "Cari";
+            const donem = document.getElementById("repAccountMonth").value;
+            dosyaAdi = `${isim}_${donem}_Ekstresi`.replace(/ /g, "_");
+        } catch(e) {}
+
+        const opt = {
+            margin: 5,
+            filename: dosyaAdi + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Kütüphane yüklendikten sonra global 'html2pdf' nesnesi oluşur
         html2pdf().set(opt).from(element).save().then(() => {
             Swal.close();
-            Swal.fire({
-                icon: 'success',
-                title: 'İndirildi',
-                text: 'Dosya başarıyla kaydedildi.',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            Swal.fire({icon: 'success', title: 'İndirildi', timer: 1500, showConfirmButton: false});
         });
     }
-    // Bu fonksiyonu "onAuthStateChanged" içinde, "sirketBilgileriniDinle"nin altına ekle:
-    // stoklariDinle();  <-- Bunu unutma!
 
   // --- ÜRÜN EKLEME (TAMİRLİ) ---
 window.yeniUrunModalAc = function() {
@@ -4951,35 +5034,123 @@ window.urunDuzenle = function(id) {
             await deleteDoc(doc(db, "products", id));
         }
     }
-    // --- SÜT LİSTESİNİ ÇEKME FONKSİYONU ---
-    window.sutListesiniGetir = function() {
+// --- SÜT LİSTESİNİ GETİR (SAPIK ANALİZLİ / FARK GÖSTERGELİ) ---
+    window.sutListesiniGetir = async function(aramaYapilsinMi = false) {
         if(!currentCoopId) return;
 
-        // Son 50 kaydı getir (Tarihe göre tersten sırala)
-        const q = query(
-            collection(db, "milk_records"), 
-            where("coopId", "==", currentCoopId),
-            orderBy("date", "desc"),
-            limit(50)
-        );
+        const tbody = document.getElementById("milkTableBody");
+        if(!tbody) return; 
+        
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4"><div class="spinner-border text-primary spinner-border-sm"></div> Veriler ve Analizler Yükleniyor...</td></tr>';
 
-        onSnapshot(q, (snapshot) => {
-            const tbody = document.getElementById("milkTableBody");
-            if(!tbody) return; 
+        // Girdileri Al
+        const tarihInput = document.getElementById("sutAramaTarih");
+        const uyeSelect = document.getElementById("sutAramaUye");
+        
+        let q;
+
+        // --- SORGULARI HAZIRLA ---
+        if (!aramaYapilsinMi) {
+            if(tarihInput) tarihInput.value = ""; 
+            if(uyeSelect) uyeSelect.value = "";
             
-            tbody.innerHTML = "";
+            // Varsayılan: Son 50 Kayıt
+            q = query(collection(db, "milk_records"), where("coopId", "==", currentCoopId), orderBy("date", "desc"), limit(50));
+        } else {
+            const secilenUyeId = uyeSelect ? uyeSelect.value : "";
+            const secilenTarihVal = tarihInput ? tarihInput.value : "";
 
+            let constraints = [where("coopId", "==", currentCoopId)];
+
+            if (secilenUyeId) constraints.push(where("memberId", "==", secilenUyeId));
+            
+            if (secilenTarihVal) {
+                const sDate = new Date(secilenTarihVal); sDate.setHours(0,0,0,0);
+                const eDate = new Date(secilenTarihVal); eDate.setHours(23,59,59,999);
+                constraints.push(where("date", ">=", sDate));
+                constraints.push(where("date", "<=", eDate));
+            }
+            
+            constraints.push(orderBy("date", "desc"));
+            if(!secilenTarihVal && secilenUyeId) constraints.push(limit(50)); // Sadece üye seçildiyse son 50
+
+            q = query(collection(db, "milk_records"), ...constraints);
+        }
+
+        // --- VERİYİ ÇEK VE ANALİZ ET ---
+        try {
+            const snapshot = await getDocs(q); // onSnapshot yerine getDocs (Analiz için daha iyi)
+            
             if(snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Henüz süt girişi yapılmamış.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted fw-bold">Kayıt bulunamadı.</td></tr>';
                 return;
             }
 
+            // 1. Önce Listedeki Tarihlerin "Bir Gün Öncesini" Bul
+            // Böylece sadece gerekli geçmiş veriyi çekeriz (Performans)
+            let neededDates = new Set();
+            let currentData = [];
+
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const dateObj = data.date?.toDate();
+                data.docId = doc.id; // ID'yi sakla
+                currentData.push(data);
+
+                // Bu kaydın tarihi
+                const recDate = data.date.toDate();
+                // Bir gün öncesini hesapla
+                const prevDate = new Date(recDate);
+                prevDate.setDate(recDate.getDate() - 1);
                 
-                const tarih = dateObj ? dateObj.toLocaleDateString('tr-TR') : '-';
-                const saat = dateObj ? dateObj.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '';
+                // Tarih formatı: YYYY-MM-DD (Sorgu için)
+                const prevDateString = prevDate.toISOString().split('T')[0];
+                neededDates.add(prevDateString);
+            });
+
+            // 2. Geçmiş Verileri Toplu Çek (REFERANS VERİSİ)
+            // Performans notu: Tek tek sorgu atmak yerine, tarih aralığı kullanıyoruz.
+            let referenceMap = {}; // { 'memberId_tarih_donem': litre }
+
+            if (currentData.length > 0) {
+                // Listedeki en eski ve en yeni tarihin 1 gün öncesini bulup aralık çekelim
+                // (Basitlik adına: Eğer tarih seçiliyse tek bir sorgu yeter, değilse son 50 için karışık olabilir)
+                // Şimdilik "Tarih Seçili" modunda %100 çalışır, karışık listede sadece denk gelirse çalışır.
+                
+                // Daha garanti yöntem: Eğer listede 100 kayıt varsa, veritabanını yormamak için 
+                // sadece "Tarih Araması" yapıldığında analiz yapalım.
+                // Eğer "Son 50" listesindeysek, analiz yapmayalım (veya sadece hafızadakileri kullanalım).
+                
+                // STRATEJİ: Referans verisini sadece tarih seçiliyse çek.
+                if (tarihInput && tarihInput.value) {
+                    const t = new Date(tarihInput.value);
+                    t.setDate(t.getDate() - 1); // Dün
+                    const sD = new Date(t); sD.setHours(0,0,0,0);
+                    const eD = new Date(t); eD.setHours(23,59,59,999);
+
+                    const refQ = query(
+                        collection(db, "milk_records"), 
+                        where("coopId", "==", currentCoopId),
+                        where("date", ">=", sD),
+                        where("date", "<=", eD)
+                    );
+                    const refSnap = await getDocs(refQ);
+                    
+                    refSnap.forEach(rDoc => {
+                        const rData = rDoc.data();
+                        // Anahtar: UyeID_Sabah (Tarih zaten dünün tarihi)
+                        const key = `${rData.memberId}_${rData.period}`;
+                        referenceMap[key] = Number(rData.liters);
+                    });
+                }
+            }
+
+            // 3. Tabloyu Oluştur
+            tbody.innerHTML = "";
+            
+            currentData.forEach(data => {
+                const dateObj = data.date.toDate();
+                const tarih = dateObj.toLocaleDateString('tr-TR');
+                const saat = dateObj.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
 
                 let donemBadge = data.period === 'sabah' 
                     ? '<span class="badge bg-warning text-dark"><i class="fa-regular fa-sun me-1"></i>Sabah</span>'
@@ -4988,31 +5159,94 @@ window.urunDuzenle = function(id) {
                 let durum = data.isProcessed 
                     ? '<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Hesaplandı</span>'
                     : '<span class="badge bg-light text-secondary border">Bekliyor</span>';
-// İsim varsa onu kullan, yoksa 'Driver' yaz (Eski kayıtlar için)
-                const toplayanKisi = data.driverName || 'Driver';
 
+                const toplayanKisi = data.driverName || 'Driver';
+                let temizIsim = data.memberName ? data.memberName.replace(/^[0-9]+\s*-\s*/, '') : 'İsimsiz';
+
+                // --- FARK HESABI ---
+                let farkHTML = "";
+                // Sadece tarih seçiliyse hesapla (Referans haritası doluysa)
+                if (Object.keys(referenceMap).length > 0) {
+                    const key = `${data.memberId}_${data.period}`;
+                    const dunkuLitre = referenceMap[key];
+                    const bugunkuLitre = Number(data.liters);
+
+                    if (dunkuLitre !== undefined) {
+                        const fark = bugunkuLitre - dunkuLitre;
+                        if (fark > 0) {
+                            farkHTML = `<span class="diff-badge diff-up" title="Düne göre +${fark.toFixed(1)} Lt"><i class="fa-solid fa-arrow-trend-up"></i> +${fark.toFixed(1)}</span>`;
+                        } else if (fark < 0) {
+                            farkHTML = `<span class="diff-badge diff-down" title="Düne göre ${fark.toFixed(1)} Lt"><i class="fa-solid fa-arrow-trend-down"></i> ${fark.toFixed(1)}</span>`;
+                        } else {
+                            farkHTML = `<span class="diff-badge diff-neutral" title="Değişim yok"><i class="fa-solid fa-minus"></i></span>`;
+                        }
+                    } else {
+                        // Dün veri yoksa
+                        farkHTML = `<span class="diff-badge diff-neutral" title="Dün kayıt yok" style="opacity:0.5"><i class="fa-solid fa-question"></i></span>`;
+                    }
+                }
                 const tr = `
-                    <tr>
-                        <td>
-                            <div class="fw-bold text-dark">${tarih}</div>
-                            <small class="text-muted">${saat}</small>
-                        </td>
-                        <td><div class="fw-bold text-dark">${data.memberName}</div></td>
-                        
-                        <td class="text-muted small">
-                            <i class="fa-solid fa-truck-fast me-1"></i>${toplayanKisi}
-                        </td>
-                        <td class="text-center">${donemBadge}</td>
-                        <td class="text-center"><span class="fs-5 fw-bold text-dark">${data.liters}</span> <small class="text-muted">Lt</small></td>
-                        <td class="text-end">${durum}</td>
-                        <td class="text-end">
-                            ${!data.isProcessed ? `<button class="btn btn-sm btn-light text-danger border" onclick="sutKaydiSil('${doc.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
-                        </td>
-                    </tr>
-                `;
+                <tr class="align-middle"> <td class="py-2 ps-3" style="white-space: nowrap;"> 
+                        <span class="fw-bold text-dark">${tarih}</span>
+                        <small class="text-muted ms-2 fw-normal">${saat}</small>
+                    </td>
+                    <td class="py-2"><div class="fw-bold text-dark">${temizIsim}</div></td>
+                    <td class="py-2 text-muted small"><i class="fa-solid fa-truck-fast me-1"></i>${toplayanKisi}</td>
+                    <td class="py-2 text-center">${donemBadge}</td>
+                    
+                    <td class="py-2 text-center">
+                        <span class="fs-6 fw-bold text-dark">${data.liters}</span> <small class="text-muted">Lt</small>
+                    </td>
+
+                    <td class="py-2 text-center">
+                        ${farkHTML}
+                    </td>
+
+                    <td class="py-2 text-end">${durum}</td>
+                    <td class="py-2 text-end">
+                        ${!data.isProcessed ? `
+                        <button class="btn btn-sm btn-light text-primary border me-1 py-0 px-2" onclick="sutDuzenle('${data.docId}', '${data.liters}', '${temizIsim}')" style="height: 28px;"><i class="fa-solid fa-pen small"></i></button>
+                        <button class="btn btn-sm btn-light text-danger border py-0 px-2" onclick="sutKaydiSil('${data.docId}')" style="height: 28px;"><i class="fa-solid fa-trash small"></i></button>
+                        ` : ''}
+                    </td>
+                </tr>`;
+
                 tbody.innerHTML += tr;
             });
+
+        } catch (error) {
+            console.error("Hata:", error);
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger p-4">Veri yüklenirken hata oluştu.</td></tr>';
+        }
+    }
+
+    // --- SÜT KAYDI DÜZENLEME ---
+    window.sutDuzenle = async function(docId, mevcutLitre, isim) {
+        const { value: yeniLitre } = await Swal.fire({
+            title: 'Süt Miktarını Düzenle',
+            text: isim,
+            input: 'number',
+            inputValue: mevcutLitre,
+            showCancelButton: true,
+            confirmButtonText: 'Güncelle',
+            cancelButtonText: 'İptal',
+            inputAttributes: { step: '0.1', min: '0' }
         });
+
+        if (yeniLitre && yeniLitre !== mevcutLitre) {
+            try {
+                await updateDoc(doc(db, "milk_records", docId), {
+                    liters: Number(yeniLitre)
+                });
+                Swal.fire({
+                    toast: true, position: 'top-end', 
+                    icon: 'success', title: 'Güncellendi', 
+                    timer: 1500, showConfirmButton: false
+                });
+            } catch (error) {
+                Swal.fire("Hata", "Güncellenemedi: " + error.message, "error");
+            }
+        }
     }
 
    window.sutKaydiSil = async function(id) {
@@ -5826,7 +6060,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         items: faturaSatirlari,
                         isTaxInclusive: false
                     });
-
+                    const uyeRef = doc(db, "members", memId);
+                    batch.update(uyeRef, { 
+                        guncelBakiye: increment(-genelToplam) // E-Müstahsil toplamı kadar düş
+                    });
                     val.docs.forEach(docId => {
                         const milkRef = doc(db, "milk_records", docId);
                         batch.update(milkRef, { isProcessed: true });
@@ -6375,15 +6612,19 @@ window.yayiniKaldir = async function() {
             listeyiFiltreleVeCiz();
         }
     };
-    // --- EXCEL DIŞA AKTAR (EXPORT) ---
-    window.excelDisariAktar = function() {
+    
+    // --- EXCEL DIŞA AKTAR (EXPORT) - OPTİMİZE EDİLDİ ---
+    window.excelDisariAktar = async function() {
         if (!allMembers || allMembers.length === 0) {
             Swal.fire("Uyarı", "Listelenecek veri yok.", "warning");
             return;
         }
 
-        // 1. Veriyi Excel Formatına Hazırla (Türkçe Başlıklar)
-        // Sadece o anki aktif tipteki (Müşteri veya Tedarikçi) kişileri indirir
+        Swal.fire({title: 'Excel Modülü Hazırlanıyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+        
+        // Kütüphaneyi şimdi yüklüyoruz (Lazy Load)
+        await kututuphaneYukle("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js");
+
         const exportData = allMembers
             .filter(m => m.tip === aktifCariTipi)
             .map(m => ({
@@ -6396,14 +6637,14 @@ window.yayiniKaldir = async function() {
                 "Tip": m.tip === 'musteri' ? 'Müşteri' : 'Tedarikçi'
             }));
 
-        // 2. Excel Sayfası Oluştur
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Üyeler");
 
-        // 3. Dosyayı İndir
         const turAdi = aktifCariTipi === 'musteri' ? 'Musteri_Listesi' : 'Tedarikci_Listesi';
         XLSX.writeFile(workbook, `${turAdi}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        
+        Swal.close();
     }
 
     // --- EXCEL İÇE AKTAR (IMPORT) TETİKLEYİCİ ---
@@ -6412,87 +6653,78 @@ window.yayiniKaldir = async function() {
         document.getElementById('excelFileInput').click();
     }
 
-    // --- EXCEL DOSYASINI OKU VE KAYDET ---
     window.excelDosyasiOku = async function(input) {
         const file = input.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
+        Swal.fire({title: 'Excel Okunuyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
         
+        // Kütüphaneyi şimdi yüklüyoruz
+        await kututuphaneYukle("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js");
+
+        const reader = new FileReader();
         reader.onload = async function(e) {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            
-            // İlk sayfayı al
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            
-            // JSON'a çevir
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+            Swal.close(); // Yükleme ekranını kapat, onay sor
 
             if (jsonData.length === 0) {
                 Swal.fire("Hata", "Excel dosyası boş veya okunamadı.", "error");
                 return;
             }
 
-            // Onay İste
             const confirm = await Swal.fire({
                 title: 'Veriler Yüklensin mi?',
-                text: `${jsonData.length} adet kayıt bulundu. Bu işlem veritabanına eklenecektir.`,
+                text: `${jsonData.length} adet kayıt bulundu.`,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Evet, Yükle',
-                confirmButtonColor: '#198754'
+                confirmButtonText: 'Evet, Yükle'
             });
 
             if (!confirm.isConfirmed) {
-                input.value = ""; // Seçimi temizle
+                input.value = ""; 
                 return;
             }
-
-            Swal.fire({title: 'Yükleniyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-
+            
+            // ... (Kalan yükleme mantığı aynı, burayı değiştirmenize gerek yok, sadece üst kısmı değiştirin) ...
+            // Eğer isterseniz eski kodun `try...catch` bloğunu buraya yapıştırabilirsiniz.
+            // Ama kolaylık olsun diye devamını aşağıya yazıyorum:
+            
+            Swal.fire({title: 'Veritabanına Yazılıyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             try {
                 const batch = writeBatch(db);
                 let count = 0;
-
                 jsonData.forEach((row) => {
-                    // Excel başlıklarını veritabanı alanlarına eşle
-                    // Kullanıcı "Ad", "Soyad" gibi Türkçe başlıklar kullanmış olabilir
                     const ad = row["Ad"] || row["ad"] || row["AD"] || "";
                     const soyad = row["Soyad"] || row["soyad"] || row["SOYAD"] || "";
-                    
-                    // Ad veya Soyad yoksa o satırı atla
                     if(!ad) return;
-
                     const yeniUye = {
                         sira: Number(row["Sıra No"] || row["sira"] || 0),
                         ad: String(ad).trim(),
                         soyad: String(soyad).trim(),
-                        tc: String(row["TC/Vergi No"] || row["tc"] || row["TC"] || ""),
+                        tc: String(row["TC/Vergi No"] || row["tc"] || ""),
                         telefon: String(row["Telefon"] || row["telefon"] || ""),
-                        koy: String(row["Bölge/Köy"] || row["koy"] || row["Köy"] || row["Koy"] || "Merkez"),
-                        tip: aktifCariTipi, // O an hangi sayfadaysan o tipte ekle
+                        koy: String(row["Bölge/Köy"] || row["koy"] || "Merkez"),
+                        tip: aktifCariTipi,
                         coopId: currentCoopId,
                         kayitTarihi: new Date()
                     };
-
                     const docRef = doc(collection(db, "members"));
                     batch.set(docRef, yeniUye);
                     count++;
                 });
-
                 await batch.commit();
-                
-                input.value = ""; // Seçimi temizle
-                Swal.fire("Başarılı", `${count} kişi listeye eklendi.`, "success");
-
+                input.value = "";
+                Swal.fire("Başarılı", `${count} kişi eklendi.`, "success");
             } catch (error) {
                 console.error(error);
-                Swal.fire("Hata", "Yükleme sırasında hata oluştu: " + error.message, "error");
+                Swal.fire("Hata", error.message, "error");
             }
         };
-
         reader.readAsArrayBuffer(file);
     }
     // --- TOPLU İŞLEM FONKSİYONLARI ---
@@ -7198,57 +7430,38 @@ window.genelBakiyeRaporuGetir = async function() {
     }
 }
 
-// --- 2. EXCEL İNDİRME FONKSİYONU ---
-window.genelBakiyeExcelIndir = function() {
-    if (!globalBakiyeData || globalBakiyeData.length === 0) {
-        Swal.fire("Uyarı", "İndirilecek veri yok. Lütfen önce listeleme yapınız.", "warning");
-        return;
-    }
+window.genelBakiyeExcelIndir = async function() {
+        if (!globalBakiyeData || globalBakiyeData.length === 0) {
+            Swal.fire("Uyarı", "İndirilecek veri yok. Lütfen önce listeleme yapınız.", "warning");
+            return;
+        }
 
-    // 1. Çalışma Kitabı Oluştur
-    const wb = XLSX.utils.book_new();
-    
-    // 2. Veriyi Sayfaya Çevir
-    const ws = XLSX.utils.json_to_sheet(globalBakiyeData);
-
-    // 3. Sütun Genişliklerini Ayarla
-    const wscols = [
-        {wch: 25}, // Ad Soyad
-        {wch: 15}, // Köy
-        {wch: 15}, // Borç
-        {wch: 15}, // Alacak
-        {wch: 15}, // Net
-        {wch: 10}  // Durum
-    ];
-    ws['!cols'] = wscols;
-
-    // 4. Altına Toplamları Ekle (Manuel olarak en alt satıra yazıyoruz)
-    // Mevcut veri uzunluğu + 2 satır boşluk bırak
-    let startRow = globalBakiyeData.length + 2;
-    
-    // Alacaklı Toplamı Hesapla
-    let alacakliTop = globalBakiyeData
-        .filter(d => d.Durum === "Alacaklı")
-        .reduce((sum, d) => sum + d["Net Bakiye"], 0);
+        Swal.fire({title: 'Excel Hazırlanıyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
         
-    // Borçlu Toplamı Hesapla
-    let borcluTop = globalBakiyeData
-        .filter(d => d.Durum === "Borçlu")
-        .reduce((sum, d) => sum + d["Net Bakiye"], 0);
+        // Kütüphaneyi şimdi yüklüyoruz
+        await kututuphaneYukle("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js");
 
-    XLSX.utils.sheet_add_aoa(ws, [
-        ["", "", "", "ALACAKLI BAKİYE TOPLAMI:", alacakliTop],
-        ["", "", "", "BORÇLU BAKİYE TOPLAMI:", borcluTop]
-    ], {origin: -1}); // -1 sona ekle demektir
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(globalBakiyeData);
 
-    // 5. Sayfayı Kitaba Ekle
-    XLSX.utils.book_append_sheet(wb, ws, "Bakiye Listesi");
+        const wscols = [{wch: 25}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 10}];
+        ws['!cols'] = wscols;
 
-    // 6. Dosyayı İndir
-    // Dosya adına tarihi ekle (Boşlukları tire ile değiştir)
-    const safeName = globalRaporTarihi.replace(/ /g, "_").substring(0, 50) || "Bakiye_Raporu";
-    XLSX.writeFile(wb, `${safeName}.xlsx`);
-}
+        let startRow = globalBakiyeData.length + 2;
+        let alacakliTop = globalBakiyeData.filter(d => d.Durum === "Alacaklı").reduce((sum, d) => sum + d["Net Bakiye"], 0);
+        let borcluTop = globalBakiyeData.filter(d => d.Durum === "Borçlu").reduce((sum, d) => sum + d["Net Bakiye"], 0);
+
+        XLSX.utils.sheet_add_aoa(ws, [
+            ["", "", "", "ALACAKLI BAKİYE TOPLAMI:", alacakliTop],
+            ["", "", "", "BORÇLU BAKİYE TOPLAMI:", borcluTop]
+        ], {origin: -1});
+
+        XLSX.utils.book_append_sheet(wb, ws, "Bakiye Listesi");
+        const safeName = globalRaporTarihi.replace(/ /g, "_").substring(0, 50) || "Bakiye_Raporu";
+        XLSX.writeFile(wb, `${safeName}.xlsx`);
+        
+        Swal.close();
+    }
 
 
 </script>
