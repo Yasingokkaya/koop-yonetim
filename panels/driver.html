@@ -535,8 +535,11 @@ onAuthStateChanged(auth, async (user) => {
         }
         // --- KONTROL BİTTİ ---
 
-        if (kaydet) {
+       if (kaydet) {
             try {
+                // Şoför ismini ekrandan alıyoruz
+                const soforIsmi = document.getElementById("driverName").innerText || "Şoför"; 
+
                 await addDoc(collection(db, "milk_records"), {
                     memberId: memId,
                     memberName: memName,
@@ -545,6 +548,7 @@ onAuthStateChanged(auth, async (user) => {
                     date: tamTarih,
                     dateString: formattedDate,
                     driverId: currentDriverId,
+                    driverName: soforIsmi, // <--- YENİ EKLENEN SATIR
                     coopId: currentCoopId
                 });
                 
