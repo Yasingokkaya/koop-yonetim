@@ -140,7 +140,7 @@ async function yonlendir(user) {
                         if (bugun > bitis) {
                             alert("⚠️ LİSANS SÜRESİ DOLDU!\nLütfen sistem sağlayıcınızla iletişime geçin.");
                             await signOut(auth);
-                            window.location.href = "index.html";
+                            window.location.href = "giriş.html";
                             return;
                         }
                     }

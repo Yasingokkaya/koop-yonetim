@@ -717,7 +717,7 @@ div.swal2-container {
         z-index: 200000 !important; 
     }
     
-    /* 4. Eğer giriş kartı index.html'de kayboluyorsa bunu kullan: */
+    /* 4. Eğer giriş kartı giriş.html'de kayboluyorsa bunu kullan: */
     .login-card {
         z-index: 10;
         position: relative;
@@ -2544,7 +2544,7 @@ export { app, auth, db, doc, setDoc, deleteDoc, updateDoc };
                         alert(`Yetkisiz Giriş!\n\nSizin Rolünüz: ${rol}\nBu panele sadece Yöneticiler girebilir.`);
                         
                         await signOut(auth);
-                        window.location.href = "../index.html";
+                        window.location.href = "../giriş.html";
                         return;
                     }
 
@@ -2577,7 +2577,7 @@ export { app, auth, db, doc, setDoc, deleteDoc, updateDoc };
                 } else {
                     alert("Kullanıcı veritabanında bulunamadı! (Firestore Kaydı Yok)");
                     await signOut(auth);
-                    window.location.href = "../index.html";
+                    window.location.href = "../giriş.html";
                 }
             } catch (error) {
                 console.error("Giriş Kontrol Hatası:", error);
@@ -2585,7 +2585,7 @@ export { app, auth, db, doc, setDoc, deleteDoc, updateDoc };
 
         } else {
             // Giriş yapılmamışsa login sayfasına at
-            window.location.href = "../index.html"; 
+            window.location.href = "../giriş.html"; 
         }
     });
   // --- ŞİRKET BİLGİLERİNİ VE ROTALARI DİNLE ---
@@ -3208,7 +3208,7 @@ if(searchInput) {
     }
     uyeleriGetir();
     document.getElementById("logoutBtn").addEventListener("click", async()=>{ 
-        await signOut(auth); window.location.href="../index.html"; 
+        await signOut(auth); window.location.href="../giriş.html"; 
     });
 
  window.switchTab = function(tabId, el) { 

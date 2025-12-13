@@ -567,7 +567,7 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Giriş Hatası Detayı:", error);
         }
     } else {
-        window.location.href = "../index.html";
+        window.location.href = "../giriş.html";
     }
 });
 
@@ -997,7 +997,7 @@ onAuthStateChanged(auth, async (user) => {
                 title: 'Çıkış?', text: "Oturumu kapatmak istiyor musunuz?", icon: 'question',
                 showCancelButton: true, confirmButtonText: 'Evet, Çık', confirmButtonColor: '#d33'
             }).then(async (result) => {
-                if (result.isConfirmed) { await signOut(auth); window.location.href = "../index.html"; }
+                if (result.isConfirmed) { await signOut(auth); window.location.href = "../giriş.html"; }
             });
         }
 

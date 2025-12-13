@@ -175,14 +175,14 @@
                     sirketleriListele();
                 } else {
                     // Hayır, yetkisiz.
-                    window.location.href = "../index.html";
+                    window.location.href = "../giriş.html";
                 }
             } else {
-                window.location.href = "../index.html";
+                window.location.href = "../giriş.html";
             }
         } else {
             // Giriş yapmamış.
-            window.location.href = "../index.html";
+            window.location.href = "../giriş.html";
         }
     });
 
@@ -450,7 +450,7 @@
     
     window.cikisYap = async function() {
         await signOut(auth);
-        window.location.href = "../index.html";
+        window.location.href = "../giriş.html";
     }
 
 </script>

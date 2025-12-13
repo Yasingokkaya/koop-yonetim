@@ -301,7 +301,7 @@ onAuthStateChanged(auth, async (user) => {
                 kayitlariDinle();
             }
         } else { 
-            window.location.href = "../index.html"; 
+            window.location.href = "../giriş.html"; 
         }
     });
 
@@ -718,7 +718,7 @@ onSnapshot(q, (snapshot) => {
         
         if(res.isConfirmed) {
             await signOut(auth);
-            window.location.href = "../index.html";
+            window.location.href = "../giriş.html";
         }
     }
 </script>
