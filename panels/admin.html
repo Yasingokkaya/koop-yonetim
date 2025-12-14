@@ -717,7 +717,7 @@ div.swal2-container {
         z-index: 200000 !important; 
     }
     
-    /* 4. Eğer giriş kartı giriş.html'de kayboluyorsa bunu kullan: */
+    /* 4. Eğer giriş kartı giris.html'de kayboluyorsa bunu kullan: */
     .login-card {
         z-index: 10;
         position: relative;
@@ -2859,51 +2859,22 @@ div.swal2-container {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-    getAuth, 
-    onAuthStateChanged, 
-    signOut, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword,
-    updatePassword,
-    sendPasswordResetEmail 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// 1. MERKEZİ AYAR DOSYASINDAN İÇE AKTAR (GÜNCELLENDİ)
+    import { 
+        app, auth, db, 
+        doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, 
+        onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove, 
+        orderBy, limit, writeBatch, increment,
+        onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail
+    } from "../js/firebase-config.js";
 
-import { 
-    getFirestore, 
-    doc, 
-    getDoc, 
-    setDoc,  // <-- setDoc BURADA
-    collection, 
-    addDoc, 
-    query, 
-    where, 
-    getDocs, 
-    onSnapshot, 
-    deleteDoc, 
-    updateDoc, 
-    arrayUnion, 
-    arrayRemove, 
-    orderBy, 
-    limit, 
-    writeBatch,
-    increment
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // 2. İKİNCİL UYGULAMA İÇİN GEREKLİ (PERSONEL EKLEMEK İÇİN)
+    // deleteApp komutunu da buraya ekledik 👇
+    // 2. İKİNCİL UYGULAMA İÇİN GEREKLİ
+    import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth as getAuthNew } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
-  authDomain: "koopplatform-dd9f8.firebaseapp.com",
-  projectId: "koopplatform-dd9f8",
-  storageBucket: "koopplatform-dd9f8.firebasestorage.app",
-  messagingSenderId: "757328538678",
-  appId: "1:757328538678:web:ffc9994b42025765b1fc97",
-  measurementId: "G-R9K7G471FN"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    
 
 // --- GLOBAL DEĞİŞKENLER (TEK SEFER TANIMLANMALI) ---
 let currentCoopId = null;
@@ -2960,7 +2931,7 @@ export { app, auth, db, doc, setDoc, deleteDoc, updateDoc };
                         alert(`Yetkisiz Giriş!\n\nSizin Rolünüz: ${rol}\nBu panele sadece Yöneticiler girebilir.`);
                         
                         await signOut(auth);
-                        window.location.href = "../giriş.html";
+                        window.location.href = "../giris.html";
                         return;
                     }
 
@@ -2993,7 +2964,7 @@ export { app, auth, db, doc, setDoc, deleteDoc, updateDoc };
                 } else {
                     alert("Kullanıcı veritabanında bulunamadı! (Firestore Kaydı Yok)");
                     await signOut(auth);
-                    window.location.href = "../giriş.html";
+                    window.location.href = "../giris.html";
                 }
             } catch (error) {
                 console.error("Giriş Kontrol Hatası:", error);
@@ -3001,7 +2972,7 @@ export { app, auth, db, doc, setDoc, deleteDoc, updateDoc };
 
         } else {
             // Giriş yapılmamışsa login sayfasına at
-            window.location.href = "../giriş.html"; 
+            window.location.href = "../giris.html"; 
         }
     });
   // --- ŞİRKET BİLGİLERİNİ VE ROTALARI DİNLE ---
@@ -3354,19 +3325,7 @@ function listeyiFiltreleVeCiz() {
             modal.show();
         }
     }
-  // --- GÜNCELLENMİŞ PERSONEL EKLEME KODU (YÖNETİCİ + ŞOFÖR) ---
-    
-    // Firebase Config (Secondary App için)
-    const firebaseConfigForStaff = {
-      apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
-      authDomain: "koopplatform-dd9f8.firebaseapp.com",
-      projectId: "koopplatform-dd9f8",
-      storageBucket: "koopplatform-dd9f8.firebasestorage.app",
-      messagingSenderId: "757328538678",
-      appId: "1:757328538678:web:ffc9994b42025765b1fc97",
-      measurementId: "G-R9K7G471FN"
-    };
-
+ 
     const driverForm = document.getElementById("addDriverForm");
     
     if(driverForm) {
@@ -3402,9 +3361,8 @@ function listeyiFiltreleVeCiz() {
 
             try {
                 // 1. İkincil Uygulama Başlat
-                secondaryApp = initializeApp(firebaseConfigForStaff, "StaffApp");
-                const secondaryAuth = getAuth(secondaryApp);
-
+secondaryApp = initializeApp(firebaseConfigForStaff, "StaffApp");
+const secondaryAuth = getAuthNew(secondaryApp); // <-- DÜZELTİLDİ
                 // 2. Kullanıcıyı Oluştur
                 const userCredential = await createUserWithEmailAndPassword(secondaryAuth, mail, pass);
                 const user = userCredential.user;
@@ -3597,7 +3555,7 @@ window.yeniUyeModalAc = function() {
     }
     uyeleriGetir();
     document.getElementById("logoutBtn").addEventListener("click", async()=>{ 
-        await signOut(auth); window.location.href="../giriş.html"; 
+        await signOut(auth); window.location.href="../giris.html"; 
     });
 // --- DÜZELTİLMİŞ MENÜ GEÇİŞ FONKSİYONU ---
 window.switchTab = function(tabId, el) { 

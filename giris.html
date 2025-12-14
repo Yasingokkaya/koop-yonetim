@@ -81,97 +81,145 @@
     </div>
 </div>
 <script type="module">
-        import { sistemGiris } from './js/auth.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            let phone = document.getElementById('loginPhone').value.trim();
-            const password = document.getElementById('loginPass').value;
-            
-            // Eğer kullanıcı yöneticiyse ve email girdiyse izin ver, değilse telefon kontrolü yap
-            if (!phone.includes('@')) {
-                // Telefon temizliği
-                phone = phone.replace(/\s/g, '');
-                if (phone.startsWith('0')) phone = phone.substring(1);
+    const firebaseConfig = {
+      apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
+      authDomain: "koopplatform-dd9f8.firebaseapp.com",
+      projectId: "koopplatform-dd9f8",
+      storageBucket: "koopplatform-dd9f8.firebasestorage.app",
+      messagingSenderId: "757328538678",
+      appId: "1:757328538678:web:ffc9994b42025765b1fc97"
+    };
 
-                if(phone.length !== 10 || isNaN(phone)) {
-                    alert("Lütfen telefon numaranızı başında 0 olmadan, 10 hane olarak giriniz.\nÖrn: 5321234567");
-                    return;
-                }
-            }
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-            const btn = document.getElementById('loginBtn');
-            const btnText = document.querySelector('.btn-text');
-            const spinner = document.querySelector('.loading-spinner');
-
-            btnText.style.display = 'none';
-            spinner.style.display = 'inline-block';
-            btn.disabled = true;
-
-            sistemGiris(phone, password).finally(() => {
-                btnText.style.display = 'inline-block';
-                spinner.style.display = 'none';
-                btn.disabled = false;
-            });
-        });
-    </script>
-
-    <div style="position:fixed; bottom:20px; right:20px; z-index:9999;">
-        <button onclick="sistemiKur()" class="btn btn-danger fw-bold shadow-lg p-3 rounded-pill">
-            <i class="fa-solid fa-gear fa-spin me-2"></i> SİSTEMİ KUR (ADMIN)
-        </button>
-    </div>
-
-    <script type="module">
-        import { auth, db } from './js/firebase-config.js';
-        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { setDoc, doc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        window.sistemiKur = async () => {
-            // 1. Bilgileri İste
-            const email = prompt("Yeni Admin Email Adresi:", "admin@demo.com");
-            if(!email) return;
-            const password = prompt("Yeni Admin Şifresi (En az 6 haneli):", "123456");
-            if(!password) return;
-            const sirketAdi = prompt("Kooperatif Adı:", "Örnek Kooperatif");
-
+    // GİRİŞ KONTROLÜ
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
             try {
-                // 2. Önce 'cooperatives' koleksiyonuna şirket oluştur
-                const sirketRef = await addDoc(collection(db, "cooperatives"), {
-                    ad: sirketAdi,
-                    villages: ["Merkez", "Yaylaköy", "Dağköyü"], // Örnek rotalar
-                    isTaxInclusive: false,
-                    deviationLimit: 50,
-                    createdAt: new Date()
-                });
-                console.log("Şirket oluşturuldu ID:", sirketRef.id);
-
-                // 3. Firebase Auth üzerinde kullanıcı oluştur (Giriş yapabilmesi için)
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                console.log("Auth kullanıcısı oluşturuldu UID:", user.uid);
-
-                // 4. KRİTİK ADIM: Firestore 'users' koleksiyonuna yetki yaz
-                // Belge ID'si olarak user.uid kullanıyoruz ki eşleşsin.
-                await setDoc(doc(db, "users", user.uid), {
-                    email: email,
-                    role: 'admin',         // Bu kişiyi yönetici yapıyoruz
-                    coopId: sirketRef.id,  // Oluşturduğumuz şirkete bağlıyoruz
-                    createdAt: new Date()
-                });
-
-                alert(`✅ KURULUM BAŞARILI!\n\nEmail: ${email}\nŞifre: ${password}\n\nBu bilgilerle giriş yapabilirsiniz.`);
-                
-            } catch (error) {
-                console.error(error);
-                if(error.code === 'auth/email-already-in-use') {
-                    alert("HATA: Bu email zaten kullanılıyor. Başka bir email deneyin veya Firebase Console'dan kullanıcıyı silin.");
-                } else {
-                    alert("HATA OLUŞTU:\n" + error.message);
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const d = userDoc.data();
+                    const rol = (d.rol || d.role || '').toLowerCase();
+                    
+                    // ROL KONTROLÜ VE YÖNLENDİRME
+                    if (role === 'admin' || role === 'yonetici' || role === 'superadmin') {
+                        window.location.href = "panels/admin.html";
+                    } else if (role === 'sofor') {
+                        window.location.href = "panels/driver.html";
+                    } else if (role === 'musavir') { 
+                        // Müşaviri tanıdık, seçim ekranına gönderiyoruz
+                        window.location.href = "panels/musavir-giris.html"; 
+                    } else {
+                        // Diğer herkes üye paneline
+                        window.location.href = "panels/member.html";
+                    }
                 }
+            } catch (e) {
+                console.error("Yönlendirme hatası:", e);
             }
         }
-    </script>
+    });
+
+    // GİRİŞ BUTONU
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        let girisInput = document.getElementById('loginPhone').value.trim();
+        girisInput = girisInput.replace(/\s/g, ''); 
+        
+        const password = document.getElementById('loginPass').value;
+        const btn = document.getElementById('loginBtn');
+        const spinner = document.querySelector('.loading-spinner');
+        const btnText = document.querySelector('.btn-text');
+
+        // ŞİFRE KONTROLÜ (400 Hatasını Önler)
+        if(password.length < 6) {
+            alert("Şifreniz en az 6 karakter olmalıdır!");
+            return;
+        }
+
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        btnText.style.display = 'none';
+
+        try {
+            let email = girisInput;
+            // Telefon numarası girildiyse e-postaya çevir
+            if (!girisInput.includes('@')) {
+                if(girisInput.startsWith('0')) girisInput = girisInput.substring(1);
+                email = `${girisInput}@koop.com`;
+            }
+
+            // 1. GİRİŞ YAP
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // Başarılı olursa onAuthStateChanged devreye girer
+            } catch (loginError) {
+                
+                // 2. KULLANICI YOKSA -> OTOMATİK OLUŞTUR (Üye Listesinde Varsa)
+                const hatalar = ['auth/user-not-found', 'auth/invalid-credential', 'auth/invalid-login-credentials'];
+                
+                if (hatalar.includes(loginError.code) && !girisInput.includes('@')) {
+                    
+                    console.log("Kullanıcı yok, veritabanı taranıyor...");
+
+                    const membersRef = collection(db, 'members');
+                    const q1 = query(membersRef, where('telefon', '==', girisInput)); 
+                    const q2 = query(membersRef, where('telefon', '==', '0' + girisInput));
+                    
+                    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+                    const memberDoc = !snap1.empty ? snap1.docs[0] : (!snap2.empty ? snap2.docs[0] : null);
+
+                    if (memberDoc) {
+                        const mData = memberDoc.data();
+                        
+                        // Hesabı Oluştur
+                        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                        const user = userCred.user;
+
+                        // Yetkiyi Yaz
+                        await setDoc(doc(db, "users", user.uid), {
+                            email: email,
+                            adSoyad: `${mData.ad} ${mData.soyad}`,
+                            rol: 'member',
+                            coopId: mData.coopId,
+                            relatedMemberId: memberDoc.id,
+                            kayitTarihi: new Date()
+                        });
+
+                        alert("✅ İlk girişiniz başarıyla yapılandırıldı. Yönlendiriliyorsunuz...");
+                        // Sayfa yenilenince onAuthStateChanged yakalar
+                        window.location.reload();
+                        
+                    } else {
+                        throw new Error("Bu numara ile kayıtlı bir üretici bulunamadı. Yöneticinizle görüşün.");
+                    }
+                } else {
+                    throw loginError; 
+                }
+            }
+
+        } catch (error) {
+            console.error("Hata:", error);
+            let msg = "Giriş başarısız.";
+            if(error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+                msg = "Şifre hatalı.";
+            } else if(error.message) {
+                msg = error.message;
+            }
+            alert("❌ " + msg);
+            
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            btnText.style.display = 'inline-block';
+        }
+    });
+</script>
     </body>
 </html>

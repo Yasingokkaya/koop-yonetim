@@ -168,199 +168,99 @@
     </div>
 
 <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
-            authDomain: "koopplatform-dd9f8.firebaseapp.com",
-            projectId: "koopplatform-dd9f8",
-            storageBucket: "koopplatform-dd9f8.firebasestorage.app",
-            messagingSenderId: "757328538678",
-            appId: "1:757328538678:web:ffc9994b42025765b1fc97"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
+        authDomain: "koopplatform-dd9f8.firebaseapp.com",
+        projectId: "koopplatform-dd9f8",
+        storageBucket: "koopplatform-dd9f8.firebasestorage.app",
+        messagingSenderId: "757328538678",
+        appId: "1:757328538678:web:ffc9994b42025765b1fc97"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        
-        let currentCoopId = null;
-        let reportData = [];
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    let currentCoopId = null;
 
-        // --- GÜVENLİ GİRİŞ KONTROLÜ ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (!userDoc.exists()) throw new Error("Kullanıcı bulunamadı.");
-
-                    const d = userDoc.data();
-                    const rol = (d.rol || '').toLowerCase();
-
-                    if (rol === 'musavir') {
-                        const sessionCoopId = sessionStorage.getItem("activeCoopId");
-                        if (!sessionCoopId) { window.location.href = "musavir-giris.html"; return; }
-                        currentCoopId = sessionCoopId;
-                    } else if (rol === 'admin' || rol === 'yonetici' || rol === 'superadmin') {
-                        currentCoopId = d.kurumID || d.coopId;
-                    } else {
-                        throw new Error("Yetkisiz Giriş.");
-                    }
-
-                    // Firma Adını Getir
-                    if(currentCoopId) {
-                        const cDoc = await getDoc(doc(db, "cooperatives", currentCoopId));
-                        if(cDoc.exists()) document.getElementById("lblCoopName").innerText = cDoc.data().ad;
-                    }
-
-                    // Tarih Ayarla
-                    const dateInput = document.getElementById("filterMonth");
-                    if(dateInput && !dateInput.value) {
-                        const now = new Date();
-                        now.setMonth(now.getMonth() - 1);
-                        dateInput.value = now.toISOString().slice(0, 7);
-                    }
-                    
-                    // Verileri Çek
-                    verileriGetir();
-
-                } catch (error) {
-                    console.error(error);
-                    alert("Hata: " + error.message);
-                } finally {
-                    // NE OLURSA OLSUN YÜKLEME EKRANINI KAPAT
-                    document.getElementById("loader").style.display = "none";
-                }
-            } else {
-                window.location.href = "../giriş.html";
-            }
-        });
-
-        // --- AKILLI VERİ ÇEKME (İNDEKS HATASI VERMEZ) ---
-        window.verileriGetir = async function() {
-            if(!currentCoopId) return;
-
-            const monthStr = document.getElementById("filterMonth").value;
-            if(!monthStr) return;
-
-            const tbody = document.getElementById("reportTableBody");
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4"><div class="spinner-border text-primary"></div><br>Veriler Taranıyor...</td></tr>';
-
-            const [yil, ay] = monthStr.split('-');
-            const ayAdlari = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-            document.getElementById("lblMonthTitle").innerText = `${ayAdlari[parseInt(ay)-1]} ${yil} Özeti`;
-
-            const startDate = new Date(yil, parseInt(ay)-1, 1);
-            const endDate = new Date(yil, parseInt(ay), 0, 23, 59, 59);
-
+    // --- GÜVENLİ GİRİŞ KONTROLÜ ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
             try {
-                // SADECE TARİH VE COOP ID İLE ÇEK (Kategori filtresini kaldırdık ki hata vermesin)
-                const q = query(
-                    collection(db, "transactions"),
-                    where("coopId", "==", currentCoopId),
-                    where("date", ">=", startDate),
-                    where("date", "<=", endDate),
-                    orderBy("date", "asc")
-                );
-
-                const snapshot = await getDocs(q);
+                // 1. Kullanıcıyı Veritabanından Doğrula
+                const userDoc = await getDoc(doc(db, "users", user.uid));
                 
-                const membersSnap = await getDocs(query(collection(db, "members"), where("coopId", "==", currentCoopId)));
-                const membersMap = {};
-                membersSnap.forEach(m => membersMap[m.id] = `${m.data().ad} ${m.data().soyad}`);
+                if (!userDoc.exists()) throw new Error("Kullanıcı profili bulunamadı.");
 
-                let tbodyHTML = "";
-                let totalMatrah=0, totalStopaj=0, totalDiger=0, totalNet=0, count=0;
-                
-                reportData = [];
+                const d = userDoc.data();
+                const rol = (d.rol || '').toLowerCase();
 
-                if(snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Kayıt bulunamadı.</td></tr>';
-                    resetTotals();
-                    return;
-                }
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const k = (data.category || "").toLowerCase();
-
-                    // --- JAVASCRIPT İLE FİLTRELEME (İndeks İstemez) ---
-                    // Sadece "Süt", "Müstahsil" içerenleri al
-                    const isMustahsil = k.includes('süt') || k.includes('müstahsil') || k.includes('mustahsil');
-                    // Fatura ve ödemeleri hariç tut
-                    const isYasakli = k.includes('fatura') || k.includes('tahsilat') || k.includes('ödeme');
-
-                    if(!isMustahsil || isYasakli) return; 
-
-                    count++;
-                    const items = data.items || [];
-                    let rowMatrah = 0, rowNet = Number(data.amount);
-
-                    if(items.length > 0) items.forEach(i => rowMatrah += (Number(i.qty) * Number(i.price)));
-                    if(rowMatrah === 0) rowMatrah = rowNet;
-
-                    const kesinti = rowMatrah - rowNet;
-                    const stopaj = kesinti * 0.90;
-                    const diger = kesinti * 0.10;
-
-                    totalMatrah += rowMatrah; totalStopaj += stopaj; totalDiger += diger; totalNet += rowNet;
-
-                    const d = data.date.toDate();
-                    tbodyHTML += `
-                        <tr>
-                            <td>${d.toLocaleDateString('tr-TR')}</td>
-                            <td><span class="badge bg-light text-dark border">${data.belgeNo || '-'}</span></td>
-                            <td class="fw-bold">${membersMap[data.memberId] || 'Bilinmeyen'}</td>
-                            <td class="text-end font-monospace">${fmt(rowMatrah)}</td>
-                            <td class="text-end text-danger font-monospace">${fmt(stopaj)}</td>
-                            <td class="text-end text-warning font-monospace">${fmt(diger)}</td>
-                            <td class="text-end text-success fw-bold font-monospace">${fmt(rowNet)}</td>
-                        </tr>`;
+                // 2. Rol ve Session Kontrolü
+                if (rol === 'musavir') {
+                    const sessionCoopId = sessionStorage.getItem("activeCoopId");
                     
-                    reportData.push({Tarih: d.toLocaleDateString('tr-TR'), Belge: data.belgeNo, Uye: membersMap[data.memberId], Matrah: rowMatrah, Net: rowNet});
-                });
-
-                if(count === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Müstahsil kaydı bulunamadı.</td></tr>';
-                    resetTotals();
+                    // Eğer firma seçilmemişse, seçim ekranına geri gönder
+                    if (!sessionCoopId) { 
+                        console.warn("Firma seçimi yok, yönlendiriliyor...");
+                        window.location.href = "musavir-giris.html"; 
+                        return; 
+                    }
+                    currentCoopId = sessionCoopId;
+                    
+                } else if (['admin', 'yonetici', 'superadmin'].includes(rol)) {
+                    currentCoopId = d.kurumID || d.coopId;
                 } else {
-                    tbody.innerHTML = tbodyHTML;
-                    document.getElementById("recordCount").innerText = `${count} Kayıt`;
-                    document.getElementById("sumMatrah").innerText = fmt(totalMatrah);
-                    document.getElementById("sumStopaj").innerText = fmt(totalStopaj);
-                    document.getElementById("sumKesinti").innerText = fmt(totalDiger);
-                    document.getElementById("sumNet").innerText = fmt(totalNet);
+                    throw new Error("Yetkisiz Giriş: Bu sayfaya erişim izniniz yok.");
                 }
+
+                // 3. Başarılı ise Firma Adını Getir ve Yüklemeyi Kapat
+                if(currentCoopId) {
+                    const cDoc = await getDoc(doc(db, "cooperatives", currentCoopId));
+                    if(cDoc.exists()) document.getElementById("lblCoopName").innerText = cDoc.data().ad;
+                }
+                
+                // Loader'ı kapat
+                document.getElementById("loader").style.display = "none";
+                
+                // Verileri getir (Eğer fonksiyon tanımlıysa)
+                if(typeof verileriGetir === 'function') verileriGetir();
 
             } catch (error) {
-                console.error(error);
-                if(error.message.includes("indexes")) {
-                    Swal.fire({icon:'error', title:'İndeks Gerekli', html:'Lütfen F12 -> Console sekmesindeki linke tıklayıp indeksi oluşturun.'});
-                }
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Hata: ${error.message}</td></tr>`;
+                console.error("Panel Hatası:", error);
+                // Kullanıcıyı hemen atmak yerine hatayı gösterelim
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erişim Hatası',
+                    text: error.message,
+                    confirmButtonText: 'Giriş Sayfasına Dön'
+                }).then(() => {
+                    // Sadece kullanıcı tamam derse yönlendir
+                    if(error.message.includes("Yetkisiz") || error.message.includes("bulunamadı")) {
+                        window.location.href = "../giris.html";
+                    }
+                });
             }
+        } else {
+            // Hiç giriş yapmamışsa ana giriş sayfasına
+            window.location.href = "../giris.html";
         }
+    });
 
-        function fmt(n) { return n.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' ₺'; }
-        function resetTotals() { 
-            ["sumMatrah","sumStopaj","sumKesinti","sumNet"].forEach(id => document.getElementById(id).innerText = "0,00 ₺");
-            document.getElementById("recordCount").innerText = "0 Kayıt";
-        }
-
-        window.excelIndir = function() {
-            if(reportData.length === 0) { Swal.fire("Uyarı","Veri yok","warning"); return; }
-            const ws = XLSX.utils.json_to_sheet(reportData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Liste");
-            XLSX.writeFile(wb, "Rapor.xlsx");
-        }
-
-        window.cikisYap = async function() {
-            await signOut(auth);
-            sessionStorage.removeItem("activeCoopId");
-            window.location.href = "musavir-giris.html";
-        }
-    </script>
+    // ... (Kalan fonksiyonlar aynı kalabilir: verileriGetir, cikisYap vb.) ...
+    
+    // Alt kısımdaki eski verileriGetir vb. fonksiyonlarınızın aynen durduğundan emin olun.
+    // Eğer sildiyseniz önceki kodlardan kopyalayabilirsiniz. Sadece üstteki onAuthStateChanged kısmını değiştirmek "geri atma" sorununu çözer.
+    
+    // Basit bir çıkış fonksiyonu (Eğer silindiyse diye ekliyorum)
+    window.cikisYap = async function() {
+        await signOut(auth);
+        sessionStorage.removeItem("activeCoopId");
+        window.location.href = "musavir-giris.html";
+    }
+</script>
 </body>
 </html>

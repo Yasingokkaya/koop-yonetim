@@ -5,7 +5,8 @@ import {
     signOut, 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword,
-    updatePassword 
+    updatePassword,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { 
@@ -25,7 +26,8 @@ import {
     arrayRemove, 
     orderBy, 
     limit, 
-    writeBatch 
+    writeBatch,
+    increment 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -44,25 +46,7 @@ const db = getFirestore(app);
 
 export { 
     app, auth, db, 
-    onAuthStateChanged, 
-    signOut, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword,
-    updatePassword,
-    doc, 
-    getDoc, 
-    setDoc, 
-    collection, 
-    addDoc, 
-    query, 
-    where, 
-    getDocs, 
-    onSnapshot, 
-    deleteDoc, 
-    updateDoc, 
-    arrayUnion, 
-    arrayRemove, 
-    orderBy, 
-    limit, 
-    writeBatch 
+    onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword, sendPasswordResetEmail,
+    doc, getDoc, setDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc, updateDoc, 
+    arrayUnion, arrayRemove, orderBy, limit, writeBatch, increment
 };
