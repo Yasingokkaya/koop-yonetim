@@ -4,38 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KoopSistemi - Güvenli Giriş</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <link rel="icon" type="image/jpeg" href="app-logo.jpg">
-    <link rel="apple-touch-icon" href="app-logo.jpg">
     <link rel="manifest" href="manifest.json">
+
     <style>
         body, html { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; }
+        
         .bg-image {
-            /* Yeni ve çalışan bir tarla görseli */
+            /* Tarla / Doğa Temalı Arkaplan */
             background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1920&auto=format&fit=crop');
-            height: 100%; background-position: center; background-size: cover; position: relative;
+            height: 100%; 
+            background-position: center; 
+            background-size: cover; 
+            position: relative;
         }
+        
         .bg-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 50, 20, 0.75);
+            background: linear-gradient(135deg, rgba(21, 94, 117, 0.85), rgba(15, 118, 110, 0.9)); /* Teal Gradyan */
             display: flex; align-items: center; justify-content: center;
         }
+
         .login-card {
             width: 100%; max-width: 400px; padding: 40px;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center;
+            background-color: #ffffff;
+            border-radius: 24px; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25); 
+            text-align: center;
+            position: relative;
         }
+
         .logo-area {
-            width: 90px; height: 90px; background-color: #198754; color: white;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 40px; margin: 0 auto 20px auto; box-shadow: 0 10px 20px rgba(25, 135, 84, 0.3);
+            width: 90px; height: 90px; 
+            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+            color: white;
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; 
+            margin: -85px auto 20px auto; /* Kutunun üzerine taşır */
+            box-shadow: 0 10px 20px rgba(15, 118, 110, 0.3);
+            border: 5px solid rgba(255,255,255,0.2);
         }
+
+        .form-control {
+            padding: 12px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+        .form-control:focus {
+            background-color: #fff;
+            border-color: #0f766e;
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
+        }
+
         .btn-custom {
-            background-color: #198754; color: white; padding: 14px;
-            border-radius: 12px; font-weight: 700; font-size: 16px; transition: all 0.3s;
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+            color: white; padding: 14px;
+            border-radius: 12px; font-weight: 700; font-size: 16px; 
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
         }
-        .btn-custom:hover { background-color: #146c43; transform: translateY(-2px); }
+        .btn-custom:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(15, 118, 110, 0.4);
+            color: white;
+        }
+        
         .loading-spinner { display: none; }
     </style>
 </head>
@@ -45,23 +85,23 @@
     <div class="bg-overlay">
         <div class="login-card">
             <div class="logo-area"><i class="fa-solid fa-wheat-awn"></i></div>
+            
             <h4 class="mb-1 fw-bold text-dark">KoopSistemi</h4>
-            <p class="text-muted mb-4 small">Üretici & Yönetim Girişi</p>
+            <p class="text-muted mb-4 small">Üretici & Yönetim Giriş Paneli</p>
 
             <form id="loginForm">
                 <div class="mb-3 text-start">
-                    <label class="form-label small fw-bold text-secondary">Cep Telefonu</label>
+                    <label class="form-label small fw-bold text-secondary ms-1">Telefon veya E-Posta</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 fw-bold text-muted">+90</span>
-                       <input type="text" id="loginPhone" class="form-control border-start-0 fw-bold" placeholder="Telefon veya E-Posta" maxlength="50" required>
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="loginPhone" class="form-control border-start-0" placeholder="532..." required>
                     </div>
-                    <div class="form-text x-small">Başında '0' olmadan giriniz (Örn: 5321234567)</div>
                 </div>
 
                 <div class="mb-4 text-start">
-                    <label class="form-label small fw-bold text-secondary">Şifre</label>
+                    <label class="form-label small fw-bold text-secondary ms-1">Şifre</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
                         <input type="password" id="loginPass" class="form-control border-start-0" placeholder="••••••••" required>
                     </div>
                 </div>
@@ -74,12 +114,15 @@
                 </div>
             </form>
 
-            <div class="mt-4 text-muted small opacity-75">
-                &copy; 2025 Kooperatif Yönetim Platformu
+            <div class="mt-4 pt-3 border-top">
+                <a href="../index.html" class="text-decoration-none small text-muted fw-bold">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Ana Sayfaya Dön
+                </a>
             </div>
         </div>
     </div>
 </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -98,27 +141,31 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // GİRİŞ KONTROLÜ
+    // --- 1. OTURUM DURUMUNU DİNLE VE YÖNLENDİR ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
+                // Kullanıcı rolünü veritabanından çek
                 const userDoc = await getDoc(doc(db, "users", user.uid));
+                
                 if (userDoc.exists()) {
                     const d = userDoc.data();
-                    const rol = (d.rol || d.role || '').toLowerCase();
+                    const userRole = (d.rol || d.role || '').toLowerCase(); // Rolü küçük harfe çevir
                     
                     // ROL KONTROLÜ VE YÖNLENDİRME
-                    if (role === 'admin' || role === 'yonetici' || role === 'superadmin') {
+                    if (userRole === 'admin' || userRole === 'yonetici' || userRole === 'superadmin') {
                         window.location.href = "panels/admin.html";
-                    } else if (role === 'sofor') {
+                    } else if (userRole === 'sofor' || userRole === 'driver') {
                         window.location.href = "panels/driver.html";
-                    } else if (role === 'musavir') { 
-                        // Müşaviri tanıdık, seçim ekranına gönderiyoruz
+                    } else if (userRole === 'musavir') { 
                         window.location.href = "panels/musavir-giris.html"; 
                     } else {
-                        // Diğer herkes üye paneline
+                        // Diğer herkes üye paneline (Varsayılan)
                         window.location.href = "panels/member.html";
                     }
+                } else {
+                    // Kullanıcı Auth'ta var ama Firestore'da yoksa
+                    console.warn("Kullanıcı kaydı Firestore'da bulunamadı.");
                 }
             } catch (e) {
                 console.error("Yönlendirme hatası:", e);
@@ -126,100 +173,120 @@
         }
     });
 
-    // GİRİŞ BUTONU
+    // --- 2. GİRİŞ BUTONU İŞLEMLERİ ---
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Girdileri al ve temizle
         let girisInput = document.getElementById('loginPhone').value.trim();
-        girisInput = girisInput.replace(/\s/g, ''); 
-        
+        girisInput = girisInput.replace(/\s/g, ''); // Boşlukları sil
         const password = document.getElementById('loginPass').value;
+        
+        // Buton efektleri
         const btn = document.getElementById('loginBtn');
         const spinner = document.querySelector('.loading-spinner');
         const btnText = document.querySelector('.btn-text');
 
-        // ŞİFRE KONTROLÜ (400 Hatasını Önler)
+        // Basit Doğrulama
         if(password.length < 6) {
-            alert("Şifreniz en az 6 karakter olmalıdır!");
+            Swal.fire("Uyarı", "Şifreniz en az 6 karakter olmalıdır.", "warning");
             return;
         }
 
+        // Yükleniyor durumuna geç
         btn.disabled = true;
         spinner.style.display = 'inline-block';
         btnText.style.display = 'none';
 
         try {
+            // Telefon numarası girildiyse sahte email formatına çevir
             let email = girisInput;
-            // Telefon numarası girildiyse e-postaya çevir
             if (!girisInput.includes('@')) {
+                // Başında 0 varsa kaldır
                 if(girisInput.startsWith('0')) girisInput = girisInput.substring(1);
                 email = `${girisInput}@koop.com`;
             }
 
-            // 1. GİRİŞ YAP
+            // A) GİRİŞ YAPMAYI DENE
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // Başarılı olursa onAuthStateChanged devreye girer
-            } catch (loginError) {
+                // Başarılı olursa onAuthStateChanged (yukarıdaki kod) çalışır ve yönlendirir.
+            } 
+            catch (loginError) {
                 
-                // 2. KULLANICI YOKSA -> OTOMATİK OLUŞTUR (Üye Listesinde Varsa)
+                // B) KULLANICI BULUNAMADI HATASI ALIRSAK -> OTOMATİK ÜYELİK KONTROLÜ YAP
                 const hatalar = ['auth/user-not-found', 'auth/invalid-credential', 'auth/invalid-login-credentials'];
                 
+                // Eğer hata "Kullanıcı Yok" ise VE giriş yapan telefon numarası girdiyse
                 if (hatalar.includes(loginError.code) && !girisInput.includes('@')) {
                     
-                    console.log("Kullanıcı yok, veritabanı taranıyor...");
+                    console.log("Kullanıcı Auth'ta yok, Üye listesi taranıyor...");
 
+                    // Üye Listesinde Bu Telefon Var mı?
                     const membersRef = collection(db, 'members');
-                    const q1 = query(membersRef, where('telefon', '==', girisInput)); 
-                    const q2 = query(membersRef, where('telefon', '==', '0' + girisInput));
+                    const q1 = query(membersRef, where('telefon', '==', girisInput));      // 532...
+                    const q2 = query(membersRef, where('telefon', '==', '0' + girisInput)); // 0532...
                     
                     const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+                    
+                    // İki sorgudan birinde sonuç varsa al
                     const memberDoc = !snap1.empty ? snap1.docs[0] : (!snap2.empty ? snap2.docs[0] : null);
 
                     if (memberDoc) {
                         const mData = memberDoc.data();
                         
-                        // Hesabı Oluştur
+                        // 1. Firebase Auth Kullanıcısı Oluştur
                         const userCred = await createUserWithEmailAndPassword(auth, email, password);
                         const user = userCred.user;
 
-                        // Yetkiyi Yaz
+                        // 2. Users Tablosuna Yetkiyi Yaz
                         await setDoc(doc(db, "users", user.uid), {
                             email: email,
                             adSoyad: `${mData.ad} ${mData.soyad}`,
-                            rol: 'member',
+                            rol: 'member', // Otomatik üye rolü ata
                             coopId: mData.coopId,
-                            relatedMemberId: memberDoc.id,
+                            relatedMemberId: memberDoc.id, // Üye kartı ile eşleştir
                             kayitTarihi: new Date()
                         });
 
-                        alert("✅ İlk girişiniz başarıyla yapılandırıldı. Yönlendiriliyorsunuz...");
-                        // Sayfa yenilenince onAuthStateChanged yakalar
-                        window.location.reload();
+                        // 3. Başarılı
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Hoşgeldiniz!',
+                            text: 'İlk girişiniz yapılandırıldı, yönlendiriliyorsunuz...',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
                         
                     } else {
-                        throw new Error("Bu numara ile kayıtlı bir üretici bulunamadı. Yöneticinizle görüşün.");
+                        throw new Error("Bu numara ile kayıtlı bir üretici bulunamadı. Lütfen yöneticinizle görüşün.");
                     }
                 } else {
+                    // Başka bir hataysa (Yanlış şifre vb.) fırlat
                     throw loginError; 
                 }
             }
 
         } catch (error) {
             console.error("Hata:", error);
-            let msg = "Giriş başarısız.";
+            
+            let msg = "Giriş yapılamadı.";
             if(error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
-                msg = "Şifre hatalı.";
+                msg = "Girdiğiniz şifre hatalı.";
             } else if(error.message) {
                 msg = error.message;
             }
-            alert("❌ " + msg);
             
+            Swal.fire("Giriş Başarısız", msg, "error");
+            
+            // Butonu eski haline getir
             btn.disabled = false;
             spinner.style.display = 'none';
             btnText.style.display = 'inline-block';
         }
     });
 </script>
-    </body>
+</body>
 </html>
