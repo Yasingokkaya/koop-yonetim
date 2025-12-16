@@ -491,12 +491,23 @@ onAuthStateChanged(auth, async (user) => {
             if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
                 
-                // Rol Kontrolü
-                if(userData.role !== 'member' && userData.role !== 'uye') {
-                    Swal.fire("Hata", "Bu panele sadece üreticiler girebilir.", "error");
-                    await signOut(auth);
-                    return;
+                // --- ROL KONTROLÜ VE OTOMATİK DÜZELTME ---
+                // Eğer rolü 'member' veya 'uye' değilse hemen atma, önce kontrol et:
+                if (userData.role !== 'member' && userData.role !== 'uye') {
+                    
+                    // Eğer bu kişinin içeride tanımlı bir Üretici ID'si varsa, rolü eksik kalmıştır. Düzelt ve devam et.
+                    if (userData.relatedMemberId) {
+                        console.log("Rol eksik, otomatik 'member' olarak atanıyor...");
+                        await updateDoc(userDocRef, { role: 'member' });
+                    } 
+                    // Eğer Üretici ID'si de yoksa, gerçekten yetkisizdir. Şimdi at.
+                    else {
+                        Swal.fire("Hata", "Bu panele sadece üreticiler girebilir. (Rol Tanımsız)", "error");
+                        await signOut(auth);
+                        return;
+                    }
                 }
+                // -------------------------------------------
 
                 let matchedMemberId = userData.relatedMemberId;
                 
@@ -680,23 +691,32 @@ onAuthStateChanged(auth, async (user) => {
             let html = "";
             const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
-            // Aylar ters sırada değil, Ocak'tan Aralık'a (veya tam tersi) sıralanabilir. Genelde tabloda Ocak en üstte durur.
+            // TABLO OLUŞTURMA DÖNGÜSÜ (YENİ TASARIM)
             for(let i=0; i<12; i++) {
-                // Eğer o ay hiç veri yoksa "-" koyalım, varsa sayıyı yazalım
                 const row = monthsData[i];
-                // Sadece verisi olan ayları mı gösterelim yoksa hepsini mi? Hepsini göstermek tablo bütünlüğü için iyidir.
-                // İsteğe bağlı: if(row.total === 0) continue; // Boş ayları gizlemek isterseniz bu satırı açın.
+                
+                // Sabah - Akşam Değerleri (Varsa kalın ve renkli, yoksa silik tire)
+                const aksamVal = row.aksam > 0 
+                    ? `<span class="fw-bold text-primary" style="font-size:1rem;">${row.aksam}</span>` 
+                    : '<span class="text-muted opacity-25">-</span>';
+                    
+                const sabahVal = row.sabah > 0 
+                    ? `<span class="fw-bold text-warning" style="font-size:1rem;">${row.sabah}</span>` 
+                    : '<span class="text-muted opacity-25">-</span>';
 
-                const aksamVal = row.aksam > 0 ? row.aksam : '-';
-                const sabahVal = row.sabah > 0 ? row.sabah : '-';
-                const totalVal = row.total > 0 ? `<span class="badge bg-dark rounded-pill">${row.total}</span>` : '-';
+                // Toplam Değeri (Varsa Yeşil Badge, yoksa silik tire)
+                const totalVal = row.total > 0 
+                    ? `<div class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2">
+                         <span class="fw-bold fs-6">${row.total}</span>
+                       </div>` 
+                    : '<span class="text-muted opacity-25">-</span>';
 
                 html += `
                 <tr>
-                    <td class="ps-3 fw-bold text-secondary">${monthNames[i]}</td>
-                    <td class="text-center text-primary bg-primary bg-opacity-10 fw-bold">${aksamVal}</td>
-                    <td class="text-center text-warning bg-warning bg-opacity-10 fw-bold">${sabahVal}</td>
-                    <td class="text-end pe-3 fw-bold">${totalVal}</td>
+                    <td class="ps-3 py-3 fw-bold text-secondary" style="font-size: 0.9rem;">${monthNames[i]}</td>
+                    <td class="text-center align-middle">${aksamVal}</td>
+                    <td class="text-center align-middle">${sabahVal}</td>
+                    <td class="text-end pe-3 align-middle">${totalVal}</td>
                 </tr>
                 `;
             }
@@ -764,44 +784,63 @@ onAuthStateChanged(auth, async (user) => {
 
             // 1. Grafiği Güncelle
             paneliGuncelle(snapshot, selectedMonth, aylikToplam);
-
-            // 2. Listeyi Güncelle
+// 2. Listeyi Güncelle
             const listDiv = document.getElementById("milkList");
             if(listDiv) {
                 const rows = Object.values(groupedData).sort((a,b) => b.dateObj - a.dateObj);
                 
-                // Tablo Başlangıcı
+                // --- TABLO BAŞLANGICI ---
+                // Başlık satırına 'py-3' vererek yükselttik
                 let html = `
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
                             <thead class="bg-light border-bottom">
-                                <tr class="text-secondary text-uppercase small">
-                                    <th class="ps-4 py-3">Tarih</th>
-                                    <th class="text-center text-primary fw-bold">Akşam</th>
-                                    <th class="text-center text-warning fw-bold">Sabah</th>
-                                    <th class="text-end pe-4 text-dark fw-bold">Toplam</th>
+                                <tr class="text-secondary text-uppercase small py-3 align-middle">
+                                    <th class="ps-3 border-0 text-start" style="height: 50px;">TARİH</th>
+                                    <th class="text-center text-primary border-0">AKŞAM</th>
+                                    <th class="text-center text-warning border-0">SABAH</th>
+                                    <th class="text-end pe-3 text-success border-0">TOPLAM</th>
                                 </tr>
                             </thead>
                             <tbody>`;
 
                 if(rows.length === 0) {
-                    html += `<tr><td colspan="4" class="text-center py-5 text-muted">Bu ayda kayıt bulunamadı.</td></tr>`;
+                    html += `<tr><td colspan="4" class="text-center py-5 text-muted opacity-75">
+                        <i class="fa-regular fa-calendar-xmark fa-2x mb-2"></i><br>Bu ayda kayıt bulunamadı.
+                    </td></tr>`;
                 } else {
+                    // --- SATIR DÖNGÜSÜ ---
                     rows.forEach(row => {
-                        const dateStr = row.dateObj.toLocaleDateString('tr-TR', {day:'numeric', month:'short'});
-                        const dayName = row.dateObj.toLocaleDateString('tr-TR', {weekday:'short'});
+                        // Tarih Formatı: 15.12.2025
+                        const tamTarih = row.dateObj.toLocaleDateString('tr-TR'); 
                         
                         html += `
                         <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold text-dark">${dateStr}</div>
-                                <small class="text-muted" style="font-size:0.75rem">${dayName}</small>
+                            <td class="ps-3 py-2 align-middle">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light text-secondary rounded d-flex align-items-center justify-content-center me-2 border" 
+                                         style="width: 35px; height: 35px; flex-shrink:0;">
+                                        <i class="fa-regular fa-calendar text-muted small"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark" style="font-size: 0.85rem;">${tamTarih}</div>
+                                    </div>
+                                </div>
                             </td>
-                            <td class="text-center fw-bold text-primary bg-primary bg-opacity-10">${row.aksam || '-'}</td>
-                            <td class="text-center fw-bold text-warning bg-warning bg-opacity-10">${row.sabah || '-'}</td>
-                            <td class="text-end pe-4">
-                                <span class="badge bg-dark text-white rounded-pill">${row.total} Lt</span>
+                            
+                            <td class="text-center align-middle">
+                                ${row.aksam ? `<span class="fw-bold text-primary" style="font-size: 1rem;">${row.aksam}</span>` : '<span class="text-muted opacity-25">-</span>'}
+                            </td>
+                            
+                            <td class="text-center align-middle">
+                                ${row.sabah ? `<span class="fw-bold text-warning" style="font-size: 1rem;">${row.sabah}</span>` : '<span class="text-muted opacity-25">-</span>'}
+                            </td>
+                            
+                            <td class="text-end pe-3 align-middle">
+                                <div class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
+                                    <span class="fw-bold fs-6">${row.total}</span> <small>Lt</small>
+                                </div>
                             </td>
                         </tr>`;
                     });
@@ -1164,94 +1203,115 @@ window.hayvanlariGetir = function() {
         document.getElementById("stat-erkek").innerText = countErkek;
     });
 }
-// --- 7. YEM VE MALZEME SİPARİŞİ ---
+
+// --- 7. YEM VE MALZEME SİPARİŞİ (DİNAMİK STOKLU) ---
 window.malzemeSiparisiVer = async function() {
-    // Örnek Ürün Listesi (İleride veritabanından çekilebilir)
-    const urunListesi = `
-        <option value="Süt Yemi (50kg)">Süt Yemi (50kg Çuval)</option>
-        <option value="Besi Yemi (50kg)">Besi Yemi (50kg Çuval)</option>
-        <option value="Buzağı Başlangıç">Buzağı Başlangıç Yemi</option>
-        <option value="Kuru Dönem Yemi">Kuru Dönem Yemi</option>
-        <option value="Yalama Taşı">Yalama Taşı (Blok)</option>
-        <option value="Mısır Silajı">Mısır Silajı (Paket)</option>
-    `;
-
-    const { value: formValues } = await Swal.fire({
-        title: 'Yem / Malzeme Siparişi',
-        html: `
-            <div class="text-start">
-                <div class="alert alert-info small p-2 mb-3">
-                    <i class="fa-solid fa-truck me-1"></i> Siparişiniz kooperatife iletilecek ve cari hesabınıza işlenecektir.
-                </div>
-
-                <label class="small fw-bold text-muted mb-1">Ürün Seçiniz</label>
-                <select id="ord-urun" class="form-select mb-3">
-                    ${urunListesi}
-                </select>
-
-                <div class="row g-2">
-                    <div class="col-6">
-                        <label class="small fw-bold text-muted mb-1">Miktar</label>
-                        <input type="number" id="ord-adet" class="form-control fw-bold" value="1" min="1">
-                    </div>
-                    <div class="col-6">
-                        <label class="small fw-bold text-muted mb-1">Teslimat</label>
-                        <select id="ord-teslimat" class="form-select">
-                            <option value="Adrese Teslim">Adrese Gelsin</option>
-                            <option value="Gelip Alacağım">Ben Alacağım</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <label class="small fw-bold text-muted mt-2 mb-1">Notunuz (Opsiyonel)</label>
-                <textarea id="ord-not" class="form-control" rows="2" placeholder="Örn: Süt arabasıyla gönderin..."></textarea>
-            </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Siparişi Onayla',
-        confirmButtonColor: '#0891b2',
-        cancelButtonText: 'Vazgeç',
-        preConfirm: () => {
-            return {
-                urun: document.getElementById('ord-urun').value,
-                adet: document.getElementById('ord-adet').value,
-                teslimat: document.getElementById('ord-teslimat').value,
-                not: document.getElementById('ord-not').value
-            }
-        }
+    
+    // 1. Önce yükleniyor uyarısı verelim (Veri çekmek zaman alabilir)
+    Swal.fire({
+        title: 'Ürün Listesi Alınıyor...', 
+        allowOutsideClick: false, 
+        didOpen: () => Swal.showLoading()
     });
 
-    if (formValues) {
-        if(formValues.adet < 1) return Swal.fire("Hata", "En az 1 adet seçmelisiniz.", "warning");
+    try {
+        // 2. Veritabanından (products tablosundan) bu kooperatife ait ürünleri çek
+        // Not: Admin panelinde ürünleri 'products' tablosuna kaydettiğinizi varsayıyoruz.
+        const q = query(collection(db, "products"), where("coopId", "==", currentCoopId));
+        const querySnapshot = await getDocs(q);
 
-        Swal.fire({title: 'Sipariş İletiliyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+        let urunListesiHTML = "";
 
-        try {
+        querySnapshot.forEach((doc) => {
+            const urun = doc.data();
+            // Ürün Adı ve varsa Birimi veya Fiyatı (Görselde görünen kısım)
+            // Örn: Süt Yemi (500 TL)
+            const gorunenMetin = `${urun.name || urun.urunAdi} ${urun.price ? '(' + urun.price + ' TL)' : ''}`;
+            const deger = urun.name || urun.urunAdi; // Veritabanına kaydedilecek saf isim
+
+            urunListesiHTML += `<option value="${deger}">${gorunenMetin}</option>`;
+        });
+
+        // Eğer veritabanında hiç ürün yoksa uyar
+        if (urunListesiHTML === "") {
+            return Swal.fire("Uyarı", "Sipariş verilebilecek tanımlı bir ürün bulunamadı. Lütfen yönetimle görüşün.", "warning");
+        }
+
+        // 3. Listeyi aldıktan sonra pencereyi aç (Swal)
+        const { value: formValues } = await Swal.fire({
+            title: 'Yem / Malzeme Siparişi',
+            html: `
+                <div class="text-start">
+                    <div class="alert alert-info small p-2 mb-3">
+                        <i class="fa-solid fa-truck me-1"></i> Siparişiniz iletilecek ve cari hesabınıza işlenecektir.
+                    </div>
+
+                    <label class="small fw-bold text-muted mb-1">Ürün Seçiniz</label>
+                    <select id="ord-urun" class="form-select mb-3">
+                        ${urunListesiHTML} </select>
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted mb-1">Miktar</label>
+                            <input type="number" id="ord-adet" class="form-control fw-bold" value="1" min="1">
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted mb-1">Teslimat</label>
+                            <select id="ord-teslimat" class="form-select">
+                                <option value="Adrese Teslim">Adrese Gelsin</option>
+                                <option value="Gelip Alacağım">Ben Alacağım</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <label class="small fw-bold text-muted mt-2 mb-1">Notunuz (Opsiyonel)</label>
+                    <textarea id="ord-not" class="form-control" rows="2" placeholder="Örn: Süt arabasıyla gönderin..."></textarea>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Siparişi Onayla',
+            confirmButtonColor: '#0891b2',
+            cancelButtonText: 'Vazgeç',
+            preConfirm: () => {
+                return {
+                    urun: document.getElementById('ord-urun').value,
+                    adet: document.getElementById('ord-adet').value,
+                    teslimat: document.getElementById('ord-teslimat').value,
+                    not: document.getElementById('ord-not').value
+                }
+            }
+        });
+
+        if (formValues) {
+            if(formValues.adet < 1) return Swal.fire("Hata", "En az 1 adet seçmelisiniz.", "warning");
+
+            Swal.fire({title: 'Sipariş İletiliyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
             // SİPARİŞİ KAYDET (Orders Koleksiyonuna)
             await addDoc(collection(db, "orders"), {
                 memberId: currentMemberId,
                 coopId: currentCoopId,
-                memberName: document.getElementById("lblMemberName").innerText.replace('Sn. ', ''), // İsmi al
+                memberName: document.getElementById("lblMemberName").innerText.replace('Sn. ', ''), 
                 urunAdi: formValues.urun,
                 miktar: Number(formValues.adet),
                 teslimatTipi: formValues.teslimat,
                 not: formValues.not,
-                durum: 'Bekliyor', // Bekliyor, Onaylandı, Teslim Edildi
+                durum: 'Bekliyor', 
                 siparisTarihi: new Date()
             });
 
             Swal.fire({
                 icon: 'success',
                 title: 'Sipariş Alındı!',
-                text: 'Talebiniz kooperatif yetkilisine iletildi.',
+                text: 'Talebiniz başarıyla kaydedildi ve ilgili birime iletildi.',
                 timer: 2000,
                 showConfirmButton: false
             });
-
-        } catch (error) {
-            console.error(error);
-            Swal.fire("Hata", "Sipariş oluşturulamadı: " + error.message, "error");
         }
+
+    } catch (error) {
+        console.error(error);
+        Swal.fire("Hata", "Ürün listesi yüklenirken hata oluştu: " + error.message, "error");
     }
 }
 // --- 4. HAYVAN DÜZENLE (DÜZELTİLMİŞ VERSİYON) ---
@@ -1476,7 +1536,7 @@ window.whatsappDestekAc = async function() {
     Swal.fire({title: 'Bağlanıyor...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
 
     try {
-        if (!currentCoopId) throw new Error("Kooperatif bağlantısı bulunamadı.");
+        if (!currentCoopId) throw new Error("Kurum bilgisi bulunamadı.");
 
         // Kooperatif bilgilerini çek
         const docRef = doc(db, "cooperatives", currentCoopId);
@@ -1580,11 +1640,12 @@ window.dogumBildirimiYap = async function(uid) {
         });
     }
 }
-// --- 9. DUYURULARI GETİR ---
+// --- 9. DUYURULARI GETİR (DÜZELTİLMİŞ HALİ) ---
 window.duyurulariGetir = function() {
     const container = document.getElementById("announcement-list");
     
     // Veritabanı sorgusu: En yeni 3 duyuru
+    // 'limit' fonksiyonunun import edildiğinden emin olunmalıdır, dosyanın başında vardır.
     const q = query(collection(db, "announcements"), orderBy("tarih", "desc"), limit(3));
 
     onSnapshot(q, (snapshot) => {
@@ -1599,8 +1660,17 @@ window.duyurulariGetir = function() {
             return;
         }
 
+        let doluDuyuruSayisi = 0;
+
         snapshot.forEach(doc => {
             const data = doc.data();
+            
+            // --- KONTROL: Başlık veya İçerik boşsa bu kaydı atla ---
+            if (!data.baslik || !data.icerik) return;
+            // -------------------------------------------------------
+
+            doluDuyuruSayisi++;
+
             // Tarih formatı
             let tarihStr = "";
             if(data.tarih) {
@@ -1639,6 +1709,15 @@ window.duyurulariGetir = function() {
             `;
             container.innerHTML += item;
         });
+
+        // Eğer tüm kayıtlar boşsa (filtrelendiyse) yine "Duyuru Yok" yazsın
+        if (doluDuyuruSayisi === 0) {
+            container.innerHTML = `
+                <div class="p-4 text-center text-muted">
+                    <i class="fa-regular fa-bell-slash fa-2x mb-2 opacity-25"></i>
+                    <p class="m-0 small">Aktif duyuru bulunmuyor.</p>
+                </div>`;
+        }
     });
 }
 // --- 2. YENİ HAYVAN EKLE (CİNSİYET KONTROLLÜ) ---
@@ -2227,6 +2306,30 @@ async function ekstreGetir() {
                 <tr>
                     <td colspan="3" class="text-end pe-2">BORÇ TOPLAMI:</td> 
                     <td class="text-end text-danger pe-3">${fmt(hesaplananSatisToplami)}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<h6 class="fw-bold text-dark mb-2 border-bottom pb-1">3. NAKİT VE DİĞER İŞLEMLER</h6>
+<div class="card border-0 shadow-sm mb-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0 align-middle" style="font-size:0.85rem">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Tarih</th>
+                    <th>Açıklama</th>
+                    <th class="text-end text-success">Giriş <small>(Tahsilat)</small></th>
+                    <th class="text-end pe-3 text-danger">Çıkış <small>(Ödeme)</small></th>
+                </tr>
+            </thead>
+            <tbody>${nakitRows}</tbody>
+            <tfoot class="fw-bold bg-secondary bg-opacity-10">
+                <tr>
+                    <td colspan="2" class="text-end pe-2 text-dark">NAKİT İŞLEM TOPLAMI:</td>
+                    <td class="text-end text-success">${fmt(totalGiren)}</td>
+                    <td class="text-end text-danger pe-3">${fmt(totalCikan)}</td>
                 </tr>
             </tfoot>
         </table>

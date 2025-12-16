@@ -31,28 +31,6 @@
         margin: 0;
     }
     
-    /* 1. SIDEBAR (SOL MENÜ - RENKLİ & DİNAMİK) */
-    .sidebar {
-        width: var(--sidebar-width); 
-        height: 100vh; 
-        position: fixed;
-        top: 0; left: 0;
-        background: var(--sidebar-bg);
-        color: white;
-        z-index: 1050; 
-        display: flex; flex-direction: column;
-        transition: all 0.3s ease;
-        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-    }
-    
-    .sidebar-brand {
-        height: 70px; /* Daha kompakt logo alanı */
-        padding: 0 25px;
-        font-size: 1.3rem; font-weight: 800;
-        color: white;
-        display: flex; align-items: center; gap: 10px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
 /* Tablo taşmasını engellemek için */
 .table-responsive {
     overflow-x: auto; /* Gerekirse kaydır */
@@ -69,22 +47,75 @@
         border-radius: 10px;
     }
 }
-    .nav-link { 
-        color: rgba(255,255,255,0.9);
-        padding: 12px 20px; 
-        margin: 6px 15px; 
-        border-radius: 10px;
-        font-weight: 500; 
-        font-size: 0.95rem;
-        transition: all 0.2s;
-        display: flex; align-items: center; gap: 12px;
+    
+/* 1. SIDEBAR (SOL MENÜ - GARANTİ YAPI) */
+    .sidebar {
+        width: var(--sidebar-width); 
+        height: 100vh; /* Ekran boyu kadar */
+        position: fixed;
+        top: 0; left: 0;
+        background: var(--sidebar-bg);
+        color: white;
+        z-index: 1050; 
+        /* Flex Yapısı: Alt alta dizilimi garanti eder */
+        display: flex; 
+        flex-direction: column; 
+        justify-content: space-between;
+        overflow: hidden; /* Sidebar'ın kendisi kaymasın, içindeki menü kaysın */
+        transition: transform 0.3s ease;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
     }
     
-   .nav-link:hover {
-    background-color: rgba(255,255,255,0.15);
-    color: white;
-    /* transform satırı silindi */
-}
+    /* Logo Alanı (Sabit) */
+    .sidebar-header {
+        flex-shrink: 0; /* Asla ezilmesin */
+        height: 90px;   /* Rahat bir yükseklik */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 0 15px;
+    }
+
+    /* Menü Alanı (Kaydırılabilir) */
+    .sidebar-menu {
+        flex-grow: 1;    /* Kalan tüm boşluğu kapla */
+        overflow-y: auto; /* Sadece burası scroll olsun */
+        padding: 10px 0;
+        /* Kaydırma çubuğu ayarları */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
+    /* Webkit (Chrome/Safari) scrollbar süslemesi */
+    .sidebar-menu::-webkit-scrollbar { width: 4px; }
+    .sidebar-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+    /* Alt Kısım (Sabit Çıkış Butonu) */
+    .sidebar-footer {
+        flex-shrink: 0; /* Asla ezilmesin */
+        padding: 15px 20px 25px 20px; /* Alt boşluk biraz fazla olsun */
+        background: rgba(0,0,0,0.1); /* Hafif koyu zemin */
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Link Tasarımı (Kompakt) */
+    .nav-link { 
+        color: rgba(255,255,255,0.9);
+        padding: 10px 18px; 
+        margin: 4px 12px; 
+        border-radius: 8px;
+        font-weight: 500; 
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: flex; align-items: center; gap: 12px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    
+    .nav-link:hover {
+        background-color: rgba(255,255,255,0.15);
+        color: white;
+    }
     
     .nav-link.active {
         background: white;
@@ -92,10 +123,16 @@
         font-weight: 700;
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    .nav-link.active i { color: var(--primary-color); }
-
-    .logout-link { margin-top: auto; margin-bottom: 30px; color: #fca5a5 !important; }
-    .logout-link:hover { background-color: rgba(220, 38, 38, 0.2); color: #fecaca !important; }
+    
+    .logout-link { 
+        background-color: rgba(255,255,255,0.1);
+        color: #fca5a5 !important; 
+        justify-content: center;
+    }
+    .logout-link:hover { 
+        background-color: rgba(220, 38, 38, 0.2); 
+        color: #fecaca !important; 
+    }
 
     /* 2. ANA İÇERİK ALANI */
     .main-content { 
@@ -983,60 +1020,76 @@ div.swal2-container {
 </style>
 </head>
 <body>
-
 <div class="sidebar">
-  <div class="sidebar-brand d-flex justify-content-between align-items-center px-3" id="brandTitle" style="height: 80px;">
     
-    <div class="d-flex align-items-center">
-        <img src="web-logo.jpg" alt="KoopSistem" style="height: 40px; width: auto; object-fit: contain;">
+    <div class="sidebar-header">
+        <div class="d-flex align-items-center gap-2">
+            <img src="web-logo.jpg" alt="KoopSistem" style="height: 50px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+            <span class="d-lg-none text-white fw-bold ms-2 fs-5">MENÜ</span>
+        </div>
+        
+        <button class="btn btn-link text-white d-lg-none position-absolute end-0 me-3" onclick="closeSidebar()" style="font-size: 1.5rem;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
     
-    <button class="btn btn-link text-white d-lg-none p-2" onclick="closeSidebar()" style="font-size: 1.8rem; text-decoration: none; opacity: 0.9; line-height: 1;">
-        <i class="fa-solid fa-xmark"></i>
-    </button>
-
-</div>
-    
-    <div class="d-flex flex-column flex-grow-1 mt-4">
+    <div class="sidebar-menu">
+        
         <a class="nav-link active" onclick="switchTab('dashboard', this)">
             <i class="fa-solid fa-chart-pie" style="width:20px"></i> Hızlı İşlemler
         </a>
+        
         <a class="nav-link" onclick="switchTab('reports', this)">
-    <i class="fa-solid fa-chart-line" style="width:20px"></i> Dashboard
-</a>
-<a class="nav-link collapsed" data-bs-toggle="collapse" href="#menuCari" role="button" aria-expanded="false" aria-controls="menuCari">
-    <i class="fa-solid fa-users-gear" style="width:20px"></i> Müşteri & Tedarikçi
-</a>
+            <i class="fa-solid fa-chart-line" style="width:20px"></i> Dashboard
+        </a>
 
-<div class="collapse" id="menuCari"> <div class="bg-white bg-opacity-10 rounded mx-2 mt-1 mb-2 overflow-hidden">
-        <a class="nav-link ps-4" style="font-size: 0.9rem; cursor: pointer;" onclick="cariTabDegistir('musteri', this)">
-            <i class="fa-solid fa-user-tag text-warning" style="width:20px"></i> Müşteri Listesi
+        <a class="nav-link collapsed" data-bs-toggle="collapse" href="#menuCari" role="button" aria-expanded="false" aria-controls="menuCari">
+            <i class="fa-solid fa-users-gear" style="width:20px"></i> Müşteri & Tedarikçi
         </a>
-        <a class="nav-link ps-4" style="font-size: 0.9rem; cursor: pointer;" onclick="cariTabDegistir('tedarikci', this)">
-            <i class="fa-solid fa-truck-field text-info" style="width:20px"></i> Tedarikçi Listesi
+        <div class="collapse" id="menuCari"> 
+            <div class="bg-black bg-opacity-25 rounded mx-3 mt-1 mb-2 py-1 overflow-hidden">
+                <a class="nav-link ps-4 py-2 my-1" style="font-size: 0.85rem;" onclick="cariTabDegistir('musteri', this)">
+                    <i class="fa-solid fa-user-tag text-warning" style="width:20px"></i> Müşteri Listesi
+                </a>
+                <a class="nav-link ps-4 py-2 my-1" style="font-size: 0.85rem;" onclick="cariTabDegistir('tedarikci', this)">
+                    <i class="fa-solid fa-truck-field text-info" style="width:20px"></i> Tedarikçi Listesi
+                </a>
+            </div>
+        </div>
+
+        <a class="nav-link" onclick="switchTab('orders', this); siparisleriGetir();">
+            <i class="fa-solid fa-truck-ramp-box" style="width:20px"></i> Sipariş Yönetimi
+            <span id="badge-siparis" class="badge bg-danger ms-auto shadow-sm" style="display:none; font-size: 0.7rem;">0</span>
         </a>
-    </div>
-</div>
+
         <a class="nav-link" onclick="switchTab('stocks', this)">
-    <i class="fa-solid fa-boxes-stacked" style="width:20px"></i> Stok Yönetimi
-</a>
-<a class="nav-link" onclick="switchTab('milk-management', this)">
-    <i class="fa-solid fa-cow" style="width:20px"></i> Süt Yönetimi
-</a>
-<a class="nav-link" onclick="switchTab('advanced-reports', this)">
-    <i class="fa-solid fa-file-contract" style="width:20px"></i> Detaylı Raporlar
-</a>
-<a class="nav-link" onclick="switchTab('announcements', this); adminDuyurulariGetir();">
-    <i class="fa-solid fa-bullhorn" style="width:20px"></i> Duyuru Yönetimi
-</a>
+            <i class="fa-solid fa-boxes-stacked" style="width:20px"></i> Stok Yönetimi
+        </a>
+        
+        <a class="nav-link" onclick="switchTab('milk-management', this)">
+            <i class="fa-solid fa-cow" style="width:20px"></i> Süt Yönetimi
+        </a>
+        
+        <a class="nav-link" onclick="switchTab('advanced-reports', this)">
+            <i class="fa-solid fa-file-contract" style="width:20px"></i> Detaylı Raporlar
+        </a>
+        
+        <a class="nav-link" onclick="switchTab('announcements', this); adminDuyurulariGetir();">
+            <i class="fa-solid fa-bullhorn" style="width:20px"></i> Duyuru Yönetimi
+        </a>
+        
         <a class="nav-link" onclick="switchTab('settings', this)">
             <i class="fa-solid fa-sliders" style="width:20px"></i> Ayarlar
         </a>
-       
-        <a class="nav-link logout-link" id="logoutBtn">
-            <i class="fa-solid fa-arrow-right-from-bracket" style="width:20px"></i> Çıkış Yap
+
+    </div>
+
+    <div class="sidebar-footer">
+        <a class="nav-link logout-link m-0 fw-bold" id="logoutBtn">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Çıkış Yap
         </a>
     </div>
+
 </div>
 
 <div class="main-content">
@@ -1207,8 +1260,7 @@ div.swal2-container {
                 <small>Yeni Stok Kartı</small>
             </div>
         </div>
-
-        <div class="col-6 col-md-3">
+<div class="col-6 col-md-3">
             <div class="card quick-card shadow-sm" style="background: linear-gradient(135deg, #475569 0%, #334155 100%);" onclick="switchTab('advanced-reports')">
                 <i class="bg-icon fa-solid fa-chart-line"></i>
                 <i class="fa-solid fa-chart-line fa-2x mb-2"></i>
@@ -1216,18 +1268,62 @@ div.swal2-container {
                 <small>Detaylı Analiz</small>
             </div>
         </div>
-<div class="col-6 col-md-3">
-    <div class="card quick-card shadow-sm" style="background: linear-gradient(135deg, #be123c 0%, #9f1239 100%);" onclick="soforEkleModalAc()">
-        <i class="bg-icon fa-solid fa-truck-fast"></i>
-        <i class="fa-solid fa-truck-fast fa-2x mb-2"></i>
-        <h6>Şoför Ekle</h6>
-        <small>Personel Tanımla</small>
+    </div> </div> <div id="orders" class="content-section hidden-section">
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-warning bg-opacity-10 border-warning border-start border-4">
+                <div class="card-body">
+                    <h6 class="text-warning fw-bold small">BEKLEYEN SİPARİŞ</h6>
+                    <h2 class="fw-bold mb-0 text-dark" id="count-bekleyen">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-primary bg-opacity-10 border-primary border-start border-4">
+                <div class="card-body">
+                    <h6 class="text-primary fw-bold small">HAZIRLANIYOR</h6>
+                    <h2 class="fw-bold mb-0 text-dark" id="count-hazirlaniyor">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-success bg-opacity-10 border-success border-start border-4">
+                <div class="card-body">
+                    <h6 class="text-success fw-bold small">TAMAMLANAN (BUGÜN)</h6>
+                    <h2 class="fw-bold mb-0 text-dark" id="count-tamamlanan">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold m-0"><i class="fa-solid fa-truck-ramp-box me-2 text-primary"></i>Gelen Sipariş Listesi</h6>
+            <button class="btn btn-sm btn-light border" onclick="siparisleriGetir()"><i class="fa-solid fa-rotate"></i></button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Tarih</th>
+                            <th>Üretici Bilgisi</th>
+                            <th>Talep Edilen Ürün</th>
+                            <th>Teslimat & Not</th>
+                            <th>Durum</th>
+                            <th class="text-end pe-4">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-list-body">
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Yükleniyor...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
-    </div>
-</div>
+
 <div id="reports" class="content-section hidden-section">
-    
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-3">
             <div class="row g-3 align-items-end">
@@ -1299,11 +1395,10 @@ div.swal2-container {
         </div>
     </div>
 </div>
+
 <div id="advanced-reports" class="content-section hidden-section">
-    
     <div id="reports-main-menu">
         <div class="row g-4">
-            
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm hover-effect">
                     <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
@@ -1317,13 +1412,6 @@ div.swal2-container {
                             </div>
                             <i class="fa-solid fa-chevron-right text-muted small"></i>
                         </button>
-                        <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="Swal.fire('Bilgi','Bölge raporu hazırlanıyor.','info')">
-                            <div>
-                                <span class="fw-bold text-dark small">Bölge Bazlı Analiz</span>
-                                <small class="d-block text-muted" style="font-size:0.7rem">Hangi köy ne kadar verimli?</small>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-muted small"></i>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -1333,48 +1421,37 @@ div.swal2-container {
                     <div class="card-header bg-success bg-opacity-10 border-0 py-3">
                         <h6 class="fw-bold text-dark m-0"><i class="fa-solid fa-wallet me-2 text-success"></i>FİNANS RAPORLARI</h6>
                     </div>
-
                     <div class="list-group list-group-flush">
-    <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="Swal.fire('Bilgi','Satış raporları hazırlanıyor.','info')">
-        <div>
-            <span class="fw-bold text-dark small">Satış Raporları</span>
-            <small class="d-block text-muted" style="font-size:0.7rem">Yem, un vb. satış dökümleri</small>
-        </div>
-        <i class="fa-solid fa-chevron-right text-muted small"></i>
-    </button>
-    
-    <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="openReport('rep-account-summary'); raporUyeListesiDoldur('repFilterMemberAccount');">
-        <div>
-            <span class="fw-bold text-dark small">Üretici Hesap Özet Raporu</span>
-            <small class="d-block text-muted" style="font-size:0.7rem">Üretici panelindeki hesap görünümü</small>
-        </div>
-        <i class="fa-solid fa-chevron-right text-muted small"></i>
-    </button>
-</div>
-<button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="openReport('rep-general-balance'); genelBakiyeRaporuGetir();">
-    <div>
-        <span class="fw-bold text-dark small">Genel Bakiye Listesi</span>
-        <small class="d-block text-muted" style="font-size:0.7rem">Tüm üreticilerin anlık borç/alacak durumları</small>
-    </div>
-    <i class="fa-solid fa-scale-balanced text-primary small"></i>
-</button>
-                    <div class="p-3 mt-auto bg-light bg-opacity-50 border-top">
-                    <button class="btn w-100 d-flex align-items-center justify-content-between p-3 border shadow-sm" 
-                            onclick="hesapYayinlamaModalAc()"
-                            style="background-color: #fff1f2; border-color: #fecdd3 !important; border-radius: 12px; transition: transform 0.2s;">
-                        
-                        <div class="text-start">
-                            <div class="fw-bold text-danger" style="font-size: 0.9rem;">
-                                <i class="fa-solid fa-bullhorn me-2"></i>Dönem Hesabı Yayınla
+                        <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="openReport('rep-account-summary'); raporUyeListesiDoldur('repFilterMemberAccount');">
+                            <div>
+                                <span class="fw-bold text-dark small">Üretici Hesap Özet Raporu</span>
+                                <small class="d-block text-muted" style="font-size:0.7rem">Üretici panelindeki hesap görünümü</small>
                             </div>
-                            <small class="text-secondary" style="font-size: 0.7rem;">Bakiyeleri üreticilere gönder</small>
-                        </div>
-                        
-                        <div class="bg-danger text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                            <i class="fa-solid fa-arrow-up-from-bracket" style="font-size: 0.8rem;"></i>
-                        </div>
-                    </button>
-                </div>
+                            <i class="fa-solid fa-chevron-right text-muted small"></i>
+                        </button>
+                        <button class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center" onclick="openReport('rep-general-balance'); genelBakiyeRaporuGetir();">
+                            <div>
+                                <span class="fw-bold text-dark small">Genel Bakiye Listesi</span>
+                                <small class="d-block text-muted" style="font-size:0.7rem">Tüm üreticilerin anlık borç/alacak durumları</small>
+                            </div>
+                            <i class="fa-solid fa-scale-balanced text-primary small"></i>
+                        </button>
+                    </div>
+                    <div class="p-3 mt-auto bg-light bg-opacity-50 border-top">
+                        <button class="btn w-100 d-flex align-items-center justify-content-between p-3 border shadow-sm" 
+                                onclick="hesapYayinlamaModalAc()"
+                                style="background-color: #fff1f2; border-color: #fecdd3 !important; border-radius: 12px;">
+                            <div class="text-start">
+                                <div class="fw-bold text-danger" style="font-size: 0.9rem;">
+                                    <i class="fa-solid fa-bullhorn me-2"></i>Dönem Hesabı Yayınla
+                                </div>
+                                <small class="text-secondary" style="font-size: 0.7rem;">Bakiyeleri üreticilere gönder</small>
+                            </div>
+                            <div class="bg-danger text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                <i class="fa-solid fa-arrow-up-from-bracket" style="font-size: 0.8rem;"></i>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1394,7 +1471,6 @@ div.swal2-container {
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -1408,14 +1484,11 @@ div.swal2-container {
                 <small class="text-muted">Seçilen üyenin tarih aralığındaki süt dökümü</small>
             </div>
         </div>
-
         <div class="card border-0 shadow-sm p-4 mb-4">
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label class="small fw-bold text-muted">Üye Seçiniz</label>
-                    <select class="form-select" id="repFilterMember">
-                        <option value="">Tüm Üyeler</option>
-                        </select>
+                    <select class="form-select" id="repFilterMember"><option value="">Tüm Üyeler</option></select>
                 </div>
                 <div class="col-md-3">
                     <label class="small fw-bold text-muted">Başlangıç</label>
@@ -1432,178 +1505,105 @@ div.swal2-container {
                 </div>
             </div>
         </div>
-
         <div class="table-responsive bg-white rounded shadow-sm">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                    <tr>
-                        <th class="ps-4">Tarih</th>
-                        <th>Üye Adı Soyadı</th>
-                        <th class="text-center">Dönem</th>
-                        <th class="text-end pe-4">Miktar (Lt)</th>
-                    </tr>
+                    <tr><th class="ps-4">Tarih</th><th>Üye Adı Soyadı</th><th class="text-center">Dönem</th><th class="text-end pe-4">Miktar (Lt)</th></tr>
                 </thead>
-                <tbody id="repMilkTableBody">
-                    <tr><td colspan="4" class="text-center p-5 text-muted">Lütfen yukarıdan kriter seçip arama yapınız.</td></tr>
-                </tbody>
+                <tbody id="repMilkTableBody"><tr><td colspan="4" class="text-center p-5 text-muted">Lütfen yukarıdan kriter seçip arama yapınız.</td></tr></tbody>
                 <tfoot class="bg-light fw-bold" style="border-top: 2px solid #e2e8f0;">
-                    <tr>
-                        <td colspan="3" class="text-end pe-3 py-3">TOPLAM SÜT:</td>
-                        <td class="text-end pe-4 text-primary fs-5" id="repMilkTotal">0 Lt</td>
-                    </tr>
+                    <tr><td colspan="3" class="text-end pe-3 py-3">TOPLAM SÜT:</td><td class="text-end pe-4 text-primary fs-5" id="repMilkTotal">0 Lt</td></tr>
                 </tfoot>
             </table>
         </div>
     </div>
 
     <div id="rep-account-summary" class="sub-report d-none">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div class="d-flex align-items-center">
-            <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeReport()">
-                <i class="fa-solid fa-arrow-left text-primary"></i>
-            </button>
-            <div>
-                <h5 class="m-0 fw-bold">Üretici Hesap Özeti</h5>
-                <small class="text-muted">Detaylı hesap dökümü</small>
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeReport()"><i class="fa-solid fa-arrow-left text-primary"></i></button>
+                <div><h5 class="m-0 fw-bold">Üretici Hesap Özeti</h5><small class="text-muted">Detaylı hesap dökümü</small></div>
             </div>
         </div>
-    </div>
-    <div class="card border-0 shadow-sm p-4 mb-4 no-print" 
-             style="background: linear-gradient(to right, #ffffff, #f8f9fa); border-left: 5px solid #0f766e; overflow: visible !important; position: relative; z-index: 1000;">
-            
+        <div class="card border-0 shadow-sm p-4 mb-4 no-print" style="background: linear-gradient(to right, #ffffff, #f8f9fa); border-left: 5px solid #0f766e;">
             <div class="row g-3 align-items-end">
-                
                 <div class="col-lg-4 col-md-12 position-relative">
                     <label class="small fw-bold text-primary mb-1 ms-1">Müşteri Seçimi</label>
                     <div class="input-group shadow-sm">
                         <span class="input-group-text bg-white border-end-0 text-primary"><i class="fa-solid fa-search"></i></span>
-                        <input type="text" class="form-control border-start-0 ps-0 fw-bold text-dark" 
-                               id="repMemberSearch" placeholder=" Üretici Ara" autocomplete="off" 
-                               style="height: 45px; font-size: 1rem;">
+                        <input type="text" class="form-control border-start-0 ps-0 fw-bold text-dark" id="repMemberSearch" placeholder=" Üretici Ara" autocomplete="off">
                         <input type="hidden" id="repSelectedMemberId">
                     </div>
-                    
-                    <div id="repMemberSearchResults" class="list-group position-absolute w-100 shadow-lg" 
-                         style="z-index: 99999; top: 100%; display: none; max-height: 350px; overflow-y: auto; border-radius: 0 0 10px 10px; margin-top: 2px; background-color: white; border: 1px solid #e2e8f0;">
-                    </div>
+                    <div id="repMemberSearchResults" class="list-group position-absolute w-100 shadow-lg" style="z-index: 99999; top: 100%; display: none; max-height: 350px; overflow-y: auto;"></div>
                 </div>
-
                 <div class="col-lg-2 col-md-6">
                     <label class="small fw-bold text-primary mb-1 ms-1">Dönem</label>
-                    <input type="month" class="form-control shadow-sm fw-bold text-center" 
-                           id="repAccountMonth" style="cursor: pointer; height: 45px; font-size: 1rem;">
+                    <input type="month" class="form-control shadow-sm fw-bold text-center" id="repAccountMonth" style="cursor: pointer;">
                 </div>
-
                 <div class="col-lg-6 col-md-12">
                     <div class="d-flex gap-2 w-100">
-                        
-                        <button class="btn btn-primary-custom flex-fill shadow-sm fw-bold d-flex align-items-center justify-content-center" 
-                                onclick="ureticiHesapOzetiGetir()" style="height: 45px;">
-                            <i class="fa-solid fa-rotate me-2"></i> GETİR
-                        </button>
-
-                        <button class="btn btn-dark flex-fill shadow-sm fw-bold d-flex align-items-center justify-content-center" 
-                                onclick="raporYazdir()" style="height: 45px;">
-                            <i class="fa-solid fa-print me-2"></i> YAZDIR
-                        </button>
-
-                        <button class="btn btn-danger flex-fill shadow-sm fw-bold d-flex align-items-center justify-content-center" 
-                                onclick="raporPdfIndir()" style="height: 45px;">
-                            <i class="fa-solid fa-file-pdf me-2"></i> PDF
-                        </button>
-
-                        <button class="btn flex-fill shadow-sm fw-bold text-white d-flex align-items-center justify-content-center" 
-                                style="background-color: #25D366; height: 45px;" onclick="whatsappRaporGonder()">
-                            <i class="fa-brands fa-whatsapp me-2 fa-lg"></i> WHATSAPP
-                        </button>
-
+                        <button class="btn btn-primary-custom flex-fill shadow-sm fw-bold" onclick="ureticiHesapOzetiGetir()"><i class="fa-solid fa-rotate me-2"></i> GETİR</button>
+                        <button class="btn btn-dark flex-fill shadow-sm fw-bold" onclick="raporYazdir()"><i class="fa-solid fa-print me-2"></i> YAZDIR</button>
+                        <button class="btn btn-danger flex-fill shadow-sm fw-bold" onclick="raporPdfIndir()"><i class="fa-solid fa-file-pdf me-2"></i> PDF</button>
+                        <button class="btn flex-fill shadow-sm fw-bold text-white" style="background-color: #25D366;" onclick="whatsappRaporGonder()"><i class="fa-brands fa-whatsapp me-2 fa-lg"></i> WHATSAPP</button>
                     </div>
                 </div>
-
             </div>
         </div>
-
-    <div id="accountReportContent"></div>
-</div>
-</div>
-<div id="rep-general-balance" class="sub-report d-none">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div class="d-flex align-items-center">
-            <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeReport()">
-                <i class="fa-solid fa-arrow-left text-primary"></i>
-            </button>
-            <div>
-                <h5 class="m-0 fw-bold" id="genBalTitle">Genel Bakiye Listesi</h5>
-                <small class="text-muted">Hesap Durum Raporu</small>
-            </div>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-success shadow-sm btn-sm fw-bold" onclick="genelBakiyeExcelIndir()">
-                <i class="fa-solid fa-file-excel me-2"></i> EXCEL İNDİR
-            </button>
-            <button class="btn btn-dark shadow-sm btn-sm fw-bold" onclick="window.print()">
-                <i class="fa-solid fa-print me-2"></i> YAZDIR
-            </button>
-        </div>
+        <div id="accountReportContent"></div>
     </div>
-   <div class="card border-0 shadow-sm mb-4 p-3 bg-light">
-        <div class="row g-2 align-items-end">
-            
-            <div class="col-md-3">
-                <label class="small fw-bold text-muted">Rota / Köy Seçiniz</label>
-                <select class="form-select" id="genBalVillageSelect">
-                    <option value="all">Tüm Rotalar</option>
+
+    <div id="rep-general-balance" class="sub-report d-none">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeReport()"><i class="fa-solid fa-arrow-left text-primary"></i></button>
+                <div><h5 class="m-0 fw-bold" id="genBalTitle">Genel Bakiye Listesi</h5><small class="text-muted">Hesap Durum Raporu</small></div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success shadow-sm btn-sm fw-bold" onclick="genelBakiyeExcelIndir()"><i class="fa-solid fa-file-excel me-2"></i> EXCEL İNDİR</button>
+                <button class="btn btn-dark shadow-sm btn-sm fw-bold" onclick="window.print()"><i class="fa-solid fa-print me-2"></i> YAZDIR</button>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm mb-4 p-3 bg-light">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Rota / Köy Seçiniz</label>
+                    <select class="form-select" id="genBalVillageSelect"><option value="all">Tüm Rotalar</option></select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Bakiye Durumu</label>
+                    <select class="form-select" id="genBalStatusFilter">
+                        <option value="all">Tümü (Hepsi)</option>
+                        <option value="borclu">Sadece Borçlular (B)</option>
+                        <option value="alacakli">Sadece Alacaklılar (A)</option>
                     </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Tarih İtibariyle</label>
+                    <input type="date" class="form-control" id="genBalDateLimit">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary-custom w-100" onclick="genelBakiyeRaporuGetir()"><i class="fa-solid fa-filter me-2"></i> LİSTELE</button>
+                </div>
             </div>
-
-            <div class="col-md-3">
-                <label class="small fw-bold text-muted">Bakiye Durumu</label>
-                <select class="form-select" id="genBalStatusFilter">
-                    <option value="all">Tümü (Hepsi)</option>
-                    <option value="borclu">Sadece Borçlular (B)</option>
-                    <option value="alacakli">Sadece Alacaklılar (A)</option>
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <label class="small fw-bold text-muted">Tarih İtibariyle</label>
-                <input type="date" class="form-control" id="genBalDateLimit">
-                <div class="form-text x-small" style="font-size: 0.65rem;"></div>
-            </div>
-
-            <div class="col-md-3">
-                <button class="btn btn-primary-custom w-100" onclick="genelBakiyeRaporuGetir()">
-                    <i class="fa-solid fa-filter me-2"></i> LİSTELE
-                </button>
-            </div>
-
         </div>
-    </div>
-
-    <div class="card border-0 shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="tblGeneralBalance">
-               <thead class="table-light">
-                    <tr>
-                        <th class="ps-4">Üretici Adı Soyadı</th>
-                        <th>Rota / Köy</th>
-                        <th class="text-end text-danger">Toplam Borç</th>
-                        <th class="text-end text-success">Toplam Alacak</th>
-                        <th class="text-end">NET BAKİYE</th>
-                        <th class="text-center pe-4">DURUM</th> </tr>
-                </thead>
-                <tbody id="generalBalanceBody">
-                    <tr><td colspan="5" class="text-center p-5"><div class="spinner-border text-primary"></div></td></tr>
-                </tbody>
-                <tfoot class="bg-light fw-bold" style="border-top: 2px solid #64748b;">
-                    <tr>
-                        <td colspan="2" class="text-end pe-3 py-3">GENEL TOPLAMLAR:</td>
-                        <td class="text-end text-danger" id="footerTotalBorc">0,00 ₺</td>
-                        <td class="text-end text-success" id="footerTotalAlacak">0,00 ₺</td>
-                        <td class="text-end pe-4" id="footerTotalNet">0,00 ₺</td>
-                    </tr>
-                </tfoot>
-            </table>
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tblGeneralBalance">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Üretici Adı Soyadı</th>
+                            <th>Rota / Köy</th>
+                            <th class="text-end text-danger">Toplam Borç</th>
+                            <th class="text-end text-success">Toplam Alacak</th>
+                            <th class="text-end">NET BAKİYE</th>
+                            <th class="text-center pe-4">DURUM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="generalBalanceBody"><tr><td colspan="6" class="text-center p-5"><div class="spinner-border text-primary"></div></td></tr></tbody>
+                    <tfoot class="bg-light fw-bold" style="border-top: 2px solid #64748b;"></tfoot>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -2860,6 +2860,7 @@ div.swal2-container {
 
 <script type="module">
 // 1. MERKEZİ AYAR DOSYASINDAN İÇE AKTAR (GÜNCELLENDİ)
+  // 1. Önce senin config dosyanı çağır (Mevcut olan)
     import { 
         app, auth, db, 
         doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, 
@@ -2868,13 +2869,13 @@ div.swal2-container {
         onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail
     } from "../js/firebase-config.js";
 
-    // 2. İKİNCİL UYGULAMA İÇİN GEREKLİ (PERSONEL EKLEMEK İÇİN)
-    // deleteApp komutunu da buraya ekledik 👇
-    // 2. İKİNCİL UYGULAMA İÇİN GEREKLİ
-    import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth as getAuthNew } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
+    // 2. İkinci uygulama oluşturmak için gerekli olanları import et (Çakışma olmasın diye getAuth'a takma isim veriyoruz)
+    // DİKKAT: initializeApp'ı buradan tekrar çağırmıyoruz, çakışıyorsa firebase-config'den gelenle idare edebiliriz 
+    // AMA secondary app için raw import gerekebilir.
     
+    // ÇÖZÜM: Çakışmayı önlemek için 'initializeApp'ı farklı bir isimle import edelim:
+    import { initializeApp as initializeAppNew, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth as getAuthNew } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // --- GLOBAL DEĞİŞKENLER (TEK SEFER TANIMLANMALI) ---
 let currentCoopId = null;
@@ -3325,7 +3326,7 @@ function listeyiFiltreleVeCiz() {
             modal.show();
         }
     }
- 
+ // --- YENİ EKLENECEK KOD ---
     const driverForm = document.getElementById("addDriverForm");
     
     if(driverForm) {
@@ -3335,8 +3336,6 @@ function listeyiFiltreleVeCiz() {
             const ad = document.getElementById("soforAd").value;
             const mail = document.getElementById("soforEmail").value;
             const pass = document.getElementById("soforPass").value;
-            
-            // YENİ: Seçilen rolü alıyoruz (yonetici veya sofor)
             const secilenRol = document.getElementById("soforRol").value;
 
             if(pass.length < 6) {
@@ -3360,34 +3359,45 @@ function listeyiFiltreleVeCiz() {
             let secondaryApp = null;
 
             try {
-                // 1. İkincil Uygulama Başlat
-secondaryApp = initializeApp(firebaseConfigForStaff, "StaffApp");
-const secondaryAuth = getAuthNew(secondaryApp); // <-- DÜZELTİLDİ
-                // 2. Kullanıcıyı Oluştur
+                // 1. Config Tanımla
+                const appConfig = {
+                    apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4", 
+                    authDomain: "koopplatform-dd9f8.firebaseapp.com",
+                    projectId: "koopplatform-dd9f8"
+                };
+
+                // 2. İkincil Uygulamayı Başlat (DÜZELTİLEN KISIM: initializeAppNew)
+                secondaryApp = initializeAppNew(appConfig, "SecondaryStaffAuth"); 
+                const secondaryAuth = getAuthNew(secondaryApp); 
+
+                // 3. Kullanıcıyı Oluştur
                 const userCredential = await createUserWithEmailAndPassword(secondaryAuth, mail, pass);
                 const user = userCredential.user;
 
-                // 3. Veritabanına Yaz (Seçilen ROL ile)
+                // 4. Veritabanına Yaz (Seçilen ROL ve CoopID ile)
                 await setDoc(doc(db, "users", user.uid), {
                     email: mail,
                     adSoyad: ad,
-                    rol: secilenRol, // <-- BURASI DEĞİŞTİ (Dinamik oldu)
+                    rol: secilenRol, 
                     coopId: currentCoopId, 
+                    kurumID: currentCoopId, // Garanti olsun
                     kayitTarihi: new Date()
                 });
 
-                // 4. Temizlik
+                // 5. Temizlik (Oturumu Kapat ve Uygulamayı Sil)
                 await signOut(secondaryAuth);
                 if(secondaryApp) await deleteApp(secondaryApp);
 
-                const modal = bootstrap.Modal.getInstance(document.getElementById('addDriverModal'));
+                // Modalı kapat
+                const modalEl = document.getElementById('addDriverModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
                 if(modal) modal.hide();
                 driverForm.reset();
 
                 await Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: 'Yeni personel başarıyla tanımlandı.',
+                    text: `${ad} başarıyla ${secilenRol} olarak tanımlandı.`,
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -3400,6 +3410,9 @@ const secondaryAuth = getAuthNew(secondaryApp); // <-- DÜZELTİLDİ
                 let msg = error.message;
                 if(error.code === 'auth/email-already-in-use') msg = "Bu e-posta adresi zaten kullanılıyor.";
                 Swal.fire("Hata", msg, "error");
+                
+                // Hata durumunda da temizlik yap
+                if(secondaryApp) await deleteApp(secondaryApp);
             }
         });
     }
@@ -3610,7 +3623,11 @@ window.switchTab = function(tabId, el) {
         const mainMenu = document.getElementById("reports-main-menu");
         if(mainMenu) mainMenu.classList.remove("d-none");
     }
-
+// Bu satırları ekle
+    if(tabId === 'orders') {
+        t = "Sipariş Yönetimi";
+        if(typeof siparisleriGetir === 'function') siparisleriGetir();
+    }
     if(tabId === 'reports') {
         t = "Dashboard & Analiz"; 
         // Tarih filtreleri boşsa otomatik doldur
@@ -3823,22 +3840,27 @@ function tabloyuCiz(data) {
 
                     <td class="text-end pe-3">
                         <div class="d-flex justify-content-end gap-2">
-                            <button class="btn btn-sm btn-light text-primary border shadow-sm" 
-                                    onclick="hesapAc('${uye.id}')" title="Hesap Detayı"
-                                    style="width: 35px; height: 35px; border-radius: 8px;">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                            <button class="btn btn-sm btn-light text-secondary border shadow-sm" 
-                                    onclick="uyeDuzenle('${uye.id}')" title="Düzenle" 
-                                    style="width: 35px; height: 35px; border-radius: 8px;">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button class="btn btn-sm btn-light text-danger border shadow-sm" 
-                                    onclick="uyeSil('${uye.id}')" title="Sil" 
-                                    style="width: 35px; height: 35px; border-radius: 8px;">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
+    <button class="btn btn-sm btn-light text-warning border shadow-sm" 
+            onclick="uyeGirisYetkisiVer('${uye.id}', '${uye.telefon}', '${uye.ad} ${uye.soyad}', '${uye.coopId}')" 
+            title="Giriş Şifresi Oluştur">
+        <i class="fa-solid fa-key"></i>
+    </button>
+    <button class="btn btn-sm btn-light text-primary border shadow-sm" 
+            onclick="hesapAc('${uye.id}')" title="Hesap Detayı"
+            style="width: 35px; height: 35px; border-radius: 8px;">
+        <i class="fa-solid fa-chevron-right"></i>
+    </button>
+    <button class="btn btn-sm btn-light text-secondary border shadow-sm" 
+            onclick="uyeDuzenle('${uye.id}')" title="Düzenle" 
+            style="width: 35px; height: 35px; border-radius: 8px;">
+        <i class="fa-solid fa-pen-to-square"></i>
+    </button>
+    <button class="btn btn-sm btn-light text-danger border shadow-sm" 
+            onclick="uyeSil('${uye.id}')" title="Sil" 
+            style="width: 35px; height: 35px; border-radius: 8px;">
+        <i class="fa-solid fa-trash-can"></i>
+    </button>
+</div>
                     </td>
                 </tr>
             `;
@@ -3995,6 +4017,14 @@ function tabloyuCiz(data) {
 
         await batch.commit();
         bootstrap.Modal.getInstance(document.getElementById('sutHesaplaModal')).hide();
+        
+        // --- EKLENEN KISIM BAŞLANGIÇ ---
+        // Tabloyu hemen yenile (Filtreler korunarak)
+        if(typeof sutListesiniGetir === 'function') {
+            sutListesiniGetir(true); 
+        }
+        // --- EKLENEN KISIM BİTİŞ ---
+
         Swal.fire("Başarılı", `${islenenSayisi} adet süt hesaplandı.`, "success");
 
     } catch (error) {
@@ -5198,102 +5228,104 @@ window.yeniUrunModalAc = function() {
         modal.show();
     }
 }
-// --- YETKİLİ LİSTESİ (ÜRETİCİ + ŞOFÖR + YÖNETİCİ) ---
-    window.yetkilileriGetir = async function() {
-        const listDiv = document.getElementById("authorizedUsersList");
-        listDiv.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><div class="small text-muted mt-2">Kullanıcılar taranıyor...</div></div>';
+window.yetkilileriGetir = async function() {
+    const listDiv = document.getElementById("authorizedUsersList");
+    
+    // Eğer element yoksa hata vermemesi için kontrol
+    if(!listDiv) return;
 
-        if(!currentCoopId) {
-    listDiv.innerHTML = '<div class="text-center p-3 text-muted">Kurum bilgisi alınamadı.</div>';
-    return;
-}
+    listDiv.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><div class="small text-muted mt-2">Kullanıcılar taranıyor...</div></div>';
 
-        try {
-            // 1. Kullanıcıları Çek
-            const q1 = query(collection(db, "users"), where("kurumID", "==", currentCoopId));
-            const q2 = query(collection(db, "users"), where("coopId", "==", currentCoopId));
-            const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+    if(!currentCoopId) {
+        listDiv.innerHTML = '<div class="text-center p-3 text-muted">Kurum bilgisi alınamadı. Lütfen sayfayı yenileyin.</div>';
+        return;
+    }
 
-            const usersMap = new Map();
-            snap1.forEach(doc => usersMap.set(doc.id, { id: doc.id, ...doc.data() }));
-            snap2.forEach(doc => usersMap.set(doc.id, { id: doc.id, ...doc.data() }));
+    try {
+        // Sadece 'coopId' ile sorguluyoruz. Bu en garanti yöntemdir.
+        const q = query(collection(db, "users"), where("coopId", "==", currentCoopId));
+        
+        const snapshot = await getDocs(q);
+        
+        listDiv.innerHTML = ""; // Listeyi temizle
 
-            listDiv.innerHTML = "";
+        if (snapshot.empty) {
+            listDiv.innerHTML = '<div class="p-4 text-center text-muted">Bu kuruma bağlı personel/yetkili bulunamadı.</div>';
+            return;
+        }
 
-            if (usersMap.size === 0) {
-                listDiv.innerHTML = '<div class="p-4 text-center text-muted">Kayıtlı kullanıcı bulunamadı.</div>';
-                return;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const uid = doc.id;
+            // Rol boşsa 'tanimsiz' olsun hata vermesin
+            const userRole = (data.rol || data.role || 'tanimsiz').toLowerCase();
+            
+            // Sadece Yönetici ve Şoförleri gösterelim (Üyeleri bu listede göstermeye gerek yoksa)
+            // Eğer hepsini görmek istiyorsanız bu if bloğunu kaldırabilirsiniz.
+            // if (userRole === 'member' || userRole === 'uye') return;
+
+            let rolBadge = 'Personel';
+            let bgClass = 'bg-secondary text-white';
+            let icon = 'fa-user';
+
+            if (userRole === 'admin' || userRole === 'yonetici') {
+                rolBadge = 'Yönetici';
+                bgClass = 'bg-warning text-dark';
+                icon = 'fa-user-tie';
+            } else if (userRole === 'sofor' || userRole === 'driver') {
+                rolBadge = 'Şoför';
+                bgClass = 'bg-info text-dark';
+                icon = 'fa-truck-fast';
+            } else if (userRole === 'member' || userRole === 'uye') {
+                rolBadge = 'Üretici';
+                bgClass = 'bg-success text-white';
+                icon = 'fa-tractor';
             }
 
-            usersMap.forEach(data => {
-                const uid = data.id;
-                const userRole = (data.rol || data.role || '').toLowerCase();
-                
-                // --- ROL ETİKETLEME ---
-                let rolBadge = '';
-                let icon = '';
-                let bgClass = '';
+            const badgeHtml = `<span class="badge ${bgClass}">${rolBadge}</span>`;
 
-                if (userRole === 'admin' || userRole === 'yonetici') {
-                    rolBadge = 'Yönetici';
-                    bgClass = 'bg-warning text-dark';
-                    icon = 'fa-user-tie';
-                } else if (userRole === 'sofor' || userRole === 'driver') {
-                    rolBadge = 'Şoför';
-                    bgClass = 'bg-info text-dark';
-                    icon = 'fa-truck-fast';
-                } else if (userRole === 'member' || userRole === 'uye') {
-                    rolBadge = 'Üretici'; // <-- ARTIK ÜRETİCİ YAZACAK
-                    bgClass = 'bg-success text-white';
-                    icon = 'fa-tractor';
-                } else {
-                    rolBadge = 'Personel';
-                    bgClass = 'bg-secondary text-white';
-                    icon = 'fa-user';
-                }
-
-                const badgeHtml = `<span class="badge ${bgClass}">${rolBadge}</span>`;
-
-                // --- LİSTE ÖĞESİ ---
-                const item = `
-                    <div class="list-group-item p-3 d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px; height:45px;">
-                                <i class="fa-solid ${icon}"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold text-dark">${data.adSoyad || 'İsimsiz'}</h6>
-                                <div class="d-flex align-items-center gap-2">
-                                    <small class="text-muted" style="font-size:0.8rem;">${data.email}</small>
-                                    ${badgeHtml}
-                                </div>
-                            </div>
+            const item = `
+                <div class="list-group-item p-3 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px; height:45px;">
+                            <i class="fa-solid ${icon}"></i>
                         </div>
-                        
-                        <div class="d-flex align-items-center gap-2">
-                            <button class="btn btn-sm btn-light border text-primary" onclick="kullaniciDuzenle('${uid}', '${data.adSoyad || ''}', '${userRole}')" title="Bilgileri Düzenle">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-
-                            <button class="btn btn-sm btn-light border text-warning" onclick="sifreSifirlamaGonder('${data.email}')" title="Şifre Sıfırlama Linki Gönder">
-                                <i class="fa-solid fa-key"></i>
-                            </button>
-
-                            ${(userRole !== 'yonetici' && userRole !== 'admin') ? 
-                                `<button class="btn btn-sm btn-light text-danger border" onclick="kullaniciSil('${uid}')" title="Yetkiyi Kaldır"><i class="fa-solid fa-trash"></i></button>` 
-                                : ''} 
+                        <div>
+                            <h6 class="mb-0 fw-bold text-dark">${data.adSoyad || 'İsimsiz'}</h6>
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-muted" style="font-size:0.8rem;">${data.email}</small>
+                                ${badgeHtml}
+                            </div>
                         </div>
                     </div>
-                `;
-                
-                listDiv.innerHTML += item;
-            });
+                    
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-light border text-primary" onclick="kullaniciDuzenle('${uid}', '${data.adSoyad || ''}', '${userRole}')" title="Düzenle">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light border text-warning" onclick="sifreSifirlamaGonder('${data.email}')" title="Şifre Sıfırla">
+                            <i class="fa-solid fa-key"></i>
+                        </button>
+                        ${(userRole !== 'yonetici' && userRole !== 'admin') ? 
+                            `<button class="btn btn-sm btn-light text-danger border" onclick="kullaniciSil('${uid}')" title="Sil"><i class="fa-solid fa-trash"></i></button>` 
+                            : ''} 
+                    </div>
+                </div>
+            `;
+            
+            listDiv.innerHTML += item;
+        });
 
-        } catch (error) {
-            console.error(error);
-            listDiv.innerHTML = '<div class="text-danger p-3">Hata: ' + error.message + '</div>';
+    } catch (error) {
+        console.error("Yetkili Getirme Hatası:", error);
+        let errorMsg = error.message;
+        if(error.code === 'permission-denied') {
+            errorMsg = "Yetki hatası: Lütfen Firestore Kurallarını güncellediğinizden emin olun.";
         }
+        listDiv.innerHTML = `<div class="alert alert-danger m-3 small">${errorMsg}</div>`;
     }
+}
+       
 
     // --- KULLANICI DÜZENLEME FONKSİYONU ---
     window.kullaniciDuzenle = async function(uid, mevcutAd, mevcutRol) {
@@ -6821,6 +6853,13 @@ window.tekilUyeGeriAl = async function(docId, batchId, memberId, adSoyad) {
 
         await batch.commit();
 
+        // --- EKLENEN KISIM BAŞLANGIÇ ---
+        // Arka plandaki listeyi yenile
+        if(typeof sutListesiniGetir === 'function') {
+            sutListesiniGetir(true); 
+        }
+        // --- EKLENEN KISIM BİTİŞ ---
+
         Swal.fire({
             icon: 'success',
             title: 'Düzeltildi',
@@ -6828,8 +6867,6 @@ window.tekilUyeGeriAl = async function(docId, batchId, memberId, adSoyad) {
             timer: 2000,
             showConfirmButton: false
         }).then(() => {
-            // Listeyi tekrar açmak isterseniz:
-            // partiDetaylariniGoster(batchId, 'Güncel Liste'); 
         });
 
     } catch (error) {
@@ -6885,6 +6922,13 @@ window.seciliIslemiSil = async function(batchId) {
 
         // İşlemi Uygula
         await batch.commit();
+
+        // --- EKLENEN KISIM BAŞLANGIÇ ---
+        // Listeyi anında güncelle
+        if(typeof sutListesiniGetir === 'function') {
+            sutListesiniGetir(true); 
+        }
+        // --- EKLENEN KISIM BİTİŞ ---
 
         Swal.fire({
             icon: 'success',
@@ -8543,6 +8587,291 @@ window.musavirBagla = async function() {
         Swal.fire("Hata", error.message, "error");
     }
 }
+
+// --- SCRIPT'İN EN ALTINA YAPIŞTIRIN ---
+
+// İkincil uygulama için config (Mevcut config ile aynı)
+const secondaryConfig = {
+    apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4", 
+    authDomain: "koopplatform-dd9f8.firebaseapp.com",
+    projectId: "koopplatform-dd9f8"
+};
+
+window.uyeGirisYetkisiVer = async function(memberId, telefon, adSoyad, coopId) {
+    // Telefon Kontrolü
+    if(!telefon || telefon.length < 10) {
+        Swal.fire("Hata", "Üyenin geçerli bir telefon numarası yok. Lütfen önce düzenle diyerek telefon ekleyin.", "warning");
+        return;
+    }
+
+    // Telefonu Temizle (Sadece rakam kalsın)
+    let cleanPhone = telefon.replace(/\D/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
+    
+    // Varsayılan Şifre ve Email
+    const varsayilanSifre = "123456"; 
+    const email = `${cleanPhone}@koop.com`; // Telefon numarası tabanlı sahte email
+
+    // Onay İste
+    const confirm = await Swal.fire({
+        title: 'Giriş Yetkisi Verilsin mi?',
+        html: `
+            <div class="text-start fs-6">
+                <b>${adSoyad}</b> için giriş hesabı oluşturulacak.<br><br>
+                👤 Kullanıcı Adı: <b>${cleanPhone}</b><br>
+                🔑 Şifre: <b>${varsayilanSifre}</b><br><br>
+                <span class="text-muted small">Bu bilgileri üyeye iletmeniz gerekecek.</span>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Evet, Oluştur',
+        confirmButtonColor: '#0f766e',
+        cancelButtonText: 'Vazgeç'
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    Swal.fire({title: 'Hesap Oluşturuluyor...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
+
+    let secondaryApp = null;
+    try {
+        // 1. İkincil uygulama başlat (Yönetici çıkışı yapmamak için kritik nokta!)
+        secondaryApp = initializeAppNew(secondaryConfig, "SecondaryMemberAuth");
+        const secondaryAuth = getAuthNew(secondaryApp);
+
+        // 2. Yeni Auth kullanıcısı oluştur
+        const userCred = await createUserWithEmailAndPassword(secondaryAuth, email, varsayilanSifre);
+        const newUid = userCred.user.uid;
+
+        // 3. Users tablosuna kaydet (Member rolüyle)
+        await setDoc(doc(db, "users", newUid), {
+            email: email,
+            adSoyad: adSoyad,
+            rol: 'member', // Rol: Üye
+            coopId: coopId,
+            relatedMemberId: memberId, // Members tablosundaki asıl kayda bağladık
+            createdAt: new Date()
+        });
+
+        // 4. Temizlik (İkincil uygulamayı kapat)
+        await deleteApp(secondaryApp);
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Hesap Hazır!',
+            html: `Üye artık şu bilgilerle giriş yapabilir:<br><br>
+                   <b>No:</b> ${cleanPhone}<br>
+                   <b>Şifre:</b> ${varsayilanSifre}`
+        });
+
+    } catch (error) {
+        console.error(error);
+        if (error.code === 'auth/email-already-in-use') {
+            Swal.fire("Bilgi", "Bu numara için zaten bir giriş hesabı oluşturulmuş.", "info");
+        } else {
+            Swal.fire("Hata", "İşlem başarısız: " + error.message, "error");
+        }
+        // Hata olsa bile ikincil uygulamayı temizle
+        if(secondaryApp) await deleteApp(secondaryApp);
+    }
+}
+// --- SİPARİŞ YÖNETİMİ JS KODLARI ---
+
+// 1. Siparişleri Çek ve Listele
+window.siparisleriGetir = function() {
+    const tableBody = document.getElementById("order-list-body");
+    if(!tableBody || !currentCoopId) return;
+
+    // Bekleyen, Hazırlanıyor ve Son 24 saatte tamamlananları getir
+    const q = query(collection(db, "orders"), 
+                    where("coopId", "==", currentCoopId),
+                    orderBy("siparisTarihi", "desc"));
+
+    onSnapshot(q, (snapshot) => {
+        let html = "";
+        let countBekleyen = 0;
+        let countHazirlaniyor = 0;
+        let countTamamlanan = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            let tarihStr = "-";
+            let dateObj = new Date();
+            
+            if(data.siparisTarihi && data.siparisTarihi.seconds) {
+                dateObj = data.siparisTarihi.toDate();
+                tarihStr = dateObj.toLocaleDateString('tr-TR') + ' ' + dateObj.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+            }
+
+            // İstatistikler
+            if(data.durum === 'Bekliyor') countBekleyen++;
+            else if(data.durum === 'Hazırlanıyor') countHazirlaniyor++;
+            else if(data.durum === 'Teslim Edildi' && (new Date() - dateObj) < 86400000) countTamamlanan++; 
+
+            // Durum Renkleri
+            let badgeClass = "bg-secondary";
+            if(data.durum === 'Bekliyor') badgeClass = "bg-warning text-dark";
+            if(data.durum === 'Hazırlanıyor') badgeClass = "bg-primary";
+            if(data.durum === 'Teslim Edildi') badgeClass = "bg-success";
+            if(data.durum === 'İptal') badgeClass = "bg-danger";
+
+            // Butonlar
+            let actionBtns = '';
+            
+            // Tırnak işaretlerini temizle (JavaScript hatasını önler)
+            const safeName = (data.memberName || '').replace(/'/g, "\\'");
+            const safeProduct = (data.urunAdi || '').replace(/'/g, "\\'");
+
+            if(data.durum === 'Bekliyor') {
+                actionBtns = `
+                    <button class="btn btn-sm btn-outline-success me-1" onclick="siparisDurumDegistir('${doc.id}', 'Hazırlanıyor')" title="Onayla">
+                        <i class="fa-solid fa-check"></i> Onayla
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="siparisDurumDegistir('${doc.id}', 'İptal')" title="Reddet">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+            } else if(data.durum === 'Hazırlanıyor') {
+                actionBtns = `
+                    <button class="btn btn-sm btn-success text-white fw-bold px-3" onclick="siparisTeslimEt('${doc.id}', '${data.memberId}', '${safeName}', '${safeProduct}', ${data.miktar || 0})">
+                        Teslim Et <i class="fa-solid fa-paper-plane ms-1"></i>
+                    </button>
+                `;
+            } else {
+                actionBtns = '<span class="text-muted small"><i class="fa-solid fa-check-double"></i> Tamamlandı</span>';
+            }
+
+            html += `
+            <tr>
+                <td class="ps-4 small text-muted">${tarihStr}</td>
+                <td>
+                    <div class="fw-bold text-dark">${data.memberName || 'İsimsiz'}</div>
+                </td>
+                <td>
+                    <span class="fw-bold text-dark">${data.urunAdi}</span>
+                    <div class="badge bg-light text-dark border border-secondary border-opacity-25 mt-1">${data.miktar} Adet</div>
+                </td>
+                <td>
+                    <div class="small fw-bold text-secondary">${data.teslimatTipi || '-'}</div>
+                    ${data.not ? `<div class="small text-danger fst-italic"><i class="fa-solid fa-note-sticky me-1"></i>${data.not}</div>` : ''}
+                </td>
+                <td>
+                    <span class="badge ${badgeClass} p-2">${data.durum}</span>
+                </td>
+                <td class="text-end pe-4">
+                    ${actionBtns}
+                </td>
+            </tr>
+            `;
+        });
+
+        tableBody.innerHTML = html || '<tr><td colspan="6" class="text-center py-5 text-muted">Aktif sipariş bulunmuyor.</td></tr>';
+
+        // Sayaçları Güncelle
+        if(document.getElementById("count-bekleyen")) {
+            document.getElementById("count-bekleyen").innerText = countBekleyen;
+            document.getElementById("count-hazirlaniyor").innerText = countHazirlaniyor;
+            document.getElementById("count-tamamlanan").innerText = countTamamlanan;
+        }
+
+        // Menüdeki Kırmızı Bildirim Rozeti
+        const badge = document.getElementById("badge-siparis");
+        if(badge) {
+            if(countBekleyen > 0) {
+                badge.style.display = "inline-block";
+                badge.innerText = countBekleyen;
+            } else {
+                badge.style.display = "none";
+            }
+        }
+    });
+}
+
+// 2. Durum Değiştirme (Onayla/İptal)
+window.siparisDurumDegistir = async function(docId, yeniDurum) {
+    try {
+        await updateDoc(doc(db, "orders", docId), { durum: yeniDurum });
+        const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
+        Toast.fire({icon: 'success', title: 'Durum güncellendi: ' + yeniDurum});
+    } catch (error) {
+        Swal.fire("Hata", error.message, "error");
+    }
+}
+
+// 3. Teslim Et ve Cariye İşle
+window.siparisTeslimEt = async function(docId, memberId, memberName, urunAdi, miktar) {
+    const { value: formValues } = await Swal.fire({
+        title: 'Siparişi Teslim Et',
+        html: `
+            <div class="bg-light p-3 rounded border text-start">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="swal-cari-islesin" checked onchange="document.getElementById('fiyat-div').style.display = this.checked ? 'block' : 'none'">
+                    <label class="form-check-label fw-bold" for="swal-cari-islesin">Cari Hesaba Borç İşle</label>
+                </div>
+                
+                <div id="fiyat-div">
+                    <label class="small fw-bold text-muted mb-1">Toplam Tutar (TL)</label>
+                    <input type="number" id="swal-tutar" class="form-control fw-bold fs-5" placeholder="0.00">
+                    <div class="form-text x-small text-danger">Bu tutar üyenin hesabına <b>BORÇ</b> olarak eklenecek.</div>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Teslim Et ve Bitir',
+        confirmButtonColor: '#198754',
+        preConfirm: () => {
+            return {
+                islesin: document.getElementById('swal-cari-islesin').checked,
+                tutar: document.getElementById('swal-tutar').value
+            }
+        }
+    });
+
+    if (formValues) {
+        if (formValues.islesin && (!formValues.tutar || Number(formValues.tutar) <= 0)) {
+            return Swal.fire("Hata", "Cariye işlenecekse tutar girmelisiniz!", "warning");
+        }
+
+        Swal.fire({title: 'İşleniyor...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+
+        try {
+            const batch = writeBatch(db);
+            
+            // 1. Sipariş Durumunu Güncelle
+            const orderRef = doc(db, "orders", docId);
+            batch.update(orderRef, { durum: 'Teslim Edildi', teslimTarihi: new Date() });
+
+            // 2. Cariye İşle (Eğer seçildiyse)
+            if (formValues.islesin) {
+                const transRef = doc(collection(db, "transactions"));
+                batch.set(transRef, {
+                    memberId: memberId,
+                    coopId: currentCoopId,
+                    type: 'borc', // Borçlandırma
+                    category: 'Malzeme Siparişi',
+                    description: `Sipariş: ${urunAdi} (${miktar} Adet)`,
+                    amount: Number(formValues.tutar),
+                    date: new Date(),
+                    createdAt: new Date()
+                });
+                
+                // Üye bakiyesini güncelle
+                const memberRef = doc(db, "members", memberId);
+                batch.update(memberRef, {
+                    guncelBakiye: increment(Number(formValues.tutar))
+                });
+            }
+
+            await batch.commit();
+            Swal.fire("Başarılı", "Sipariş teslim edildi.", "success");
+
+        } catch (error) {
+            Swal.fire("Hata", error.message, "error");
+        }
+    }
+}
+
 </script>
 <div class="bottom-nav d-lg-none">
     <a class="b-nav-item active" onclick="switchTab('dashboard', this); closeSidebar()">

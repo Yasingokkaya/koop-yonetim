@@ -284,8 +284,8 @@ onAuthStateChanged(auth, async (user) => {
                     const rotalar = data.villages || [];
                     const rotaSelect = document.getElementById("villageFilter");
                     
-                    // Kutuyu temizle ve tekrar doldur
-                    rotaSelect.innerHTML = '<option value="all">Tüm Rotalar</option>';
+                   // Varsayılan olarak boş ve seçilemez bir başlık koyuyoruz
+rotaSelect.innerHTML = '<option value="" selected disabled>Rota Seçiniz...</option>';
                     
                     // Alfabetik sırayla ekle
                     rotalar.sort().forEach(r => {
@@ -317,7 +317,7 @@ onAuthStateChanged(auth, async (user) => {
                 data.id = doc.id;
                 allMembersData.push(data);
             });
-            dropdownDoldur("all");
+            dropdownDoldur(""); // Boş gönderiyoruz ki liste dolmasın
         });
     }
 
@@ -325,11 +325,19 @@ onAuthStateChanged(auth, async (user) => {
 
     function dropdownDoldur(selectedVillage) {
         const selectBox = document.getElementById("memberSelect");
+        
+        // --- YENİ KONTROL: Rota seçili değilse listeyi temizle ve dur ---
+        if (!selectedVillage || selectedVillage === "" || selectedVillage === "all") {
+            selectBox.innerHTML = '<option value="">Önce rota seçiniz...</option>';
+            return; // Fonksiyonu burada bitir
+        }
+        // ---------------------------------------------------------------
+
         selectBox.innerHTML = '<option value="">Sıradaki...</option>';
 
         // 1. Köye göre filtrele
-        let filtered = (selectedVillage === "all") ? allMembersData : allMembersData.filter(m => m.koy === selectedVillage);
-
+        // (selectedVillage "all" olamaz çünkü yukarıda engelledik, direkt filtreliyoruz)
+        let filtered = allMembersData.filter(m => m.koy === selectedVillage);
         // 2. Süt verenleri çıkar
         filtered = filtered.filter(uye => {
             const zatenVerdi = todayRecords.some(rec => rec.memberId === uye.id && rec.period === currentPeriod);
@@ -346,8 +354,7 @@ onAuthStateChanged(auth, async (user) => {
 
         // Birleştir (Normaller önce, Pas geçilenler sonra)
         const finalSorted = [...normalList, ...skippedList];
-
-        if(finalSorted.length === 0) {
+if(finalSorted.length === 0) {
              const option = document.createElement("option");
              option.text = "--- Bu rotada işlem tamam ---";
              selectBox.appendChild(option);
@@ -355,12 +362,15 @@ onAuthStateChanged(auth, async (user) => {
             finalSorted.forEach(uye => {
                 const option = document.createElement("option");
                 option.value = uye.id;
-                // Eğer pas geçilmişse isminin başına (PAS) yazalım
-                const prefix = skippedMembers.includes(uye.id) ? '(SONA ATILDI) ' : `${uye.sira || '-'} - `;
-                option.text = `${prefix}${uye.ad} ${uye.soyad}`;
+                
+                // DEĞİŞİKLİK BURADA: Sadece Ad Soyad yazdırıyoruz.
+                // Sıra numarası ve (SONA ATILDI) yazısı kaldırıldı.
+                option.text = `${uye.ad} ${uye.soyad}`;
+                
                 selectBox.appendChild(option);
             });
-            // Otomatik 1. sıradakini seç
+            
+            // Otomatik 1. sıradakini seç (Sıradaki...)
             if(selectedVillage !== "all") selectBox.selectedIndex = 1;
         }
     }
@@ -444,24 +454,20 @@ onAuthStateChanged(auth, async (user) => {
     window.clearNum = function() {
         document.getElementById("literInput").value = "";
     }
-
-    // --- YENİ KAYIT İŞLEMİ (AKILLI KONTROL MEKANİZMALI) ---
+// --- YENİ KAYIT İŞLEMİ (MÜKERRER KONTROLLÜ) ---
     document.getElementById("collectionForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         
         const memSelect = document.getElementById("memberSelect");
         const memId = memSelect.value;
-        // İsimden sıra numarasını temizleyip sadece ismi alalım (Opsiyonel temizlik)
         let rawName = memSelect.options[memSelect.selectedIndex].text;
-        // Eğer "(SONA ATILDI)" veya "1 -" gibi ibareler varsa temiz kalsın istiyorsan buraya regex eklenebilir, şimdilik olduğu gibi alıyoruz.
         const memName = rawName; 
 
         const liters = Number(document.getElementById("literInput").value);
         
-        // Tarih ve Saat Ayarları
         const seciliTarihStr = document.getElementById("islemTarihi").value; 
         const dateParts = seciliTarihStr.split("-");
-        const formattedDate = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`; // DD.MM.YYYY
+        const formattedDate = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`; 
 
         const suAn = new Date();
         const tamTarih = new Date(seciliTarihStr);
@@ -472,53 +478,66 @@ onAuthStateChanged(auth, async (user) => {
             return; 
         }
 
-        // --- SAPMA KONTROLÜ BAŞLIYOR ---
+        // --- 1. MÜKERRER KAYIT KONTROLÜ (YENİ EKLENEN KISIM) ---
+        // Kaydetmeden önce veritabanına sor: Bu kişinin bugün kaydı var mı?
+        const qDuplicate = query(
+            collection(db, "milk_records"),
+            where("coopId", "==", currentCoopId),
+            where("memberId", "==", memId),
+            where("period", "==", currentPeriod), // Sabahsa sabah, Akşamsa akşam
+            where("dateString", "==", formattedDate)
+        );
+
+        const dupSnap = await getDocs(qDuplicate);
+
+        if (!dupSnap.empty) {
+            // Eğer kayıt varsa işlemi durdur ve uyarı ver
+            Swal.fire({
+                icon: 'error',
+                title: 'Zaten Kayıtlı!',
+                text: `${memName} için ${currentPeriod.toUpperCase()} sütü zaten girilmiş. Miktarı değiştirmek için aşağıdaki listeden düzenle butonunu kullanın.`
+            });
+            // Formu temizle ve çık
+            document.getElementById("literInput").value = "";
+            const seciliKoy = document.getElementById("villageFilter").value;
+            dropdownDoldur(seciliKoy);
+            return; 
+        }
+        // -------------------------------------------------------
+
+        // --- 2. SAPMA KONTROLÜ ---
         let kaydet = true;
 
         if (deviationLimit > 0) {
-            // 1. Dünün Tarihini Bul
+            // Dünün Tarihini Bul
             const d = new Date(seciliTarihStr);
             d.setDate(d.getDate() - 1);
-            
             const yyyy = d.getFullYear();
             const mm = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
-            const dunFormatted = `${dd}.${mm}.${yyyy}`; // Dünün tarihi: 01.12.2025
+            const dunFormatted = `${dd}.${mm}.${yyyy}`;
 
-            // 2. Veritabanından Dünkü Kaydı Çek
             const qCheck = query(
                 collection(db, "milk_records"),
                 where("coopId", "==", currentCoopId),
                 where("memberId", "==", memId),
-                where("period", "==", currentPeriod), // Aynı periyot (Sabahsa sabah)
+                where("period", "==", currentPeriod),
                 where("dateString", "==", dunFormatted)
             );
 
             const querySnap = await getDocs(qCheck);
             
             if (!querySnap.empty) {
-                // Dün kayıt varmış, kontrol et
                 const eskiKayit = querySnap.docs[0].data();
                 const eskiLitre = Number(eskiKayit.liters);
-                
-                // Farkı Yüzde Olarak Hesapla
                 const fark = Math.abs(liters - eskiLitre);
                 const yuzde = (fark / eskiLitre) * 100;
 
                 if (yuzde > deviationLimit) {
-                    kaydet = false; // Şimdilik durdur, onay iste
-                    
+                    kaydet = false;
                     const confirmRes = await Swal.fire({
                         title: 'ANORMAL GİRİŞ!',
-                        html: `
-                            <div class="text-start fs-6">
-                                <p><strong>Dün:</strong> ${eskiLitre} Lt</p>
-                                <p><strong>Bugün:</strong> ${liters} Lt</p>
-                                <p class="text-danger">Fark: %${yuzde.toFixed(0)}</p>
-                                <hr>
-                                Yine de kaydetmek istiyor musunuz?
-                            </div>
-                        `,
+                        html: `<div class="text-start fs-6"><p><strong>Dün:</strong> ${eskiLitre} Lt</p><p><strong>Bugün:</strong> ${liters} Lt</p><p class="text-danger">Fark: %${yuzde.toFixed(0)}</p><hr>Yine de kaydetmek istiyor musunuz?</div>`,
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#d33',
@@ -526,18 +545,13 @@ onAuthStateChanged(auth, async (user) => {
                         confirmButtonText: 'Evet, Kaydet',
                         cancelButtonText: 'İptal'
                     });
-
-                    if (confirmRes.isConfirmed) {
-                        kaydet = true; // Kullanıcı onayladı, devam et
-                    }
+                    if (confirmRes.isConfirmed) kaydet = true;
                 }
             }
         }
-        // --- KONTROL BİTTİ ---
 
        if (kaydet) {
             try {
-                // Şoför ismini ekrandan alıyoruz
                 const soforIsmi = document.getElementById("driverName").innerText || "Şoför"; 
 
                 await addDoc(collection(db, "milk_records"), {
@@ -548,11 +562,10 @@ onAuthStateChanged(auth, async (user) => {
                     date: tamTarih,
                     dateString: formattedDate,
                     driverId: currentDriverId,
-                    driverName: soforIsmi, // <--- YENİ EKLENEN SATIR
+                    driverName: soforIsmi,
                     coopId: currentCoopId
                 });
                 
-                // Başarılı
                 document.getElementById("literInput").value = "";
                 const Toast = Swal.mixin({toast: true, position: 'top', showConfirmButton: false, timer: 1000});
                 Toast.fire({ icon: 'success', title: 'Kaydedildi' });
