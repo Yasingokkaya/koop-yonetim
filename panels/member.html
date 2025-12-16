@@ -452,7 +452,34 @@
             <i class="fa-solid fa-user"></i> <span>Profil</span>
         </button>
     </div>
-
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark border-0">
+                <h5 class="modal-title fw-bold">Şifre Değiştir</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">MEVCUT ŞİFRE</label>
+                    <input type="password" id="oldPass" class="form-control" placeholder="Şu anki şifreniz">
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">YENİ ŞİFRE</label>
+                    <input type="password" id="newPass" class="form-control" placeholder="En az 6 karakter">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">YENİ ŞİFRE (TEKRAR)</label>
+                    <input type="password" id="newPassConfirm" class="form-control">
+                </div>
+                <button class="btn btn-dark w-100 mt-3" onclick="guvenliSifreDegistir()">
+                    Güncelle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -1204,116 +1231,121 @@ window.hayvanlariGetir = function() {
     });
 }
 
-// --- 7. YEM VE MALZEME SİPARİŞİ (DİNAMİK STOKLU) ---
+// --- YENİ YEM SİPARİŞİ FONKSİYONU (HATA AYIKLAMA MODU) ---
 window.malzemeSiparisiVer = async function() {
-    
-    // 1. Önce yükleniyor uyarısı verelim (Veri çekmek zaman alabilir)
-    Swal.fire({
-        title: 'Ürün Listesi Alınıyor...', 
-        allowOutsideClick: false, 
-        didOpen: () => Swal.showLoading()
-    });
+    let urunOptions = "";
+    let fiyatListesi = {};
 
     try {
-        // 2. Veritabanından (products tablosundan) bu kooperatife ait ürünleri çek
-        // Not: Admin panelinde ürünleri 'products' tablosuna kaydettiğinizi varsayıyoruz.
-        const q = query(collection(db, "products"), where("coopId", "==", currentCoopId));
-        const querySnapshot = await getDocs(q);
+        Swal.fire({ title: 'Ürün Listesi Yükleniyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        console.log("Sorgu başlıyor: 'products' tablosu aranıyor...");
 
-        let urunListesiHTML = "";
+        // 1. DÜZELTME: orderBy('ad') kaldırdık. Önce verinin gelip gelmediğini görelim.
+        const q = query(collection(db, "products")); 
+        
+        const querySnapshot = await getDocs(q);
+        
+        console.log("Sorgu bitti. Bulunan ürün sayısı:", querySnapshot.size);
+        Swal.close();
+
+        if (querySnapshot.empty) {
+            // HATA VARSA DETAYLI UYARI VER
+            console.warn("Veritabanında 'products' koleksiyonu boş veya erişilemiyor.");
+            Swal.fire({
+                icon: "warning",
+                title: "Ürün Bulunamadı",
+                html: "Veritabanında ürün görünüyor ancak kod çekemiyor.<br><br><b>Olası Sebepler:</b><br>1. Tablo adı 'products' değil.<br>2. Güvenlik kuralları (Rules) okumaya izin vermiyor.<br>3. Veritabanı gerçekten boş."
+            });
+            return;
+        }
 
         querySnapshot.forEach((doc) => {
-            const urun = doc.data();
-            // Ürün Adı ve varsa Birimi veya Fiyatı (Görselde görünen kısım)
-            // Örn: Süt Yemi (500 TL)
-            const gorunenMetin = `${urun.name || urun.urunAdi} ${urun.price ? '(' + urun.price + ' TL)' : ''}`;
-            const deger = urun.name || urun.urunAdi; // Veritabanına kaydedilecek saf isim
+            const data = doc.data();
+            console.log("Bulunan Ürün:", data); // Console'a bas
 
-            urunListesiHTML += `<option value="${deger}">${gorunenMetin}</option>`;
+            // 2. DÜZELTME: Alan adlarını kontrol ediyoruz.
+            // Eğer veritabanında 'ad' yoksa 'urunAdi' veya 'name' deneyelim.
+            const urunAdi = data.ad || data.name || data.urunAdi || "İsimsiz Ürün";
+            const fiyat = Number(data.fiyat || data.price || 0);
+
+            urunOptions += `<option value="${urunAdi}">${urunAdi} (${fiyat.toLocaleString('tr-TR')} TL)</option>`;
+            fiyatListesi[urunAdi] = fiyat;
         });
-
-        // Eğer veritabanında hiç ürün yoksa uyar
-        if (urunListesiHTML === "") {
-            return Swal.fire("Uyarı", "Sipariş verilebilecek tanımlı bir ürün bulunamadı. Lütfen yönetimle görüşün.", "warning");
-        }
-
-        // 3. Listeyi aldıktan sonra pencereyi aç (Swal)
-        const { value: formValues } = await Swal.fire({
-            title: 'Yem / Malzeme Siparişi',
-            html: `
-                <div class="text-start">
-                    <div class="alert alert-info small p-2 mb-3">
-                        <i class="fa-solid fa-truck me-1"></i> Siparişiniz iletilecek ve cari hesabınıza işlenecektir.
-                    </div>
-
-                    <label class="small fw-bold text-muted mb-1">Ürün Seçiniz</label>
-                    <select id="ord-urun" class="form-select mb-3">
-                        ${urunListesiHTML} </select>
-
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <label class="small fw-bold text-muted mb-1">Miktar</label>
-                            <input type="number" id="ord-adet" class="form-control fw-bold" value="1" min="1">
-                        </div>
-                        <div class="col-6">
-                            <label class="small fw-bold text-muted mb-1">Teslimat</label>
-                            <select id="ord-teslimat" class="form-select">
-                                <option value="Adrese Teslim">Adrese Gelsin</option>
-                                <option value="Gelip Alacağım">Ben Alacağım</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <label class="small fw-bold text-muted mt-2 mb-1">Notunuz (Opsiyonel)</label>
-                    <textarea id="ord-not" class="form-control" rows="2" placeholder="Örn: Süt arabasıyla gönderin..."></textarea>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Siparişi Onayla',
-            confirmButtonColor: '#0891b2',
-            cancelButtonText: 'Vazgeç',
-            preConfirm: () => {
-                return {
-                    urun: document.getElementById('ord-urun').value,
-                    adet: document.getElementById('ord-adet').value,
-                    teslimat: document.getElementById('ord-teslimat').value,
-                    not: document.getElementById('ord-not').value
-                }
-            }
-        });
-
-        if (formValues) {
-            if(formValues.adet < 1) return Swal.fire("Hata", "En az 1 adet seçmelisiniz.", "warning");
-
-            Swal.fire({title: 'Sipariş İletiliyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-
-            // SİPARİŞİ KAYDET (Orders Koleksiyonuna)
-            await addDoc(collection(db, "orders"), {
-                memberId: currentMemberId,
-                coopId: currentCoopId,
-                memberName: document.getElementById("lblMemberName").innerText.replace('Sn. ', ''), 
-                urunAdi: formValues.urun,
-                miktar: Number(formValues.adet),
-                teslimatTipi: formValues.teslimat,
-                not: formValues.not,
-                durum: 'Bekliyor', 
-                siparisTarihi: new Date()
-            });
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Sipariş Alındı!',
-                text: 'Talebiniz başarıyla kaydedildi ve ilgili birime iletildi.',
-                timer: 2000,
-                showConfirmButton: false
-            });
-        }
 
     } catch (error) {
-        console.error(error);
-        Swal.fire("Hata", "Ürün listesi yüklenirken hata oluştu: " + error.message, "error");
+        console.error("KRİTİK HATA:", error);
+        Swal.fire("Sistem Hatası", "Veri çekilirken hata oluştu: " + error.message, "error");
+        return;
+    }
+
+    // Formu Göster
+    const { value: formValues } = await Swal.fire({
+        title: 'Yem Siparişi Ver',
+        html: `
+            <div class="text-start">
+                <div class="alert alert-light border small p-2 mb-3 text-muted">
+                    <i class="fa-solid fa-store me-1"></i> Listeden ürün seçiniz.
+                </div>
+
+                <label class="small fw-bold text-primary mb-1">Ürün Seçiniz</label>
+                <select id="swal-urun" class="form-select mb-3">
+                    ${urunOptions}
+                </select>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">Adet</label>
+                        <input id="swal-adet" type="number" class="form-control" placeholder="1" min="1" value="1">
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">Teslimat</label>
+                        <select id="swal-teslimat" class="form-select">
+                            <option value="Süt Arabası">Süt Arabası ile</option>
+                            <option value="Elden Teslim">Kendim Alacağım</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label class="small fw-bold text-muted mb-1">Notunuz</label>
+                <textarea id="swal-not" class="form-control" rows="2"></textarea>
+            </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Siparişi Tamamla',
+        preConfirm: () => {
+            return {
+                urun: document.getElementById('swal-urun').value,
+                miktar: document.getElementById('swal-adet').value,
+                teslimat: document.getElementById('swal-teslimat').value,
+                not: document.getElementById('swal-not').value
+            }
+        }
+    });
+
+    if (formValues) {
+        // ... Sipariş Kayıt Kısmı Aynen Kalacak ...
+        const miktar = Number(formValues.miktar);
+        const urun = formValues.urun;
+        const birimFiyat = fiyatListesi[urun] || 0;
+        const toplamTutar = birimFiyat * miktar;
+        const uyeAdi = document.getElementById("profName") ? document.getElementById("profName").innerText : "Mobil Üye";
+
+        try {
+            await addDoc(collection(db, "orders"), {
+                coopId: currentCoopId, memberId: currentMemberId, memberName: uyeAdi,
+                urun: urun, miktar: miktar, birimFiyat: birimFiyat, tutar: toplamTutar,
+                teslimatYontemi: formValues.teslimat, not: formValues.not,
+                tarih: new Date(), status: "Bekliyor"
+            });
+            Swal.fire("Başarılı", "Siparişiniz alındı.", "success");
+        } catch (e) {
+            Swal.fire("Hata", e.message, "error");
+        }
     }
 }
+// --- EKLENECEK KOD BİTİŞİ ---
 // --- 4. HAYVAN DÜZENLE (DÜZELTİLMİŞ VERSİYON) ---
 window.hayvanDuzenle = async function(docId, kupeNo, mevcutGebelik, mevcutTarih, mevcutTip) {
     const { value: formValues } = await Swal.fire({
@@ -2351,6 +2383,8 @@ async function ekstreGetir() {
             container.innerHTML = '<div class="alert alert-danger">Veri alınırken hata oluştu.</div>';
         }
     }
+
+    
     </script>
 </body>
 </html>

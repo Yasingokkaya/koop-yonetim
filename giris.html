@@ -8,7 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <link rel="icon" type="image/jpeg" href="app-logo.jpg">
     <link rel="manifest" href="manifest.json">
 
@@ -127,17 +126,51 @@
                 <span class="btn-text">GİRİŞ YAP</span>
                 <div class="spinner-border spinner-border-sm loading-spinner" role="status"></div>
             </button>
+            <div class="text-center mt-3">
+    <a href="#" class="text-decoration-none text-secondary small fw-bold" data-bs-toggle="modal" data-bs-target="#forgotPassModal">
+        <i class="fa-solid fa-lock me-1"></i> Şifremi Unuttum?
+    </a>
+</div>
         </form>
         <a href="https://www.koopsistem.com" class="back-link">
     <i class="fa-solid fa-arrow-left me-1"></i> Ana Sayfaya Dön
 </a>
     </div>
 </div>
+<div class="modal fade" id="forgotPassModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-primary">Şifre Kurtarma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-info small border-0">
+                    <i class="fa-solid fa-shield-halved me-2"></i>
+                    Güvenliğiniz için; sisteme kayıtlı <b>Telefon Numaranızı</b> ve <b>Gizli E-Posta Adresinizi</b> doğrulamanız gerekmektedir.
+                </div>
+                
+                <div class="form-floating mb-3">
+                    <input type="tel" class="form-control bg-light border-0" id="resetPhone" placeholder="Tel">
+                    <label>Telefon Numaranız</label>
+                </div>
 
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control bg-light border-0" id="resetEmail" placeholder="Email">
+                    <label>Kayıtlı Gizli E-Posta Adresiniz</label>
+                </div>
+
+                <button class="btn btn-dark w-100 py-3 rounded-3" onclick="sifreSifirlamaMailiGonder()">
+                    <i class="fa-regular fa-paper-plane me-2"></i> Sıfırlama Bağlantısı Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAMTYZGCkVv1QausRJSyutrSUUvJ0mkqD4",
@@ -269,6 +302,88 @@
             btnText.style.display = 'inline-block';
         }
     });
+window.sifreSifirlamaMailiGonder = async function() {
+    // 1. Girdileri Al ve Temizle
+    let tel = document.getElementById("resetPhone").value;
+    let email = document.getElementById("resetEmail").value;
+
+    if (!tel || !email) {
+        Swal.fire("Eksik Bilgi", "Lütfen telefon ve e-posta alanlarını doldurun.", "warning");
+        return;
+    }
+
+    // Boşlukları temizle
+    tel = tel.replace(/\s/g, ''); 
+    email = email.trim();
+
+    try {
+        Swal.showLoading();
+        console.log("Şifre sıfırlama başladı. Tel:", tel, "Email:", email);
+
+        // 2. Telefon için iki ihtimali de hazırla (05xx ve 5xx)
+        const telNoZero = tel.startsWith('0') ? tel.substring(1) : tel;
+        const telWithZero = '0' + telNoZero;
+
+        // 3. Üyeyi Veritabanında Ara
+        console.log("Firestore sorgusu gönderiliyor...");
+        
+    const q1 = query(collection(db, "members"), where("telefon", "==", telNoZero), limit(1));
+const q2 = query(collection(db, "members"), where("telefon", "==", telWithZero), limit(1));
+
+        // Not: Burada 'Permission Denied' hatası alıyorsanız, Firestore Kurallarını kontrol etmelisiniz.
+        const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+        
+        console.log("Sorgu tamamlandı.");
+
+        let memberDoc = null;
+        if (!snap1.empty) memberDoc = snap1.docs[0];
+        else if (!snap2.empty) memberDoc = snap2.docs[0];
+
+        // Üye bulunamadıysa
+        if (!memberDoc) {
+            Swal.fire("Bulunamadı", "Bu telefon numarası ile kayıtlı bir üye bulunamadı.", "error");
+            return;
+        }
+
+        const memberData = memberDoc.data();
+        console.log("Üye bulundu:", memberData.ad);
+
+        // 4. E-Posta Doğrulama
+        // Veritabanındaki 'kurtarmaEmail' alanı ile girilen email eşleşiyor mu?
+        const kayitliEmail = memberData.kurtarmaEmail || "";
+        
+        if (kayitliEmail.toLowerCase() !== email.toLowerCase()) {
+            console.warn("Email uyuşmazlığı. Girilen:", email, "Kayıtlı:", kayitliEmail);
+            Swal.fire("Güvenlik Uyarısı", "Girdiğiniz e-posta adresi sistemdeki kayıtla eşleşmiyor.", "error");
+            return;
+        }
+
+        // 5. Şifre Sıfırlama Bağlantısı Gönder
+        console.log("Mail gönderiliyor:", kayitliEmail);
+        await sendPasswordResetEmail(auth, kayitliEmail);
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Bağlantı Gönderildi',
+            text: `Şifre sıfırlama bağlantısı ${email} adresine gönderildi. Lütfen spam kutunuzu da kontrol edin.`
+        });
+
+    } catch (error) {
+        console.error("Şifre Sıfırlama Hatası Detayı:", error);
+        
+        // Hata türüne göre mesaj ver
+        let msg = "Bir hata oluştu: " + error.message;
+        
+        if (error.code === 'permission-denied' || error.message.includes('permission')) {
+            msg = "Sistem Hatası: Veritabanı okuma izni yok. (Firestore Rules)";
+        } else if (error.code === 'auth/user-not-found') {
+            msg = "Bu e-posta adresine bağlı bir Firebase hesabı bulunamadı.";
+        }
+
+        Swal.fire("İşlem Başarısız", msg, "error");
+    }
+}
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

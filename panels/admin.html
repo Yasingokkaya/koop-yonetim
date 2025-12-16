@@ -1303,22 +1303,21 @@ div.swal2-container {
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4">Tarih</th>
-                            <th>Üretici Bilgisi</th>
-                            <th>Talep Edilen Ürün</th>
-                            <th>Teslimat & Not</th>
-                            <th>Durum</th>
-                            <th class="text-end pe-4">İşlem</th>
-                        </tr>
-                    </thead>
-                    <tbody id="order-list-body">
-                        <tr><td colspan="6" class="text-center py-5 text-muted">Yükleniyor...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Tarih</th>
+                <th>Üretici</th>
+                <th>Sipariş Detayı</th>
+                <th>Tutar</th>
+                <th>Durum</th>
+                <th class="text-end">İşlem</th>
+            </tr>
+        </thead>
+        <tbody id="siparis-tablosu">
+            </tbody>
+    </table>
+</div>
         </div>
     </div>
 </div>
@@ -1648,7 +1647,7 @@ div.swal2-container {
                                 <th style="width: 40px;" class="text-center">
                                     <input type="checkbox" class="form-check-input" id="selectAllMembers" onclick="tumunuSec(this)">
                                 </th>
-                                
+                                <th class="text-center" style="width: 60px;">Sıra</th>
                                 <th>Ad Soyad / Unvan</th>
                                 <th>TC / Vergi No</th>
                                 <th class="text-center">Tip</th>
@@ -2562,6 +2561,13 @@ div.swal2-container {
                             <label class="small fw-bold text-muted">Telefon</label>
                             <input type="text" class="form-control" id="uyeTel" placeholder="05...">
                         </div>
+                        <div class="mt-3 pt-3 border-top">
+    <label class="small fw-bold text-primary">
+        <i class="fa-solid fa-envelope-circle-check me-1"></i>Kurtarma E-Postası (Gizli)
+    </label>
+    <input type="email" class="form-control bg-light" id="uyeEmail" placeholder="ornek@email.com">
+    <div class="form-text x-small text-muted">Şifre sıfırlama linki sadece bu adrese gönderilir.</div>
+</div>
                     </div>
                 </div>
             </div>
@@ -2635,7 +2641,7 @@ div.swal2-container {
                                         <label class="small fw-bold text-muted mb-1">Banka / IBAN Bilgisi</label>
                                         <div class="input-group">
                                             <span class="input-group-text bg-white border-end-0 fw-bold text-success">TR</span>
-                                            <input type="text" class="form-control border-start-0 font-monospace fw-bold text-dark" id="uyeIban" placeholder="00 0000 0000...">
+                                            <input type="text" class="form-control border-start-0 font-monospace fw-bold text-dark" id="uyeIban" placeholder=>
                                         </div>
                                     </div>
                                 </div>
@@ -2859,9 +2865,8 @@ div.swal2-container {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script type="module">
-// 1. MERKEZİ AYAR DOSYASINDAN İÇE AKTAR (GÜNCELLENDİ)
-  // 1. Önce senin config dosyanı çağır (Mevcut olan)
     import { 
+        firebaseConfig,
         app, auth, db, 
         doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, 
         onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove, 
@@ -2869,17 +2874,10 @@ div.swal2-container {
         onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail
     } from "../js/firebase-config.js";
 
-    // 2. İkinci uygulama oluşturmak için gerekli olanları import et (Çakışma olmasın diye getAuth'a takma isim veriyoruz)
-    // DİKKAT: initializeApp'ı buradan tekrar çağırmıyoruz, çakışıyorsa firebase-config'den gelenle idare edebiliriz 
-    // AMA secondary app için raw import gerekebilir.
-    
-    // ÇÖZÜM: Çakışmayı önlemek için 'initializeApp'ı farklı bir isimle import edelim:
     import { initializeApp as initializeAppNew, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth as getAuthNew } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-// --- GLOBAL DEĞİŞKENLER (TEK SEFER TANIMLANMALI) ---
+    import { getAuth as getAuthNew, signOut as signOutNew } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 let currentCoopId = null;
-// --- KÜTÜPHANE YÜKLEYİCİ (PERFORMANS İÇİN) ---
+
 window.kututuphaneYukle = function(url) {
     return new Promise((resolve, reject) => {
         // Zaten yüklüyse tekrar yükleme, hemen bitir
@@ -3470,20 +3468,16 @@ function listeyiFiltreleVeCiz() {
         });
     }
 
-    const searchInput = document.getElementById("searchInput");
-if(searchInput) {
-    searchInput.addEventListener("input", (e) => {
-        // Tekrar filtreleme fonksiyonunu çağırıyoruz, o zaten input değerine bakıyor
-        listeyiFiltreleVeCiz();
-    });
-}
-
-    // Üye Ekleme / Düzenleme
-     
+    // --- 1. ÜYE KAYDETME / GÜNCELLEME İŞLEMİ ---
     const memberForm = document.getElementById("addMemberForm");
     if(memberForm) {
         memberForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+            
+            // Mail inputunu güvenli alalım
+            const emailInput = document.getElementById("uyeEmail");
+            const emailDegeri = emailInput ? emailInput.value.trim() : "";
+
             const veri = {
                 sira: Number(document.getElementById("uyeSira").value),
                 ad: document.getElementById("uyeAd").value.trim(),
@@ -3492,45 +3486,89 @@ if(searchInput) {
                 koy: document.getElementById("uyeKoy").value,
                 telefon: document.getElementById("uyeTel").value.trim(),
                 
-                // --- YENİ EKLENEN ALANLAR ---
+                // 👇 YENİ EKLENEN MAİL ALANI 👇
+                kurtarmaEmail: emailDegeri,
+                // -----------------------------
+
                 iban: document.getElementById("uyeIban").value.trim(),
                 
-                // Müstahsil Ayarları
-                isBorsaRegistered: document.getElementById("uyeBorsaTescil").checked, 
-                hasBagkurExemption: document.getElementById("uyeBagkurMuaf").checked, 
-                // ---------------------------
+                // Checkbox Kontrolleri (Hata almamak için güvenli erişim)
+                isBorsaRegistered: document.getElementById("uyeBorsaTescil") ? document.getElementById("uyeBorsaTescil").checked : false, 
+                hasBagkurExemption: document.getElementById("uyeBagkurMuaf") ? document.getElementById("uyeBagkurMuaf").checked : false, 
 
                 coopId: currentCoopId,
-                tip: aktifCariTipi,
+                tip: activeTab === 'members' ? 'producer' : 'other', // Eğer tab değişkenin varsa
                 ...(duzenlenecekId ? {} : { kayitTarihi: new Date(), guncelBakiye: 0 }) 
             };
 
             try {
                 if (duzenlenecekId) {
+                    // Güncelleme Modu
                     await updateDoc(doc(db, "members", duzenlenecekId), veri);
                     Swal.fire({ icon: 'success', title: 'Güncellendi', timer: 1000, showConfirmButton: false });
                 } else {
+                    // Yeni Ekleme Modu
                     await addDoc(collection(db, "members"), veri);
                     Swal.fire({ icon: 'success', title: 'Eklendi', timer: 1000, showConfirmButton: false });
                 }
-                uyeleriGetir();
-                const modal = bootstrap.Modal.getInstance(document.getElementById('addMemberModal'));
-                modal.hide();
-                formuTemizle();
+                
+                // İşlem bitince yapılacaklar
+                if(typeof uyeleriGetir === 'function') uyeleriGetir();
+                
+                const modalEl = document.getElementById('addMemberModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if(modal) modal.hide();
+                
+                // Formu temizle
+                memberForm.reset(); 
+                duzenlenecekId = null; // ID'yi sıfırla ki sonraki işlem "Yeni Kayıt" olsun
+
             } catch (error) {
-    console.error("Hesap Yayınlama Hatası:", error);
-    
-    if (error.code === 'failed-precondition') {
-        Swal.fire({
-            icon: 'error',
-            title: 'İndeks Eksik',
-            html: 'Firebase veritabanında bu sorgu için indeks oluşturulmamış.<br><br>Lütfen F12 tuşuna basıp Console sekmesindeki linke tıklayın.'
+                console.error("Kayıt Hatası:", error);
+                Swal.fire("Hata", error.message, "error");
+            }
         });
-    } else {
-        Swal.fire("Hata Oluştu", error.message, "error");
     }
-}
-        });
+    // --- 2. DÜZENLEME PENCERESİNİ AÇMA FONKSİYONU ---
+    window.duzenleModalAc = function(id) {
+        duzenlenecekId = id; // Global ID'yi güncelle
+
+        // tumUyeler dizisinden veriyi bul (Senin sisteminde veriler bu dizide duruyor varsayıyoruz)
+        const data = tumUyeler.find(u => u.id === id);
+        
+        if (!data) {
+            console.error("Üye verisi bulunamadı!");
+            return;
+        }
+
+        // Modal Başlığını Değiştir
+        const modalTitle = document.getElementById("addMemberModalLabel");
+        if(modalTitle) modalTitle.innerText = "Üye Düzenle";
+
+        // --- VERİLERİ KUTULARA DOLDUR ---
+        // (Her elemanı kontrol ederek dolduruyoruz, hata vermemesi için)
+        if(document.getElementById("uyeSira")) document.getElementById("uyeSira").value = data.siraNo || "";
+        if(document.getElementById("uyeAd")) document.getElementById("uyeAd").value = data.ad || "";
+        if(document.getElementById("uyeSoyad")) document.getElementById("uyeSoyad").value = data.soyad || "";
+        if(document.getElementById("uyeTc")) document.getElementById("uyeTc").value = data.tc || "";
+        if(document.getElementById("uyeTel")) document.getElementById("uyeTel").value = data.telefon || "";
+        if(document.getElementById("uyeKoy")) document.getElementById("uyeKoy").value = data.koy || data.bolge || "";
+        if(document.getElementById("uyeIban")) document.getElementById("uyeIban").value = data.iban || "";
+        
+        // 👇 MAİL ALANI (Eksik olan buydu) 👇
+        if(document.getElementById("uyeEmail")) {
+            document.getElementById("uyeEmail").value = data.kurtarmaEmail || "";
+        }
+        // ----------------------------------
+
+        // Checkboxlar
+        if(document.getElementById("uyeBorsaTescil")) document.getElementById("uyeBorsaTescil").checked = data.isBorsaRegistered || false;
+        if(document.getElementById("uyeBagkurMuaf")) document.getElementById("uyeBagkurMuaf").checked = data.hasBagkurExemption || false;
+
+        // Modalı Aç
+        const modalEl = document.getElementById('addMemberModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
     }
  // Modalı Açarken Listeyi Hazırla ve Tab'ı Sıfırla
 window.yeniUyeModalAc = function() {
@@ -3806,14 +3844,15 @@ function tabloyuCiz(data) {
                     ${uye.sira || '-'}
                 </div>
             `;
-
-            // 3. Tablo Satırı (CHECKBOX EKLENDİ)
-            const row = `
+                    const row = `
                 <tr class="member-row align-middle border-bottom hover-shadow transition-all" style="height: 60px;">
                     <td class="text-center">
                         <input type="checkbox" class="form-check-input member-checkbox" value="${uye.id}" onclick="secimKontrol()">
                     </td>
-                    
+
+                    <td class="text-center">
+                        ${siraNoHtml}
+                    </td>
                     
                     <td>
                         <div class="fw-bold text-dark fs-6">${uye.ad} ${uye.soyad}</div>
@@ -8360,7 +8399,7 @@ window.uyeDuzenle = function(id) {
     setVal("uyeKoy", uye.koy);
     setVal("uyeTel", uye.telefon);
     setVal("uyeIban", uye.iban);
-    
+    setVal("uyeEmail", uye.kurtarmaEmail);
     // Yeni Detay Alanları
     setVal("uyeIsletmeNo", uye.isletmeNo);
     setVal("uyeBabaAdi", uye.babaAdi);
@@ -8404,60 +8443,128 @@ window.uyeDuzenle = function(id) {
     }
 }
 
-// 5. Kaydetme Fonksiyonu
-window.uyeKaydetSubmit = function() {
-    const kesintiler = [];
-    
-    // Kesintileri Güvenli Topla
-    const rows = document.querySelectorAll('.kesinti-satiri');
-    rows.forEach(row => {
-        const chk = row.querySelector('.kesinti-aktif');
-        const nameInp = row.querySelector('.kesinti-adi');
-        const rateInp = row.querySelector('.kesinti-oran'); 
-        
-        if (chk && nameInp && rateInp) {
-            const ad = nameInp.value.trim();
-            if (ad) {
-                kesintiler.push({
-                    ad: ad,
-                    oran: Number(rateInp.value),
-                    aktif: chk.checked
-                });
-            }
-        }
-    });
 
-    const getVal = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ""; };
+window.uyeKaydetSubmit = async function(e) {
+    // 1. Sayfa yenilenmesini engelle
+    if (e && e.preventDefault) e.preventDefault();
 
-    const veri = {
-        sira: Number(getVal("uyeSira")),
-        ad: getVal("uyeAd"),
-        soyad: getVal("uyeSoyad"),
-        tc: getVal("uyeTc"),
-        koy: getVal("uyeKoy"),
-        telefon: getVal("uyeTel"),
-        iban: getVal("uyeIban"),
-        
-        isletmeNo: getVal("uyeIsletmeNo"),
-        babaAdi: getVal("uyeBabaAdi"),
-        dogumTarihi: getVal("uyeDogumTarihi"),
-        egitimDurumu: getVal("uyeEgitim"),
-        il: getVal("uyeIl"),
-        ilce: getVal("uyeIlce"),
-        adres: getVal("uyeAdres"),
-        
-        kesintiler: kesintiler,
-        
-        // Rapor Uyumluluğu
-        isBorsaRegistered: kesintiler.some(k => k.ad.includes('Stopaj') && k.oran < 2 && k.aktif),
-        hasBagkurExemption: !kesintiler.some(k => k.ad.includes('Bağ-Kur') && k.aktif),
-
-        coopId: currentCoopId,
-        tip: aktifCariTipi,
-        ...(duzenlenecekId ? {} : { kayitTarihi: new Date(), guncelBakiye: 0 }) 
+    // 2. YARDIMCI FONKSİYON: Değer Okuma
+    const getVal = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value : "";
     };
 
-    firebaseKayitIslemi(veri, duzenlenecekId);
+    // 3. Form verilerini al
+    const ad = getVal("uyeAd");
+    const soyad = getVal("uyeSoyad");
+    const tc = getVal("uyeTc");
+    const tel = getVal("uyeTel");
+    const email = getVal("uyeEmail"); 
+    const koy = getVal("uyeKoy");
+    const sira = getVal("uyeSira");
+    const iban = getVal("uyeIban");
+
+    // Zorunlu alan kontrolü
+    if (!ad || !soyad || !tel || !email) {
+        Swal.fire("Uyarı", "Ad, Soyad, Telefon ve E-Posta zorunludur!", "warning");
+        return;
+    }
+
+    try {
+        Swal.showLoading();
+
+        // Veritabanı verisi hazırlama
+        const yeniUye = {
+            ad: ad, soyad: soyad, tc: tc, telefon: tel, koy: koy, sira: sira, iban: iban,
+            kurtarmaEmail: email, // Kritik alan
+            isletmeNo: getVal("uyeIsletmeNo"), babaAdi: getVal("uyeBabaAdi"),
+            dogumTarihi: getVal("uyeDogumTarihi"), anneAdi: getVal("uyeAnneAdi"),
+            hayvanSayisi: getVal("uyeHayvanSayisi") || 0, aracPlaka: getVal("uyeAracPlaka"),
+            notlar: getVal("uyeNotlar"), role: "member"
+        };
+
+        // --- GÖLGE UYGULAMA İLE KULLANICI OLUŞTURMA ---
+        let authKaydiBasarili = false;
+        let authHataMesaji = "";
+
+        try {
+            if (typeof firebaseConfig === 'undefined') {
+                throw new Error("firebaseConfig bulunamadı. Lütfen import ayarlarını kontrol edin.");
+            }
+
+            // İkincil (Gölge) Uygulamayı Başlat
+            const secondaryApp = initializeAppNew(firebaseConfig, "SecondaryApp");
+            const secondaryAuth = getAuthNew(secondaryApp);
+
+            // Kullanıcıyı oluştur (Şifre: 123456)
+            await createUserWithEmailAndPassword(secondaryAuth, email, "123456");
+            
+            // Gölge uygulamadan çıkış yap ve temizle
+            await signOutNew(secondaryAuth);
+            await deleteApp(secondaryApp);
+
+            authKaydiBasarili = true;
+
+        } catch (authError) {
+            console.error("Auth Hatası:", authError);
+            if (authError.code === 'auth/email-already-in-use') {
+                authHataMesaji = ""; // Zaten varsa hata sayma
+                authKaydiBasarili = true;
+            } else {
+                authHataMesaji = " (Giriş yetkisi oluşturulamadı: " + authError.message + ")";
+            }
+        }
+
+        // --- FİRESTORE KAYDI ---
+        if (duzenlenecekId) {
+            const docRef = doc(db, "members", duzenlenecekId);
+            await updateDoc(docRef, yeniUye);
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Güncellendi',
+                text: 'Bilgiler güncellendi.' + authHataMesaji
+            });
+
+        } else {
+            const docId = tc ? tc : (new Date().getTime().toString()); 
+            await setDoc(doc(db, "members", docId), {
+                ...yeniUye,
+                id: docId,
+                createdAt: new Date(),
+                guncelBakiye: 0
+            });
+
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Kayıt Başarılı', 
+                text: authKaydiBasarili ? `Kayıt yapıldı. Şifre: 123456` : `Auth kaydı yapılamadı.${authHataMesaji}` 
+            });
+        }
+
+        // --- TEMİZLİK (DÜZELTİLEN KISIM BURASI) ---
+        
+        // 1. Formu Temizle (ID: addMemberForm)
+        const formEl = document.getElementById("addMemberForm");
+        if (formEl) formEl.reset();
+
+        duzenlenecekId = null;
+
+        // 2. Modalı Kapat (ID: addMemberModal)
+        const modalEl = document.getElementById('addMemberModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if(modal) modal.hide();
+        }
+        
+        // 3. Listeyi Yenile
+        if (typeof verileriGetir === 'function') verileriGetir();
+        if (typeof uyeleriGetir === 'function') uyeleriGetir(); // Sizin kodda bu isimde olabilir
+
+    } catch (error) {
+        console.error(error);
+        Swal.fire("Hata", "İşlem sırasında hata: " + error.message, "error");
+    }
 }
 
 // --- 2. Durum Değiştirme (AKILLI BORSA/STOPAJ KONTROLÜ EKLENDİ) ---
@@ -8676,117 +8783,131 @@ window.uyeGirisYetkisiVer = async function(memberId, telefon, adSoyad, coopId) {
         if(secondaryApp) await deleteApp(secondaryApp);
     }
 }
-// --- SİPARİŞ YÖNETİMİ JS KODLARI ---
+// --- EKLENECEK KOD BAŞLANGICI (admin.html script alanına) ---
 
-// 1. Siparişleri Çek ve Listele
+let siparisListener = null;
+
+// 1. Siparişleri Listeleme Fonksiyonu
 window.siparisleriGetir = function() {
-    const tableBody = document.getElementById("order-list-body");
-    if(!tableBody || !currentCoopId) return;
+    const tableBody = document.getElementById("siparis-tablosu");
+    const adminCoopId = sessionStorage.getItem("adminCoopId"); 
 
-    // Bekleyen, Hazırlanıyor ve Son 24 saatte tamamlananları getir
-    const q = query(collection(db, "orders"), 
-                    where("coopId", "==", currentCoopId),
-                    orderBy("siparisTarihi", "desc"));
+    if(!adminCoopId) return; 
 
-    onSnapshot(q, (snapshot) => {
+    // Eski dinleyici varsa kapat (Performans için)
+    if (siparisListener) siparisListener();
+
+    // Sorgu: Sadece benim kooperatifim VE Bekleyenler
+    const q = query(
+        collection(db, "orders"), 
+        where("coopId", "==", adminCoopId),
+        where("status", "==", "Bekliyor"), 
+        orderBy("tarih", "desc")
+    );
+
+    siparisListener = onSnapshot(q, (snapshot) => {
         let html = "";
-        let countBekleyen = 0;
-        let countHazirlaniyor = 0;
-        let countTamamlanan = 0;
+        
+        if(snapshot.empty){
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted p-4">Bekleyen yeni sipariş yok.</td></tr>`;
+            return;
+        }
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            let tarihStr = "-";
-            let dateObj = new Date();
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const tarih = data.tarih ? new Date(data.tarih.toDate()).toLocaleDateString('tr-TR') : '-';
+            const tutarGoster = data.tutar ? data.tutar.toLocaleString('tr-TR') : '0';
             
-            if(data.siparisTarihi && data.siparisTarihi.seconds) {
-                dateObj = data.siparisTarihi.toDate();
-                tarihStr = dateObj.toLocaleDateString('tr-TR') + ' ' + dateObj.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
-            }
-
-            // İstatistikler
-            if(data.durum === 'Bekliyor') countBekleyen++;
-            else if(data.durum === 'Hazırlanıyor') countHazirlaniyor++;
-            else if(data.durum === 'Teslim Edildi' && (new Date() - dateObj) < 86400000) countTamamlanan++; 
-
-            // Durum Renkleri
-            let badgeClass = "bg-secondary";
-            if(data.durum === 'Bekliyor') badgeClass = "bg-warning text-dark";
-            if(data.durum === 'Hazırlanıyor') badgeClass = "bg-primary";
-            if(data.durum === 'Teslim Edildi') badgeClass = "bg-success";
-            if(data.durum === 'İptal') badgeClass = "bg-danger";
-
-            // Butonlar
-            let actionBtns = '';
-            
-            // Tırnak işaretlerini temizle (JavaScript hatasını önler)
-            const safeName = (data.memberName || '').replace(/'/g, "\\'");
-            const safeProduct = (data.urunAdi || '').replace(/'/g, "\\'");
-
-            if(data.durum === 'Bekliyor') {
-                actionBtns = `
-                    <button class="btn btn-sm btn-outline-success me-1" onclick="siparisDurumDegistir('${doc.id}', 'Hazırlanıyor')" title="Onayla">
-                        <i class="fa-solid fa-check"></i> Onayla
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="siparisDurumDegistir('${doc.id}', 'İptal')" title="Reddet">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                `;
-            } else if(data.durum === 'Hazırlanıyor') {
-                actionBtns = `
-                    <button class="btn btn-sm btn-success text-white fw-bold px-3" onclick="siparisTeslimEt('${doc.id}', '${data.memberId}', '${safeName}', '${safeProduct}', ${data.miktar || 0})">
-                        Teslim Et <i class="fa-solid fa-paper-plane ms-1"></i>
-                    </button>
-                `;
-            } else {
-                actionBtns = '<span class="text-muted small"><i class="fa-solid fa-check-double"></i> Tamamlandı</span>';
-            }
-
             html += `
             <tr>
-                <td class="ps-4 small text-muted">${tarihStr}</td>
+                <td>${tarih}</td>
                 <td>
-                    <div class="fw-bold text-dark">${data.memberName || 'İsimsiz'}</div>
-                </td>
-                <td>
-                    <span class="fw-bold text-dark">${data.urunAdi}</span>
-                    <div class="badge bg-light text-dark border border-secondary border-opacity-25 mt-1">${data.miktar} Adet</div>
+                    <div class="fw-bold text-dark">${data.memberName}</div>
                 </td>
                 <td>
-                    <div class="small fw-bold text-secondary">${data.teslimatTipi || '-'}</div>
-                    ${data.not ? `<div class="small text-danger fst-italic"><i class="fa-solid fa-note-sticky me-1"></i>${data.not}</div>` : ''}
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary p-2">
+                        ${data.urun}
+                    </span>
+                    <span class="ms-2 fw-bold text-dark">x ${data.miktar} Adet</span>
                 </td>
-                <td>
-                    <span class="badge ${badgeClass} p-2">${data.durum}</span>
+                <td class="fw-bold text-danger">
+                    ${tutarGoster} ₺
                 </td>
-                <td class="text-end pe-4">
-                    ${actionBtns}
+                <td><span class="badge bg-warning text-dark">Onay Bekliyor</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-success me-1" onclick="siparisIsle('${docSnap.id}', '${data.memberId}', ${data.tutar}, 'onayla')">
+                        <i class="fa-solid fa-check"></i> Onayla
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="siparisIsle('${docSnap.id}', null, 0, 'reddet')">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </td>
-            </tr>
-            `;
+            </tr>`;
         });
-
-        tableBody.innerHTML = html || '<tr><td colspan="6" class="text-center py-5 text-muted">Aktif sipariş bulunmuyor.</td></tr>';
-
-        // Sayaçları Güncelle
-        if(document.getElementById("count-bekleyen")) {
-            document.getElementById("count-bekleyen").innerText = countBekleyen;
-            document.getElementById("count-hazirlaniyor").innerText = countHazirlaniyor;
-            document.getElementById("count-tamamlanan").innerText = countTamamlanan;
-        }
-
-        // Menüdeki Kırmızı Bildirim Rozeti
-        const badge = document.getElementById("badge-siparis");
-        if(badge) {
-            if(countBekleyen > 0) {
-                badge.style.display = "inline-block";
-                badge.innerText = countBekleyen;
-            } else {
-                badge.style.display = "none";
-            }
-        }
+        
+        tableBody.innerHTML = html;
     });
 }
+
+// 2. Sipariş Onay/Ret Fonksiyonu (GÜVENLİ TRANSACTION)
+window.siparisIsle = async function(orderId, memberId, tutar, islemTipi) {
+    const title = islemTipi === 'onayla' ? "Siparişi Onayla" : "Siparişi Reddet";
+    const text = islemTipi === 'onayla' 
+        ? `Bu işlem üreticinin hesabına ${tutar} TL borç kaydedecek. Emin misiniz?` 
+        : "Bu sipariş iptal edilecek.";
+
+    const result = await Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Evet, İşle',
+        cancelButtonText: 'Vazgeç',
+        confirmButtonColor: islemTipi === 'onayla' ? '#198754' : '#dc3545'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        const orderRef = doc(db, "orders", orderId);
+
+        if (islemTipi === 'onayla') {
+            // --- TRANSACTION (GÜVENLİ İŞLEM) ---
+            await runTransaction(db, async (transaction) => {
+                // 1. Üretici verisini anlık çek
+                const memberRef = doc(db, "members", memberId);
+                const memberDoc = await transaction.get(memberRef);
+                
+                if (!memberDoc.exists()) throw "Üretici verisi bulunamadı!";
+
+                const currentBalance = memberDoc.data().guncelBakiye || 0;
+                const newBalance = currentBalance + Number(tutar); // Borç artıyor
+
+                // 2. Sipariş durumunu güncelle
+                transaction.update(orderRef, { 
+                    status: "Tamamlandı", 
+                    islemTarihi: new Date() 
+                });
+
+                // 3. Üreticinin bakiyesini güncelle
+                transaction.update(memberRef, { 
+                    guncelBakiye: newBalance 
+                });
+            });
+            
+            Swal.fire("Başarılı", "Sipariş onaylandı ve cariye işlendi.", "success");
+        } else {
+            // Sadece iptal et
+            await updateDoc(orderRef, { status: "İptal", islemTarihi: new Date() });
+            Swal.fire("İptal", "Sipariş reddedildi.", "info");
+        }
+    } catch (error) {
+        console.error("Hata:", error);
+        Swal.fire("Hata", "İşlem sırasında bir sorun oluştu.", "error");
+    }
+}
+// --- EKLENECEK KOD BİTİŞİ ---
+
 
 // 2. Durum Değiştirme (Onayla/İptal)
 window.siparisDurumDegistir = async function(docId, yeniDurum) {
