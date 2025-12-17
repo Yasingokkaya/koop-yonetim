@@ -170,23 +170,23 @@
             <div class="stat-label fw-bold">Toplam</div>
         </div>
     </div>
-
-    <div class="mt-4">
+<div class="mt-4">
         <div class="row g-2 align-items-center">
             <div class="col-5">
                 <input type="date" class="form-control border-0 shadow-sm text-center fw-bold" 
                        style="background: rgba(255,255,255,0.9); height: 45px; border-radius: 12px;" 
                        id="islemTarihi">
             </div>
+            
             <div class="col-7">
-                <div class="d-flex gap-2 bg-white p-1 rounded-4 shadow-sm">
-                    <button type="button" class="btn btn-sm flex-grow-1 fw-bold rounded-3" id="btnAksam"
+                <div class="d-flex gap-2 bg-white p-1 rounded-4 shadow-sm" style="height: 45px;">
+                    <button type="button" class="btn btn-sm flex-grow-1 fw-bold rounded-3 h-100 d-flex align-items-center justify-content-center" id="btnAksam"
                             style="color: #64748b;" onclick="setPeriod('aksam')">
-                        <i class="fa-solid fa-moon"></i> Akşam
+                        <i class="fa-solid fa-moon me-1"></i> Akşam
                     </button>
-                    <button type="button" class="btn btn-sm flex-grow-1 fw-bold rounded-3 active-mode" id="btnSabah"
+                    <button type="button" class="btn btn-sm flex-grow-1 fw-bold rounded-3 active-mode h-100 d-flex align-items-center justify-content-center" id="btnSabah"
                             style="background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa;" onclick="setPeriod('sabah')">
-                        <i class="fa-solid fa-sun"></i> Sabah
+                        <i class="fa-solid fa-sun me-1"></i> Sabah
                     </button>
                 </div>
             </div>
@@ -374,37 +374,33 @@ if(finalSorted.length === 0) {
             if(selectedVillage !== "all") selectBox.selectedIndex = 1;
         }
     }
-
-   window.setPeriod = function(p) {
+window.setPeriod = function(p) {
         currentPeriod = p;
         
         const btnS = document.getElementById("btnSabah");
         const btnA = document.getElementById("btnAksam");
         
-        // Ortak stil: Tüm butonlar görünür olmalı
+        // Ortak stil
         const pasifStyle = "background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1);";
         
         if(p === 'sabah') {
-            // Sabah Aktif (Parlak Turuncu)
             btnS.style = "background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; font-weight: bold; opacity: 1;";
             btnS.className = "btn btn-sm flex-grow-1 active";
-            
-            // Akşam Pasif (Sönük ama Görünür)
             btnA.style = pasifStyle;
             btnA.className = "btn btn-sm flex-grow-1";
         } else {
-            // Akşam Aktif (Parlak Mavi)
             btnA.style = "background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; font-weight: bold; opacity: 1;";
             btnA.className = "btn btn-sm flex-grow-1 active";
-            
-            // Sabah Pasif (Sönük ama Görünür)
             btnS.style = pasifStyle;
             btnS.className = "btn btn-sm flex-grow-1";
         }
 
-        // Listeyi periyoda göre yeniden hesapla
+        // Dropdown'ı yenile
         const seciliKoy = document.getElementById("villageFilter").value;
         dropdownDoldur(seciliKoy);
+
+        // LİSTEYİ YENİLE (Bunu ekledik)
+        listeyiCiz();
     }
 
     // --- YENİ KLAVYE VE PAS GEÇ FONKSİYONLARI ---
@@ -587,70 +583,41 @@ if(finalSorted.length === 0) {
             where("coopId", "==", currentCoopId),
             where("dateString", "==", targetDateStr)
         );
-onSnapshot(q, (snapshot) => {
-            const listDiv = document.getElementById("recordsList");
-            listDiv.innerHTML = "";
-            
+
+        onSnapshot(q, (snapshot) => {
             // Sayaçları Sıfırla
             let totalGenel = 0;
             let totalSabah = 0;
             let totalAksam = 0;
             
-            let records = [];
-            todayRecords = []; 
+            todayRecords = []; // Global diziyi sıfırla
 
             snapshot.forEach(doc => { 
                 let d = doc.data(); 
                 d.id = doc.id; 
-                records.push(d); 
                 
-                // İstatistikleri Hesapla
+                // İstatistikleri Hesapla (Burada filtre yok, hepsi toplanır)
                 const miktar = Number(d.liters);
                 totalGenel += miktar;
                 
                 if(d.period === 'sabah') totalSabah += miktar;
                 else totalAksam += miktar;
 
+                // Veriyi hafızaya at
                 todayRecords.push(d);
             });
 
-            // Listeyi Yenile
-            const seciliKoy = document.getElementById("villageFilter").value;
-            dropdownDoldur(seciliKoy);
-
-            // EKRANDAKİ SAYAÇLARI GÜNCELLE (YENİ KISIM)
+            // EKRANDAKİ SAYAÇLARI GÜNCELLE
             document.getElementById("dailyTotal").innerText = totalGenel;
             document.getElementById("totalSabah").innerText = totalSabah;
             document.getElementById("totalAksam").innerText = totalAksam;
 
-            // Listeyi Çiz
-            records.sort((a,b) => b.date.seconds - a.date.seconds);
-            if(records.length===0) listDiv.innerHTML='<div class="text-center text-muted mt-3">Kayıt yok.</div>';
-            else {
-                records.forEach(rec => {
-                    const isSabah = rec.period === 'sabah';
-                    const bgClass = isSabah ? 'sabah-bg' : 'aksam-bg';
-                    const iconClass = isSabah ? 'fa-regular fa-sun' : 'fa-regular fa-moon';
-                    const borderClass = isSabah ? 'border-sabah' : 'border-aksam';
-                    const time = new Date(rec.date.seconds * 1000).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+            // Listeyi Yenile (Filtreli Çizim Burada Yapılacak)
+            listeyiCiz();
 
-                    const item = `
-                        <div class="record-item ${borderClass}">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box ${bgClass}"><i class="${iconClass}"></i></div>
-                                <div><div class="fw-bold text-dark fs-5">${rec.memberName}</div><small class="text-muted">${time}</small></div>
-                            </div>
-                            <div class="text-end">
-                                <div class="fw-bold fs-4 text-dark mb-1">${rec.liters} Lt</div>
-                                <div class="action-btns d-flex justify-content-end">
-                                    <button class="btn-edit-rec" onclick="duzenle('${rec.id}', '${rec.liters}', '${rec.memberName}')"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn-del-rec" onclick="sil('${rec.id}')"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>
-                        </div>`;
-                    listDiv.innerHTML += item;
-                });
-            }
+            // Dropdown güncelle
+            const seciliKoy = document.getElementById("villageFilter").value;
+            dropdownDoldur(seciliKoy);
         });
     }
    // KAYIT DÜZENLEME (MİKTAR GÜNCELLEME)
@@ -733,6 +700,49 @@ onSnapshot(q, (snapshot) => {
             await signOut(auth);
             window.location.href = "../giris.html";
         }
+    }
+    // LİSTEYİ FİLTRELEYİP ÇİZEN YENİ FONKSİYON
+    window.listeyiCiz = function() {
+        const listDiv = document.getElementById("recordsList");
+        listDiv.innerHTML = "";
+
+        // Global 'todayRecords' değişkenini kullanıyoruz (Veritabanından gelen ham veri)
+        // 1. Önce zamana göre sırala (En yeni en üstte)
+        todayRecords.sort((a,b) => b.date.seconds - a.date.seconds);
+
+        // 2. FİLTRELEME: Sadece seçili dönem (sabah veya aksam) kalsın
+        const gosterilecekler = todayRecords.filter(rec => rec.period === currentPeriod);
+
+        if(gosterilecekler.length === 0) {
+             listDiv.innerHTML='<div class="text-center text-muted mt-3">Bu dönemde (' + currentPeriod + ') kayıt yok.</div>';
+             return;
+        }
+
+        // 3. Ekrana Bas
+        gosterilecekler.forEach(rec => {
+            // Renk ayarları
+            const isSabah = rec.period === 'sabah';
+            const bgClass = isSabah ? 'sabah-bg' : 'aksam-bg';
+            const iconClass = isSabah ? 'fa-regular fa-sun' : 'fa-regular fa-moon';
+            const borderClass = isSabah ? 'border-sabah' : 'border-aksam';
+            const time = new Date(rec.date.seconds * 1000).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+
+            const item = `
+                <div class="record-item ${borderClass}">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box ${bgClass}"><i class="${iconClass}"></i></div>
+                        <div><div class="fw-bold text-dark fs-5">${rec.memberName}</div><small class="text-muted">${time}</small></div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold fs-4 text-dark mb-1">${rec.liters} Lt</div>
+                        <div class="action-btns d-flex justify-content-end">
+                            <button class="btn-edit-rec" onclick="duzenle('${rec.id}', '${rec.liters}', '${rec.memberName}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-del-rec" onclick="sil('${rec.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            listDiv.innerHTML += item;
+        });
     }
 </script>
 </body>
