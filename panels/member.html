@@ -14,6 +14,66 @@
     <meta name="theme-color" content="#0f766e">
     <link rel="manifest" href="../manifest.json">
     <style>
+
+        /* --- MOBİL HAYVAN KARTI TASARIMI --- */
+.animal-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    transition: transform 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.animal-card:active {
+    transform: scale(0.98);
+}
+/* Sol taraftaki renkli şerit (Cinsiyete göre değişecek) */
+.status-stripe {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 6px;
+}
+.gender-female { background-color: #fbbf24; } /* Sarı (Dişi) */
+.gender-male { background-color: #ef4444; }   /* Kırmızı (Erkek) */
+
+.animal-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+/* --- KÜPE NUMARASI YAZI TİPİ DÜZELTME --- */
+.tag-badge {
+    background: #f1f5f9;        /* Açık gri arka plan */
+    border: 1px solid #cbd5e1;  /* İnce kenarlık */
+    color: #1e293b;             /* Koyu yazı rengi */
+    
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important; /* Modern Font */
+    
+    font-weight: 800;           /* Kalın yazı */
+    padding: 6px 12px;          /* İç boşluk */
+    border-radius: 10px;        /* Köşeleri yuvarla */
+    font-size: 1.1rem;          /* Yazı boyutu ideal */
+    letter-spacing: 0.5px;      /* Harf aralığı */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Hafif gölge */
+}
+.action-btn-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+}
+.btn-action {
+    flex: 1;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    padding: 8px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+
         /* GENEL AYARLAR */
         body {
             background-color: #f8fafc;
@@ -175,12 +235,13 @@
 #page-history .col-sabah { width: 22% !important; text-align: center !important; }
 #page-history .col-toplam { width: 26% !important; text-align: right !important; }
 
-/* Başlıkların altındaki çizgileri ve yazı boyutlarını telefona uydur */
+/* YERİNE YAPIŞTIR (Düzeltilmiş Kod) */
 #page-history thead th {
     font-size: 0.75rem !important;
-    color: #64748b !important;
+    /* color: #64748b !important;  <-- BU SATIRI KALDIRDIK */
     padding: 15px 5px !important;
     background-color: #f8fafc;
+    vertical-align: middle !important;
 }
 
 #page-history tbody td {
@@ -197,21 +258,27 @@
         <div class="fw-bold text-muted">Verileriniz Yükleniyor...</div>
     </div>
 <div id="page-home">
-        
         <div class="px-3 pt-3">
-            <div class="bg-white p-2 rounded-4 shadow-sm d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
-                        <i class="fa-regular fa-calendar-days"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1;">Görüntülenen Dönem</small>
-                        <span class="fw-bold text-dark small" id="lblSelectedMonth">Bu Ay</span>
-                    </div>
-                </div>
-                <input type="month" id="monthFilter" class="form-control form-control-sm border-0 bg-light fw-bold text-end text-primary" style="width: 140px; cursor: pointer;">
+    <div class="bg-white p-3 rounded-4 shadow-sm border-0">
+        <div class="row align-items-center">
+            <div class="col-7">
+                <small class="text-muted d-block fw-bold mb-1"><i class="fa-solid fa-calendar-check me-1 text-primary"></i> AKTİF DÖNEM</small>
+                <span class="fw-bold text-dark small" id="lblSelectedMonth">Yükleniyor...</span>
+            </div>
+            <div class="col-5 text-end">
+                <select id="activePeriod" class="form-select border-0 bg-light fw-bold text-primary rounded-3" onchange="periodDegisti(this.value)">
+    <option value="2025-12" selected>Aralık 2025</option>
+    <option value="2025-11">Kasım 2025</option>
+    <option value="2025-10">Ekim 2025</option>
+    <option value="2025-09">Eylül 2025</option>
+    <option value="2025-08">Ağustos 2025</option>
+    <option value="2025-07">Temmuz 2025</option>
+    <option value="2024-12">Aralık 2024</option>
+</select>
             </div>
         </div>
+    </div>
+</div>
 
         <div class="wallet-card" style="padding: 15px 20px;"> <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
                 
@@ -251,6 +318,14 @@
         <i class="bg-icon fa-solid fa-paw"></i>
         <i class="fa-solid fa-paw fa-2x mb-1"></i>
         <h6>Hayvanlarım</h6>
+    </div>
+</div>
+<div class="col-4">
+    <div class="quick-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"
+         onclick="sayfaDegistir('page-yem-defteri', null); yemDefteriYukle();">
+        <i class="bg-icon fa-solid fa-warehouse"></i>
+        <i class="fa-solid fa-warehouse fa-2x mb-1"></i>
+        <h6>Yem Defteri</h6>
     </div>
 </div>
 <div class="col-4">
@@ -309,6 +384,44 @@
 </div>
         </div>
     </div>
+    <div id="page-yem-defteri" style="display: none; padding-bottom: 80px;">
+    <div class="bg-white px-3 pt-4 pb-3 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-light rounded-circle shadow-sm me-3" 
+                    onclick="sayfaDegistir('page-home', document.getElementById('nav-home'))"
+                    style="width: 40px; height: 40px;">
+                <i class="fa-solid fa-arrow-left text-primary"></i>
+            </button>
+            <div>
+                <h5 class="fw-bold text-dark m-0">Yem Defterim</h5>
+                <small class="text-muted">Dönemlik Malzeme Dökümü</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-3">
+        <div class="card border-0 shadow-sm rounded-4 mb-3 bg-primary text-white p-3 text-center">
+            <small class="opacity-75 fw-bold">SEÇİLİ DÖNEM TOPLAMI</small>
+            <h2 class="fw-800 mb-0" id="yem-toplam-adet">0 Adet</h2>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="small text-muted text-uppercase">
+                            <th class="ps-4">Malzeme Adı</th>
+                            <th class="text-center">Miktar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yem-listesi-body">
+                        <tr><td colspan="2" class="text-center p-4 text-muted">Dönem seçiniz...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
     <div id="page-milk" style="display: none;">
         <div class="bg-white px-3 pt-3 pb-4 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;">
             <div class="d-flex align-items-center mb-3">
@@ -363,11 +476,11 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
                         <thead class="bg-light border-bottom">
-    <tr class="text-secondary text-uppercase small">
-        <th class="ps-3 col-ay text-start">Ay</th>
-        <th class="text-primary col-aksam text-center">Akşam</th>
-        <th class="text-warning col-sabah text-center">Sabah</th>
-        <th class="text-dark col-toplam text-end pe-3">Toplam</th>
+    <tr class="text-secondary text-uppercase small py-3 align-middle">
+        <th class="ps-3 col-ay text-start border-0" style="height: 50px;">AY</th>
+        <th class="text-center col-aksam text-primary border-0">AKŞAM</th>
+        <th class="text-center col-sabah text-warning border-0">SABAH</th>
+        <th class="text-end col-toplam pe-3 text-success border-0">TOPLAM</th>
     </tr>
 </thead>
                         <tbody id="yearListBody"></tbody>
@@ -584,38 +697,40 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
   <script type="module">
-// 1. Kendi config dosyanızdan gerekli tüm araçları çekiyoruz
 import { 
     auth, db, onAuthStateChanged, signOut, updatePassword,
     doc, getDoc, updateDoc, collection, query, where, getDocs, 
     onSnapshot, addDoc, deleteDoc, orderBy, limit 
 } from "../js/firebase-config.js";
 
-// 2. Şifre değiştirme için gerekli olan özel Firebase araçlarını çekiyoruz
 import { 
     reauthenticateWithCredential, 
     EmailAuthProvider 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+
 let currentMemberId = null;
 let currentCoopId = null;
 let globalMilkSnapshot = null;
 
-        // 1. Sayfa Açılınca Tarihi "Bu Ay" Yap
-        const dateInput = document.getElementById('monthFilter');
-        const now = new Date();
-        const currentMonthStr = now.toISOString().slice(0, 7); // Örn: "2023-12"
-        if(dateInput) {
-            dateInput.value = currentMonthStr;
-            
-            // Tarih değişince verileri tekrar süz
-            dateInput.addEventListener('change', () => {
-                if(globalMilkSnapshot) {
-                    verileriSuzVeYazdir(globalMilkSnapshot);
-                }
-            });
-        }
-// --- 4. GÜÇLENDİRİLMİŞ GİRİŞ VE VERİ ÇEKME KODU ---
+window.periodDegisti = function(val) {
+    // 1. Üstteki yazı etiketini güncelle
+    const select = document.getElementById("activePeriod");
+    const ayIsmi = select.options[select.selectedIndex].text;
+    document.getElementById("lblSelectedMonth").innerText = ayIsmi;
+    
+    // 2. Süt verilerini yeni seçilen döneme göre tekrar süz
+    if(globalMilkSnapshot) {
+        verileriSuzVeYazdir(globalMilkSnapshot);
+    }
+    
+    // 3. Eğer yem defteri sayfası açıksa orayı da tazele
+    if(document.getElementById("page-yem-defteri").style.display === "block") {
+        yemDefteriYukle();
+    }
+};
+
+
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         console.log("Kullanıcı Giriş Yaptı:", user.uid);
@@ -709,7 +824,24 @@ onAuthStateChanged(auth, async (user) => {
                     currentCoopId = userData.coopId;
                     uyeBilgileriniGetir(matchedMemberId);
                 }
+// --- HOŞGELDİN MESAJI (SAĞ ÜST KÖŞE) ---
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
 
+Toast.fire({
+    icon: 'success',
+    title: 'Hoşgeldiniz!',
+    text: `Sn. ${userData.adSoyad || 'Üreticimiz'}, keyifli çalışmalar.`
+});
             } else {
                 Swal.fire("Hata", "Kullanıcı profili bulunamadı.", "error");
             }
@@ -740,6 +872,7 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById("loader").style.display = "none";
             dogumBildirimiYap(uid);
             duyurulariGetir();
+            donemSeciciyiHazirla();
         }
 
         // BAKİYE HESAPLAMA (Ekranda Gizli, Arka Planda Çalışır)
@@ -883,7 +1016,7 @@ if(yearSelect) {
 
         // --- YENİ FİLTRELEME VE YAZDIRMA FONKSİYONU ---
         function verileriSuzVeYazdir(snapshot) {
-            const selectedMonth = document.getElementById('monthFilter').value; // "2023-12"
+            const selectedMonth = document.getElementById('activePeriod').value; // Doğru satır
             
             // Etiketi Güncelle (Örn: Aralık 2023)
             const dateObj = new Date(selectedMonth);
@@ -1226,19 +1359,37 @@ window.sifreDegistir = async function() {
     }
 }
 
-        // ÇIKIŞ YAP
-        window.cikisYap = async function() {
-            Swal.fire({
-                title: 'Çıkış?', text: "Oturumu kapatmak istiyor musunuz?", icon: 'question',
-                showCancelButton: true, confirmButtonText: 'Evet, Çık', confirmButtonColor: '#d33'
-            }).then(async (result) => {
-                if (result.isConfirmed) { await signOut(auth); window.location.href = "../giris.html"; }
-            });
-        }
+        // --- ÇIKIŞ YAP (GÜLE GÜLE MESAJLI) ---
+window.cikisYap = async function() {
+    const result = await Swal.fire({
+        title: 'Çıkış Yapılıyor',
+        text: "Günü bitiriyor musunuz?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Evet, Çıkış Yap',
+        cancelButtonText: 'Vazgeç',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    });
+
+    if (result.isConfirmed) {
+        // Hoşça kal Mesajı
+        await Swal.fire({
+            title: 'Güle Güle!',
+            text: 'Emeklerinize sağlık. Bereketli günler dileriz.',
+            icon: 'success',
+            timer: 2000, // 2 saniye bekle
+            showConfirmButton: false,
+            timerProgressBar: true
+        });
+
+        // Mesaj bittikten sonra çıkış işlemi
+        await signOut(auth);
+        window.location.href = "../giris.html";
+    }
+}
 
    
-
-// --- 1. HAYVANLARI GETİR (KURU DÖNEM UYARILI) ---
 window.hayvanlariGetir = function() {
     const container = document.getElementById("animal-list-container");
     container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
@@ -1249,211 +1400,259 @@ window.hayvanlariGetir = function() {
         container.innerHTML = "";
         
         if (snapshot.empty) {
-            container.innerHTML = '<div class="text-center py-5 text-muted opacity-75"><i class="fa-solid fa-paw fa-3x mb-3"></i><h5>Kayıt Yok</h5><p>Hayvan eklemek için yukarıdaki + butonuna basın.</p></div>';
-            ['total', 'inek', 'genc', 'erkek'].forEach(k => document.getElementById(`stat-${k}`).innerText = '0');
+            container.innerHTML = `
+                <div class="text-center py-5 opacity-75">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                        <i class="fa-solid fa-cow text-secondary fa-2x"></i>
+                    </div>
+                    <h5>Ahırınız Boş</h5>
+                    <p class="small text-muted">Yukarıdaki "Ekle" butonundan hayvan ekleyebilirsiniz.</p>
+                </div>`;
             return;
         }
 
-        let countTotal = 0, countInek = 0, countGenc = 0, countErkek = 0;
+        let stats = { total: 0, inek: 0, genc: 0, erkek: 0 };
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            countTotal++;
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const docId = docSnap.id;
+            stats.total++;
 
-            if(data.cinsiyet === 'Erkek') countErkek++;
-            else if(data.tur === 'İnek') countInek++;
-            else countGenc++;
+            // İstatistik
+            if(data.cinsiyet === 'Erkek') stats.erkek++;
+            else if(data.tur === 'İnek') stats.inek++;
+            else stats.genc++;
 
-            // YAŞ HESABI
-            let yasText = "Yaş Bilinmiyor";
+            // YAŞ HESABI (Daha okunaklı)
+            let yasText = "-";
             if(data.dogumTarihi) {
                 const diff = new Date() - new Date(data.dogumTarihi);
                 const ageMonth = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
-                if(ageMonth < 12) yasText = `${ageMonth} Aylık`;
-                else yasText = `${Math.floor(ageMonth/12)} Yaşında`;
+                if(ageMonth < 12) yasText = `${ageMonth} Ay`;
+                else yasText = `${Math.floor(ageMonth/12)} Yaş`;
             }
 
-            // GEBELİK VE KURUYA AYIRMA HESABI
-            let gebelikBadge = '';
-            let altBilgiKutusu = '';
+            // GÖRSEL AYARLAR
+            const isErkek = data.cinsiyet === 'Erkek';
+            const stripeClass = isErkek ? 'gender-male' : 'gender-female';
             
-            if (data.gebelik === 'Gebe' && data.tohumlamaTarihi) {
-                const tohumlama = new Date(data.tohumlamaTarihi);
-                const bugun = new Date();
-                
-                // Doğum Tarihi (285 Gün)
-                const tahminiDogum = new Date(tohumlama);
-                tahminiDogum.setDate(tohumlama.getDate() + 285);
-                
-                // Kalan Gün
-                const farkZaman = tahminiDogum - bugun;
-                const kalanGun = Math.ceil(farkZaman / (1000 * 60 * 60 * 24));
-
-                // --- YENİ EKLENEN: KURU DÖNEM HESABI ---
-                // Doğuma 60 günden az kaldıysa ve henüz doğmadıysa
-                let kuruUyari = '';
-                if (kalanGun <= 60 && kalanGun > 0) {
-                    kuruUyari = `<div class="alert alert-warning d-flex align-items-center p-2 mb-2 mt-2" role="alert" style="font-size: 0.8rem;">
-                                    <i class="fa-solid fa-triangle-exclamation me-2 fs-5"></i>
-                                    <div>
-                                        <strong>DİKKAT!</strong> Hayvanı kuruya ayırma zamanı geldi.<br>
-                                        <small>Doğuma ${kalanGun} gün kaldı.</small>
-                                    </div>
-                                 </div>`;
-                }
-                // ---------------------------------------
-
-                if (kalanGun > 0) {
-                    gebelikBadge = `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 ms-1"><i class="fa-solid fa-baby me-1"></i>Gebe</span>`;
+            // Gebelik Durumu (Sadece Dişiler İçin)
+            let gebelikBilgi = '';
+            let dogumButonu = '';
+            
+            if (!isErkek && data.gebelik === 'Gebe') {
+                // Kalan Gün Hesabı
+                let kalanGunText = '';
+                if(data.tohumlamaTarihi) {
+                    const tohumlama = new Date(data.tohumlamaTarihi);
+                    const tahminiDogum = new Date(tohumlama);
+                    tahminiDogum.setDate(tohumlama.getDate() + 285);
+                    const kalan = Math.ceil((tahminiDogum - new Date()) / (1000 * 60 * 60 * 24));
                     
-                    // Alt bilgi kutusu (Normal Sayaç + Kuru Uyarısı)
-                    altBilgiKutusu = `
-                        ${kuruUyari}
-                        <div class="mt-2 p-2 bg-light rounded border border-danger border-opacity-25 text-center">
-                            <small class="text-danger fw-bold d-block">DOĞUMA KALAN</small>
-                            <span class="fw-bold text-dark fs-5">${kalanGun} Gün</span>
-                            <small class="text-muted d-block" style="font-size:0.65rem">Tahmini: ${tahminiDogum.toLocaleDateString('tr-TR')}</small>
-                        </div>`;
-                } else {
-                    gebelikBadge = `<span class="badge bg-success ms-1">DOĞUM ZAMANI!</span>`;
-                    altBilgiKutusu = `<div class="mt-2 p-2 bg-success text-white rounded text-center fw-bold">DOĞUM BEKLENİYOR</div>`;
+                    if(kalan > 0) kalanGunText = `<span class="text-danger fw-bold small"><i class="fa-solid fa-stopwatch me-1"></i>${kalan} Gün Kaldı</span>`;
+                    else kalanGunText = `<span class="text-success fw-bold small blink">Doğum Bekleniyor!</span>`;
                 }
+
+                gebelikBilgi = `
+                <div class="d-flex align-items-center justify-content-between mt-2 p-2 bg-danger bg-opacity-10 rounded border border-danger border-opacity-25">
+                    <div class="d-flex align-items-center text-danger">
+                        <i class="fa-solid fa-baby-carriage me-2"></i>
+                        <span class="fw-bold small">GEBE</span>
+                    </div>
+                    ${kalanGunText}
+                </div>`;
+
+                dogumButonu = `
+                <button class="btn btn-action btn-success text-white" onclick="dogumKaydet('${docId}', '${data.kupeNo}', '${data.irk || ''}')">
+                    <i class="fa-solid fa-cake-candles"></i> Doğum
+                </button>`;
             }
 
-            // Kart İkon ve Renk
-            let icon = 'fa-cow';
-            let color = 'text-warning';
-            if(data.cinsiyet === 'Erkek') { color = 'text-danger'; }
-            
+            // KART HTML
             const html = `
-            <div class="card border-0 shadow-sm mb-3 animal-card" data-kupe="${data.kupeNo.toLowerCase()}" style="border-radius: 16px; overflow:hidden;">
-                <div class="card-body p-3">
+            <div class="animal-card mb-3 animal-card-item" data-kupe="${data.kupeNo.toLowerCase()}">
+                <div class="status-stripe ${stripeClass}"></div>
+                <div class="p-3 ps-4">
+                    
                     <div class="d-flex justify-content-between align-items-start">
-                        
-                        <div class="d-flex align-items-center">
-                            <div class="bg-light ${color} rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
-                                <i class="fa-solid ${icon}"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold text-dark m-0 fs-5">
-                                    ${data.kupeNo}
-                                    ${data.rumuz ? `<span class="text-muted fw-normal small ms-1">(${data.rumuz})</span>` : ''}
-                                    ${gebelikBadge}
-                                </h6>
-                                <div class="small text-muted mt-1">
-                                    <span class="badge bg-light text-dark border me-1">${data.irk || 'Irk Yok'}</span>
-                                    <span class="badge bg-light text-secondary border me-1">${data.tur || '-'}</span>
-                                    <span class="text-secondary" style="font-size:0.75rem"><i class="fa-regular fa-clock me-1"></i>${yasText}</span>
-                                </div>
-                            </div>
+                        <div>
+                            <div class="tag-badge mb-1">${data.kupeNo}</div>
+                            <div class="small text-muted fw-bold ps-1">${data.rumuz || 'İsimsiz'}</div>
                         </div>
-
-                        <div class="d-flex gap-2">
-                            ${data.gebelik === 'Gebe' ? 
-                            `<button class="btn btn-success btn-sm text-white shadow-sm" onclick="dogumKaydet('${doc.id}', '${data.kupeNo}', '${data.irk || ''}')" title="Doğum Gerçekleşti">
-                                <i class="fa-solid fa-baby-carriage"></i>
-                            </button>` : ''}
-
-                            <button class="btn btn-light text-primary btn-sm border" onclick="hayvanDuzenle('${doc.id}', '${data.kupeNo}', '${data.gebelik || 'Bos'}', '${data.tohumlamaTarihi || ''}', '${data.tohumlamaTipi || 'Suni'}')">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            
-                            <button class="btn btn-light text-danger btn-sm border" onclick="hayvanSil('${doc.id}')">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                        <div class="text-end">
+                            <span class="badge bg-light text-dark border">${data.irk || '-'}</span>
+                            <div class="small text-secondary mt-1 text-end fw-bold">${yasText}</div>
                         </div>
                     </div>
-                    
-                    ${altBilgiKutusu}
-                    
+
+                    ${gebelikBilgi}
+
+                    <div class="action-btn-group">
+                        <button class="btn btn-action btn-light text-primary border" 
+                                onclick="hayvanDuzenleTam('${docId}')">
+                            <i class="fa-solid fa-pen-to-square"></i> Düzenle
+                        </button>
+                        
+                        ${dogumButonu}
+                        
+                        <button class="btn btn-action btn-light text-danger border" onclick="hayvanSil('${docId}')">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+
                 </div>
             </div>`;
             
             container.innerHTML += html;
         });
 
-        document.getElementById("stat-total").innerText = countTotal;
-        document.getElementById("stat-inek").innerText = countInek;
-        document.getElementById("stat-genc").innerText = countGenc;
-        document.getElementById("stat-erkek").innerText = countErkek;
+        // İstatistikleri Güncelle
+        if(document.getElementById("stat-total")) {
+            document.getElementById("stat-total").innerText = stats.total;
+            document.getElementById("stat-inek").innerText = stats.inek;
+            document.getElementById("stat-genc").innerText = stats.genc;
+            document.getElementById("stat-erkek").innerText = stats.erkek;
+        }
     });
 }
 
+// --- GELİŞMİŞ HAYVAN DÜZENLEME (HER ŞEY DAHİL) ---
+window.hayvanDuzenleTam = async function(docId) {
+    // 1. Önce mevcut veriyi çekelim ki form dolu gelsin
+    const docRef = doc(db, "animals", docId);
+    const docSnap = await getDoc(docRef);
 
-window.hayvanDuzenle = async function(docId, kupeNo, mevcutGebelik, mevcutTarih, mevcutTip) {
+    if (!docSnap.exists()) {
+        return Swal.fire("Hata", "Hayvan bilgisi bulunamadı.", "error");
+    }
+
+    const data = docSnap.data();
+    
+    // Tarih formatını ayarla (HTML input için YYYY-MM-DD lazım)
+    const dogumTarihiVal = data.dogumTarihi ? data.dogumTarihi : '';
+    const tohumlamaTarihiVal = data.tohumlamaTarihi ? data.tohumlamaTarihi : '';
+
+    // 2. Detaylı Formu Aç
     const { value: formValues } = await Swal.fire({
-        title: `Düzenle: ${kupeNo}`,
+        title: 'Hayvan Düzenle',
         html: `
             <div class="text-start">
-                <div class="alert alert-info small p-2 mb-3">
-                    <i class="fa-solid fa-info-circle me-1"></i> Sadece gebelik durumunu buradan güncelleyebilirsiniz.
+                
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted">Küpe No</label>
+                        <input id="edit-kupe" class="form-control fw-bold" value="${data.kupeNo}">
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted">Rumuz / İsim</label>
+                        <input id="edit-rumuz" class="form-control" value="${data.rumuz || ''}">
+                    </div>
                 </div>
 
-                <label class="small fw-bold text-primary mb-1">Gebelik Durumu</label>
-                <select id="edit-gebelik" class="form-select mb-3">
-                    <option value="Bos" ${mevcutGebelik === 'Bos' ? 'selected' : ''}>Boş (Gebe Değil)</option>
-                    <option value="Gebe" ${mevcutGebelik === 'Gebe' ? 'selected' : ''}>Gebe / Tohumlandı</option>
-                </select>
-                
-                <div id="edit-detay-div" style="display: ${mevcutGebelik === 'Gebe' ? 'block' : 'none'};">
-                    <label class="small fw-bold text-muted mb-1">Tohumlama Tarihi</label>
-                    <input type="date" id="edit-tohumlama" class="form-control mb-2" value="${mevcutTarih}">
-                    
-                    <label class="small fw-bold text-muted mb-1">Tohumlama Tipi</label>
-                    <select id="edit-tip" class="form-select">
-                        <option value="Suni" ${mevcutTip === 'Suni' ? 'selected' : ''}>Suni Tohumlama (Veteriner)</option>
-                        <option value="Tabii" ${mevcutTip === 'Tabii' ? 'selected' : ''}>Tabii Tohumlama (Boğa)</option>
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted">Irkı</label>
+                    <select id="edit-irk" class="form-select">
+                        <option value="Holstein" ${data.irk === 'Holstein' ? 'selected' : ''}>Holstein</option>
+                        <option value="Simental" ${data.irk === 'Simental' ? 'selected' : ''}>Simental</option>
+                        <option value="Montofon" ${data.irk === 'Montofon' ? 'selected' : ''}>Montofon</option>
+                        <option value="Jersey" ${data.irk === 'Jersey' ? 'selected' : ''}>Jersey</option>
+                        <option value="Angus" ${data.irk === 'Angus' ? 'selected' : ''}>Angus</option>
+                        <option value="Yerli" ${data.irk === 'Yerli' ? 'selected' : ''}>Yerli</option>
+                        <option value="Diğer" ${data.irk === 'Diğer' ? 'selected' : ''}>Diğer</option>
                     </select>
                 </div>
+
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted">Doğum Tarihi</label>
+                    <input type="date" id="edit-dogum" class="form-control" value="${dogumTarihiVal}">
+                </div>
+
+                <hr class="my-3 text-secondary">
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted">Cinsiyet</label>
+                        <select id="edit-cinsiyet" class="form-select" onchange="toggleGebelik(this.value)">
+                            <option value="Dişi" ${data.cinsiyet === 'Dişi' ? 'selected' : ''}>Dişi</option>
+                            <option value="Erkek" ${data.cinsiyet === 'Erkek' ? 'selected' : ''}>Erkek</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted">Türü</label>
+                        <select id="edit-tur" class="form-select">
+                            <option value="İnek" ${data.tur === 'İnek' ? 'selected' : ''}>İnek</option>
+                            <option value="Düve" ${data.tur === 'Düve' ? 'selected' : ''}>Düve</option>
+                            <option value="Dana" ${data.tur === 'Dana' ? 'selected' : ''}>Dana</option>
+                            <option value="Buzağı" ${data.tur === 'Buzağı' ? 'selected' : ''}>Buzağı</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="edit-gebelik-wrapper" style="display: ${data.cinsiyet === 'Erkek' ? 'none' : 'block'};">
+                    <div class="bg-light p-2 rounded border">
+                        <label class="small fw-bold text-primary mb-1">Gebelik Durumu</label>
+                        <select id="edit-gebelik" class="form-select mb-2" onchange="toggleTohumlama(this.value)">
+                            <option value="Bos" ${data.gebelik === 'Bos' ? 'selected' : ''}>Boş</option>
+                            <option value="Gebe" ${data.gebelik === 'Gebe' ? 'selected' : ''}>Gebe</option>
+                        </select>
+                        
+                        <div id="edit-tohumlama-div" style="display: ${data.gebelik === 'Gebe' ? 'block' : 'none'};">
+                            <label class="small fw-bold text-muted mb-1">Tohumlama Tarihi</label>
+                            <input type="date" id="edit-tohumlama" class="form-control" value="${tohumlamaTarihiVal}">
+                        </div>
+                    </div>
+                </div>
+
             </div>
         `,
-        // --- DEĞİŞİKLİK BURADA: Pencere açılınca bu kod çalışır ---
-        didOpen: () => {
-            const selectBox = document.getElementById('edit-gebelik');
-            const detayDiv = document.getElementById('edit-detay-div');
-            
-            // Seçim değişince çalışacak kod
-            selectBox.addEventListener('change', function() {
-                if (this.value === 'Gebe') {
-                    detayDiv.style.display = 'block';
-                } else {
-                    detayDiv.style.display = 'none';
-                }
-            });
-        },
-        // ----------------------------------------------------------
         focusConfirm: false,
         showCancelButton: true,
-        confirmButtonText: 'Güncelle',
-        confirmButtonColor: '#0284c7',
+        confirmButtonText: 'Kaydet',
+        confirmButtonColor: '#0f766e',
+        cancelButtonText: 'Vazgeç',
+        didOpen: () => {
+            // SweetAlert içindeki scriptler
+            window.toggleGebelik = (val) => {
+                document.getElementById('edit-gebelik-wrapper').style.display = val === 'Erkek' ? 'none' : 'block';
+            };
+            window.toggleTohumlama = (val) => {
+                document.getElementById('edit-tohumlama-div').style.display = val === 'Gebe' ? 'block' : 'none';
+            };
+        },
         preConfirm: () => {
             return {
-                gebelik: document.getElementById('edit-gebelik').value,
-                tarih: document.getElementById('edit-tohumlama').value,
-                tip: document.getElementById('edit-tip').value
+                kupeNo: document.getElementById('edit-kupe').value.toUpperCase(),
+                rumuz: document.getElementById('edit-rumuz').value,
+                irk: document.getElementById('edit-irk').value,
+                dogumTarihi: document.getElementById('edit-dogum').value,
+                cinsiyet: document.getElementById('edit-cinsiyet').value,
+                tur: document.getElementById('edit-tur').value,
+                gebelik: document.getElementById('edit-cinsiyet').value === 'Erkek' ? 'Bos' : document.getElementById('edit-gebelik').value,
+                tohumlamaTarihi: document.getElementById('edit-tohumlama').value
             }
         }
     });
 
     if (formValues) {
-        // Doğrulama
-        if(formValues.gebelik === 'Gebe' && !formValues.tarih) {
-            return Swal.fire("Eksik Bilgi", "Gebe seçtiyseniz tarih girmelisiniz!", "warning");
-        }
+        if(!formValues.kupeNo) return Swal.fire("Hata", "Küpe numarası boş olamaz.", "warning");
 
         try {
-            // Veritabanını Güncelle
-            await updateDoc(doc(db, "animals", docId), {
+            await updateDoc(docRef, {
+                kupeNo: formValues.kupeNo,
+                rumuz: formValues.rumuz,
+                irk: formValues.irk,
+                dogumTarihi: formValues.dogumTarihi,
+                cinsiyet: formValues.cinsiyet,
+                tur: formValues.tur,
                 gebelik: formValues.gebelik,
-                tohumlamaTarihi: formValues.tarih,
-                tohumlamaTipi: formValues.tip
+                tohumlamaTarihi: formValues.tohumlamaTarihi
             });
 
             const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
             Toast.fire({icon: 'success', title: 'Bilgiler Güncellendi'});
 
         } catch (error) {
-            Swal.fire("Hata", error.message, "error");
+            Swal.fire("Hata", "Güncelleme başarısız: " + error.message, "error");
         }
     }
 }
@@ -2114,7 +2313,8 @@ window.hayvanAra = function() {
         }
     }
    window.sayfaDegistir = function(sayfaId, element) {
-        const pages = ["page-home", "page-milk", "page-history", "page-profile", "page-account", "page-animals", "page-orders"];
+       // Bu satırı bul ve sonuna 'page-yem-defteri' ekle
+const pages = ["page-home", "page-milk", "page-history", "page-profile", "page-account", "page-animals", "page-orders", "page-yem-defteri"];
         pages.forEach(id => {
             const p = document.getElementById(id);
             if(p) p.style.display = "none";
@@ -2566,11 +2766,124 @@ async function ekstreGetir() {
             container.innerHTML = '<div class="alert alert-danger">Veri alınırken hata oluştu.</div>';
         }
     }
+// Sayfa yüklendiğinde aktif dönemi ve seçiciyi ayarla
+window.donemSeciciyiHazirla = function() {
+    const select = document.getElementById("activePeriod");
+    if(!select) return;
 
-    // --- SİPARİŞLERİ GETİR VE TAKİP ET (HATA KORUMALI) ---
+    const simdi = new Date();
+    const suAnkiYil = simdi.getFullYear();
+    const suAnkiAy = simdi.getMonth() + 1; // 1-12 arası
+
+    select.innerHTML = ""; // Mevcut statik seçenekleri temizle
+
+    // Son 12 ayı listeye otomatik ekle
+    for (let i = 0; i < 12; i++) {
+        let d = new Date(suAnkiYil, suAnkiAy - 1 - i, 1);
+        let yil = d.getFullYear();
+        let ay = String(d.getMonth() + 1).padStart(2, '0');
+        let ayIsmi = d.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+        
+        let opt = document.createElement("option");
+        opt.value = `${yil}-${ay}`;
+        opt.innerText = ayIsmi;
+        if (i === 0) opt.selected = true; // En güncel ayı seçili yap
+        select.appendChild(opt);
+    }
+    
+    // İlk açılışta etiketi güncelle
+    periodDegisti(select.value);
+};
+// Tarih seçici değiştiğinde çalışacak ana fonksiyon
+window.verileriGetir = function() {
+    // Süt verilerini getir (varsa)
+    if(typeof sutVerileriniGetir === 'function') sutVerileriniGetir();
+    
+    // Yem verilerini getir
+    if(typeof yemDefteriniGetir === 'function') yemDefteriniGetir();
+    
+    // Siparişleri getir (varsa)
+    if(typeof siparisleriGetir === 'function') siparisleriGetir();
+}
+
+// Dönem seçiciye "change" olayını bağla
+document.getElementById('activePeriod').addEventListener('change', window.verileriGetir);
+
+window.yemDefteriYukle = async function() {
+    const donem = document.getElementById("activePeriod").value; // Örn: "2025-12"
+    const listBody = document.getElementById("yem-listesi-body");
+    const totalDisplay = document.getElementById("yem-toplam-adet");
+    
+    // Üye ID kontrolü
+    if(!currentMemberId) return; 
+
+    listBody.innerHTML = '<tr><td colspan="2" class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div> Ürünler Getiriliyor...</td></tr>';
+
+    // DOĞRU YER: Aylık Hesap Ekstresi içindeki Satış Listesi
+    // Belge ID Yapısı: UyeID_YIL-AY (Örn: Abc123_2025-12)
+    const docId = `${currentMemberId}_${donem}`;
+    const docRef = doc(db, "monthly_statements", docId);
+
+    try {
+        const docSnap = await getDoc(docRef);
+        
+        let html = "";
+        let toplamAdet = 0;
+
+        // Belge var mı ve içinde satış listesi var mı?
+        if (docSnap.exists() && docSnap.data().satisListesi && docSnap.data().satisListesi.length > 0) {
+            
+            const satislar = docSnap.data().satisListesi;
+
+            // Listeyi döngüye al
+            satislar.forEach(item => {
+                // Veritabanındaki alan adları: item.name (isim) ve item.qty (adet)
+                const urunAdi = item.name || "İsimsiz Ürün";
+                const miktar = Number(item.qty || item.adet || 0);
+                const birim = item.unit || 'Adet';
+
+                toplamAdet += miktar;
+
+                // İstenilen Görünüm: Sadece İsim ve Adet (Tarih/Fiyat Yok)
+                html += `
+                <tr>
+                    <td class="ps-4 py-3 align-middle">
+                        <div class="fw-bold text-dark" style="font-size:1.1rem; letter-spacing: -0.5px;">
+                            ${urunAdi}
+                        </div>
+                    </td>
+                    <td class="text-center align-middle">
+                        <span class="badge bg-secondary bg-opacity-10 text-dark fs-6 px-3 py-2 border" style="border-radius: 10px;">
+                            ${miktar} ${birim}
+                        </span>
+                    </td>
+                </tr>`;
+            });
+
+            listBody.innerHTML = html;
+            totalDisplay.innerText = toplamAdet + " Adet";
+
+        } else {
+            // Kayıt yoksa veya liste boşsa
+            listBody.innerHTML = `<tr><td colspan="2" class="text-center p-5 text-muted opacity-75">
+                <i class="fa-solid fa-basket-shopping fa-2x mb-3"></i><br>
+                Bu döneme ait işlenmiş malzeme/yem kaydı bulunamadı.
+            </td></tr>`;
+            totalDisplay.innerText = "0 Adet";
+        }
+
+    } catch (e) {
+        console.error("Yem Defteri Hatası:", e);
+        listBody.innerHTML = '<tr><td colspan="2" class="text-center p-4 text-danger">Bağlantı hatası oluştu.</td></tr>';
+    }
+};
 window.siparislerimiGetir = function() {
     const container = document.getElementById("order-list-container");
-    container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+    container.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+            <div class="mt-3 text-muted fw-bold">Siparişleriniz Yükleniyor...</div>
+        </div>`;
 
     const q = query(
         collection(db, "orders"), 
@@ -2583,56 +2896,376 @@ window.siparislerimiGetir = function() {
         
         if (snapshot.empty) {
             container.innerHTML = `
-                <div class="text-center py-5 text-muted opacity-75">
-                    <i class="fa-solid fa-cart-shopping fa-3x mb-3"></i>
-                    <h5>Henüz Siparişiniz Yok</h5>
+                <div class="text-center py-5 opacity-75">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fa-solid fa-basket-shopping text-secondary fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-secondary">Henüz Sipariş Yok</h5>
+                    <p class="small text-muted">Malzeme ihtiyaçlarınızı buradan talep edebilirsiniz.</p>
                 </div>`;
             return;
         }
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            const tarih = data.tarih?.toDate().toLocaleDateString('tr-TR', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'});
+            const docId = docSnap.id; // Belge ID'si lazım olacak
             
-            // Durum Renkleri
-            let statusColor = "bg-warning";
-            if(data.status === "Hazırlanıyor") statusColor = "bg-info";
-            if(data.status === "Onaylandı" || data.status === "Teslim Edildi") statusColor = "bg-success";
-            if(data.status === "Reddedildi") statusColor = "bg-danger";
-
-            // HATA KORUMASI 1: Ürün listesi kontrolü
-            let urunlerHtml = "";
-            if (data.urunler && Array.isArray(data.urunler)) {
-                urunlerHtml = data.urunler.map(u => 
-                    `<div class="d-flex justify-content-between small border-bottom py-1">
-                        <span>${u.urun} x ${u.miktar}</span>
-                        <span class="fw-bold">${(u.tutar || 0).toLocaleString('tr-TR')} ₺</span>
-                    </div>`
-                ).join('');
+            let tarihStr = "-";
+            if(data.tarih && data.tarih.toDate) {
+                tarihStr = data.tarih.toDate().toLocaleDateString('tr-TR', {
+                    day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+                });
             }
 
-            // HATA KORUMASI 2: toplamTutar kontrolü (Sizin aldığınız hatanın çözümü)
-            const gosterilecekToplam = (data.toplamTutar || 0).toLocaleString('tr-TR');
+            // Durum Ayarları
+            let tema = { renk: "warning", ikon: "fa-clock", baslikBg: "bg-warning bg-opacity-25", text: "text-dark" };
+            const stat = data.status || "Bekliyor";
 
-            const card = `
-                <div class="card border-0 shadow-sm mb-3" style="border-radius: 18px; overflow:hidden;">
-                    <div class="card-header border-0 d-flex justify-content-between align-items-center bg-white pt-3">
-                        <small class="text-muted fw-bold">${tarih}</small>
-                        <span class="badge ${statusColor} rounded-pill px-3 py-2" style="font-size:0.7rem">${data.status || 'Bekliyor'}</span>
-                    </div>
-                    <div class="card-body pt-2">
-                        <div class="mb-2">${urunlerHtml}</div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <small class="text-muted">Teslimat: ${data.teslimatYontemi || '-'}</small>
-                            <h6 class="fw-bold text-dark m-0">Toplam: ${gosterilecekToplam} ₺</h6>
+            // Sadece "Bekliyor" ise düzenlenebilir olsun
+            const isEditable = (stat === "Bekliyor");
+
+            if(stat === "Hazırlanıyor") {
+                tema = { renk: "info", ikon: "fa-box-open", baslikBg: "bg-info bg-opacity-25", text: "text-dark" };
+            } else if(stat === "Yola Çıktı" || stat === "Dağıtımda") {
+                tema = { renk: "primary", ikon: "fa-truck-fast", baslikBg: "bg-primary bg-opacity-25", text: "text-dark" };
+            } else if(stat === "Onaylandı" || stat === "Teslim Edildi" || stat === "Tamamlandı") {
+                tema = { renk: "success", ikon: "fa-circle-check", baslikBg: "bg-success bg-opacity-25", text: "text-dark" };
+            } else if(stat === "Reddedildi" || stat === "İptal") {
+                tema = { renk: "danger", ikon: "fa-circle-xmark", baslikBg: "bg-danger bg-opacity-25", text: "text-dark" };
+            }
+
+            const urunListesi = data.items || data.urunler || [];
+            let urunlerHtml = "";
+            let toplamParca = 0;
+
+            if (Array.isArray(urunListesi) && urunListesi.length > 0) {
+                urunlerHtml = urunListesi.map(u => {
+                    const miktar = Number(u.miktar || u.adet || 0);
+                    const urunAdi = u.urun || u.name || "İsimsiz Ürün";
+                    toplamParca += miktar;
+                    return `
+                    <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-white rounded border border-light shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <i class="fa-solid fa-caret-right text-${tema.renk} me-2"></i>
+                            <span class="fw-bold text-dark" style="font-size: 0.9rem;">${urunAdi}</span>
                         </div>
+                        <div class="badge bg-light text-dark border px-3 py-1 rounded-pill">
+                            <span class="fw-bold">${miktar}</span> <small>Adet</small>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // --- İŞLEM BUTONLARI (Sadece Bekliyor ise görünür) ---
+            let actionButtons = "";
+            if(isEditable) {
+                actionButtons = `
+                <div class="d-flex gap-2 mt-3 pt-3 border-top border-light">
+                    <button class="btn btn-sm btn-light text-primary fw-bold flex-grow-1 border" onclick="siparisDuzenle('${docId}')">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Düzenle
+                    </button>
+                    <button class="btn btn-sm btn-light text-danger fw-bold flex-grow-1 border" onclick="siparisSil('${docId}')">
+                        <i class="fa-solid fa-trash-can me-1"></i> İptal Et
+                    </button>
+                </div>`;
+            }
+
+            const cardHtml = `
+                <div class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-radius: 18px;">
+                    <div class="card-header border-0 py-3 px-3 d-flex justify-content-between align-items-center ${tema.baslikBg}">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                 style="width: 35px; height: 35px; color: var(--bs-${tema.renk})">
+                                <i class="fa-solid ${tema.ikon}"></i>
+                            </div>
+                            <div>
+                                <small class="d-block text-muted" style="font-size: 0.65rem; line-height:1;">SİPARİŞ TARİHİ</small>
+                                <span class="fw-bold text-dark" style="font-size: 0.85rem;">${tarihStr}</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-white text-${tema.renk} border border-${tema.renk} shadow-sm px-3 py-2 rounded-pill">
+                            ${stat}
+                        </span>
+                    </div>
+
+                    <div class="card-body bg-light bg-opacity-10 pt-3">
+                        <div class="mb-3">
+                            <small class="text-muted ms-1 mb-1 d-block fw-bold" style="font-size: 0.7rem;">SİPARİŞ İÇERİĞİ</small>
+                            ${urunlerHtml}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-2">
+                            <div class="text-muted small">
+                                <i class="fa-solid fa-truck-ramp-box me-1"></i>
+                                <span>${data.teslimatYontemi || 'Teslimat: -'}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-dark text-white rounded-pill px-3 py-2">
+                                    TOPLAM: ${toplamParca} ADET
+                                </span>
+                            </div>
+                        </div>
+
+                        ${data.not ? `<div class="mt-3 p-2 bg-warning bg-opacity-10 rounded border border-warning border-opacity-25 small text-dark"><i class="fa-solid fa-message me-1 text-warning"></i> ${data.not}</div>` : ''}
+                        
+                        ${actionButtons}
                     </div>
                 </div>`;
-            container.innerHTML += card;
+            
+            container.innerHTML += cardHtml;
         });
     });
 }
+
+// --- SİPARİŞ SİLME FONKSİYONU ---
+window.siparisSil = async function(docId) {
+    // Güvenlik: Veritabanı bağlantısı var mı?
+    if (!db) { Swal.fire("Hata", "Veritabanı bağlantısı koptu. Sayfayı yenileyin.", "error"); return; }
+
+    const result = await Swal.fire({
+        title: 'Sipariş İptali',
+        text: "Bu sipariş kalıcı olarak silinecek. Emin misiniz?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Evet, Sil',
+        cancelButtonText: 'Vazgeç',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#64748b'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            // Belgeyi sil
+            await deleteDoc(doc(db, "orders", docId));
+            
+            // Başarılı Mesajı
+            const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 2000});
+            Toast.fire({icon: 'success', title: 'Sipariş iptal edildi.'});
+            
+        } catch (error) {
+            console.error("Silme Hatası:", error);
+            Swal.fire("Hata", "Silinemedi: " + error.message, "error");
+        }
+    }
+}
+
+// --- SİPARİŞ DÜZENLEME FONKSİYONU ---
+window.siparisDuzenle = async function(docId) {
+    if (!db) return;
+
+    try {
+        // 1. Mevcut veriyi çek
+        const siparisRef = doc(db, "orders", docId);
+        const docSnap = await getDoc(siparisRef);
+        
+        if (!docSnap.exists()) {
+            Swal.fire("Hata", "Sipariş bulunamadı.", "error");
+            return;
+        }
+
+        const data = docSnap.data();
+        // Hem yeni (items) hem eski (urunler) yapıya bak
+        const urunler = data.items || data.urunler || [];
+
+        // 2. HTML Oluştur
+        let inputsHtml = "";
+        urunler.forEach((u, index) => {
+            const ad = u.urun || u.name || "İsimsiz Ürün";
+            const miktar = u.miktar || u.adet || 1;
+            
+            inputsHtml += `
+                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded bg-white">
+                    <span class="small fw-bold text-dark text-start w-75 pe-2">${ad}</span>
+                    <input type="number" id="edit-qty-${index}" class="form-control form-control-sm text-center fw-bold border-secondary" 
+                           value="${miktar}" min="1" style="width: 70px;">
+                </div>
+            `;
+        });
+
+        // 3. Pencereyi Aç
+        const { value: formValues } = await Swal.fire({
+            title: 'Siparişi Düzenle',
+            html: `
+                <div class="mb-3 bg-light p-3 rounded border">
+                    <label class="small text-muted mb-2 d-block text-start fw-bold">ÜRÜN ADETLERİ</label>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        ${inputsHtml}
+                    </div>
+                </div>
+                <div class="mb-2 text-start">
+                    <label class="small fw-bold text-muted">Sipariş Notu</label>
+                    <textarea id="edit-siparis-not" class="form-control" rows="2" placeholder="Notunuzu düzenleyin...">${data.not || ''}</textarea>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Güncelle',
+            confirmButtonColor: '#0f766e',
+            cancelButtonText: 'Vazgeç',
+            preConfirm: () => {
+                // Yeni değerleri topla
+                const yeniUrunler = urunler.map((u, index) => {
+                    const yeniMiktarEl = document.getElementById(`edit-qty-${index}`);
+                    const val = Number(yeniMiktarEl.value);
+                    
+                    return { 
+                        ...u, 
+                        miktar: val, 
+                        adet: val 
+                    };
+                });
+                const yeniNot = document.getElementById('edit-siparis-not').value;
+
+                return { yeniUrunler, yeniNot };
+            }
+        });
+
+        // 4. Veritabanını Güncelle
+        if (formValues) {
+            await updateDoc(siparisRef, {
+                items: formValues.yeniUrunler,   // Yeni alan
+                urunler: formValues.yeniUrunler, // Eski alan (yedek)
+                not: formValues.yeniNot,
+                // Fiyat hesaplamasını kaldırdık, çünkü fiyatları sildik.
+                // Yönetici panelinden fiyatlar tekrar girilebilir.
+            });
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Güncellendi',
+                text: 'Siparişiniz başarıyla düzenlendi.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+    } catch (error) {
+        console.error("Güncelleme Hatası:", error);
+        Swal.fire("Hata", "İşlem başarısız: " + error.message, "error");
+    }
+}
+
+// --- SİPARİŞ DÜZENLEME FONKSİYONU ---
+window.siparisDuzenle = async function(docId) {
+    // 1. Mevcut veriyi çek
+    const docRef = doc(db, "orders", docId);
+    const docSnap = await getDoc(docRef);
     
+    if (!docSnap.exists()) return;
+    const data = docSnap.data();
+    const urunler = data.items || data.urunler || [];
+
+    // 2. Düzenleme Formu HTML'i Oluştur
+    let inputsHtml = "";
+    urunler.forEach((u, index) => {
+        const ad = u.urun || u.name;
+        const miktar = u.miktar || u.adet;
+        // Her ürün için bir satır: İsim ve Adet Kutusu
+        inputsHtml += `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded bg-light">
+                <span class="small fw-bold text-dark text-start w-50">${ad}</span>
+                <input type="number" id="edit-qty-${index}" class="form-control form-control-sm text-center fw-bold border-secondary" 
+                       value="${miktar}" min="1" style="width: 80px;">
+            </div>
+        `;
+    });
+
+    // 3. SweetAlert ile Göster
+    const { value: formValues } = await Swal.fire({
+        title: 'Siparişi Düzenle',
+        html: `
+            <div class="mb-3">
+                <label class="small text-muted mb-2 d-block text-start">Ürün Adetlerini Güncelleyin:</label>
+                <div style="max-height: 200px; overflow-y: auto;">
+                    ${inputsHtml}
+                </div>
+            </div>
+            <div class="mb-2 text-start">
+                <label class="small fw-bold text-muted">Sipariş Notu</label>
+                <textarea id="edit-siparis-not" class="form-control" rows="2">${data.not || ''}</textarea>
+            </div>
+            <div class="alert alert-info small p-2 mt-2 text-start">
+                <i class="fa-solid fa-circle-info me-1"></i> Adedi 0 yaparsanız ürün listeden silinmez, en az 1 olmalıdır. Ürünü tamamen çıkarmak için siparişi iptal edip yeniden veriniz.
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Güncelle',
+        confirmButtonColor: '#0f766e',
+        preConfirm: () => {
+            // Yeni değerleri topla
+            const yeniUrunler = urunler.map((u, index) => {
+                const yeniMiktar = document.getElementById(`edit-qty-${index}`).value;
+                return { 
+                    ...u, // Eski verileri (fiyat vs) koru
+                    miktar: Number(yeniMiktar), 
+                    adet: Number(yeniMiktar) // İki alanı da güncelle garanti olsun
+                };
+            });
+            const yeniNot = document.getElementById('edit-siparis-not').value;
+
+            return { yeniUrunler, yeniNot };
+        }
+    });
+
+    // 4. Veritabanını Güncelle
+    if (formValues) {
+        try {
+            // Toplam tutar değişeceği için basitçe fiyatı varsa hesaplayalım (yoksa eskiyi korur)
+            let yeniToplamTutar = 0;
+            formValues.yeniUrunler.forEach(u => {
+                if(u.birimFiyat) yeniToplamTutar += (u.miktar * u.birimFiyat);
+            });
+
+            // Eğer ürünlerin fiyat bilgisi yoksa (0 çıkarsa), eski tutarı ellemeden bırakabiliriz 
+            // ama adet değiştiği için tutar hatalı kalabilir. 
+            // En temizi: Eğer fiyat varsa güncelle, yoksa 0 yaz (Panelden yönetici düzeltir).
+            
+            await updateDoc(docRef, {
+                items: formValues.yeniUrunler, // Hem items
+                urunler: formValues.yeniUrunler, // Hem urunler (garanti olsun)
+                not: formValues.yeniNot,
+                totalAmount: yeniToplamTutar > 0 ? yeniToplamTutar : data.totalAmount // Varsa güncelle
+            });
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Güncellendi',
+                text: 'Siparişiniz başarıyla düzenlendi.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Hata", "Güncelleme yapılamadı.", "error");
+        }
+    }
+}
+
+    window.donemSeciciyiHazirla = function() {
+    const select = document.getElementById("activePeriod");
+    if(!select) return;
+
+    const simdi = new Date();
+    const suAnkiYil = simdi.getFullYear();
+    const suAnkiAy = simdi.getMonth() + 1;
+
+    select.innerHTML = ""; // Eskileri temizle
+
+    // Son 6 ayı listele
+    for (let i = 0; i < 6; i++) {
+        let d = new Date(suAnkiYil, suAnkiAy - 1 - i, 1);
+        let yil = d.getFullYear();
+        let ay = String(d.getMonth() + 1).padStart(2, '0');
+        let ayIsmi = d.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+        
+        let opt = document.createElement("option");
+        opt.value = `${yil}-${ay}`;
+        opt.innerText = ayIsmi;
+        if (i === 0) opt.selected = true; 
+        select.appendChild(opt);
+    }
+    periodDegisti(select.value);
+};
     </script>
 </body>
 </html>

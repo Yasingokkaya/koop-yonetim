@@ -1268,20 +1268,27 @@ div.swal2-container {
                 <small>Detaylı Analiz</small>
             </div>
         </div>
+        
+
         <div class="col-6 col-md-3">
-    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3 action-card position-relative" 
-         onclick="switchTab('password-requests')" style="cursor: pointer; transition: 0.3s;">
-        <span id="pass-req-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+    <div class="card quick-card shadow-sm position-relative" 
+         style="background: linear-gradient(135deg, #be123c 0%, #9f1239 100%);" 
+         onclick="document.getElementById('password-requests-container').scrollIntoView({behavior: 'smooth'})">
+        
+        <span id="pass-req-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white shadow-sm d-none" 
+              style="margin-left: -20px; margin-top: 15px; z-index: 5;">
             0
         </span>
-        <div class="rounded-circle bg-warning bg-opacity-10 text-warning mx-auto mb-2 d-flex align-items-center justify-content-center" 
-             style="width: 50px; height: 50px;">
-            <i class="fa-solid fa-key fs-4"></i>
+
+        <i class="bg-icon fa-solid fa-key"></i>
+        
+        <i class="fa-solid fa-key fa-2x mb-2 text-white"></i>
+        <h6 class="text-white">Şifre Talepleri</h6>
+        <small class="text-white opacity-75">Sıfırlama İstekleri</small>
         </div>
-        <h6 class="small fw-bold mb-0">Şifre Talepleri</h6>
-    </div>
-</div>
-    </div> </div> <div id="orders" class="content-section hidden-section">
+    </div> </div> <div id="password-requests-container" class="mb-5" style="scroll-margin-top: 100px;"></div>
+
+</div> <div id="orders" class="content-section hidden-section">
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card border-0 shadow-sm bg-warning bg-opacity-10 border-warning border-start border-4">
@@ -9125,43 +9132,94 @@ window.sifremiUnuttum = async function() {
         }
     }
 }
-window.sifreTalepleriniTakipEt = function() {
-    const tableBody = document.getElementById("sifre-talepleri-listesi");
-    const badge = document.getElementById("pass-req-badge");
 
-    // "Bekliyor" durumundaki talepleri gerçek zamanlı dinle
-    const q = query(collection(db, "password_requests"), where("status", "==", "Bekliyor"));
+window.sifreTalepleriniTakipEt = function() {
+    const container = document.getElementById('password-requests-container');
+    const badge = document.getElementById('pass-req-badge');
+
+    if (!container) return;
+
+    const q = query(collection(db, "password_requests"), orderBy("tarih", "desc"));
 
     onSnapshot(q, (snapshot) => {
-        // Dashboard'daki bildirim sayısını güncelle
+        const talepSayisi = snapshot.size;
+
+        // 1. ÜSTTEKİ KÜÇÜK ROZETİ (BADGE) GÜNCELLE
         if (badge) {
-            snapshot.size > 0 ? (badge.innerText = snapshot.size, badge.classList.remove("d-none")) : badge.classList.add("d-none");
+            if (talepSayisi > 0) {
+                badge.innerText = talepSayisi;
+                badge.classList.remove('d-none');
+            } else {
+                badge.classList.add('d-none');
+            }
         }
 
-        let html = "";
+        // 2. ANA PANELİ GÖSTER VEYA TAMAMEN GİZLE
+        // Eğer HİÇ TALEP YOKSA -> İçini tamamen boşalt (Ekranda yer kaplamasın)
         if (snapshot.empty) {
-            html = `<tr><td colspan="4" class="text-center p-5 text-muted">Bekleyen şifre talebi yok.</td></tr>`;
-        } else {
-            snapshot.forEach(docSnap => {
-                const req = docSnap.data();
-                const tarih = req.tarih ? req.tarih.toDate().toLocaleDateString('tr-TR') : '-';
-                html += `
-                <tr>
-                    <td class="ps-4 text-muted small">${tarih}</td>
-                    <td class="fw-bold text-dark">${req.adSoyad}</td>
-                    <td><span class="badge bg-info bg-opacity-10 text-info fw-bold">${req.yeniSifre}</span></td>
-                    <td class="text-end pe-4">
-                        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="sifreTalebiOnayla('${docSnap.id}', '${req.memberId}', '${req.yeniSifre}')">
-                            Onayla
-                        </button>
-                    </td>
-                </tr>`;
-            });
+            container.innerHTML = ''; 
+            return;
         }
-        if(tableBody) tableBody.innerHTML = html;
+
+        // Eğer talep VARSA -> Paneli oluştur ve göster
+        let rowsHtml = '';
+        snapshot.forEach((docSnap) => {
+            const req = docSnap.data();
+            const docId = docSnap.id;
+            
+            let tarihStr = '-';
+            if(req.tarih && req.tarih.toDate) {
+                 tarihStr = req.tarih.toDate().toLocaleDateString('tr-TR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+            }
+
+            rowsHtml += `
+            <tr class="align-middle border-bottom">
+                <td class="ps-3 py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="fa-solid fa-user-lock"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark">${req.adSoyad || 'İsimsiz Üye'}</div>
+                            <div class="small text-muted">${tarihStr}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-light text-dark border px-2 py-1" style="font-family: monospace; font-size: 1rem;">
+                        ${req.yeniSifre}
+                    </span>
+                </td>
+                <td class="text-end pe-3">
+                    <button class="btn btn-sm btn-success text-white shadow-sm px-3 rounded-pill" 
+                            onclick="sifreDegisiminiOnayla('${docId}', '${req.userId}', '${req.yeniSifre}')">
+                        <i class="fa-solid fa-check"></i> Onayla
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger ms-1 rounded-circle" onclick="deleteDoc(doc(db, 'password_requests', '${docId}'))">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+
+        // Paneli ekrana bas
+        container.innerHTML = `
+        <div class="card border-0 shadow-sm overflow-hidden mb-4 animate__animated animate__fadeInDown" style="border-radius: 16px;">
+            <div class="position-absolute top-0 start-0 h-100 bg-warning" style="width: 5px;"></div>
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark m-0"><i class="fa-solid fa-key text-warning me-2"></i>Bekleyen Şifre Talepleri</h6>
+                    <span class="badge bg-danger">${talepSayisi} Yeni</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0"><tbody>${rowsHtml}</tbody></table>
+                </div>
+            </div>
+        </div>`;
     });
 };
-
 // Sayfa yüklendiğinde çalıştır
 sifreTalepleriniTakipEt();
 // Uygulama başladığında bu takibi başlat
