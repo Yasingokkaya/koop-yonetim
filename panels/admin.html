@@ -176,11 +176,25 @@
     z-index: 10;
 }
 
-    .card { 
-        border: none; border-radius: 16px; background: white;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.05); /* Gölge hafifletildi */
-        transition: transform 0.2s, box-shadow 0.2s; overflow: hidden;
-    }
+    /* Genel kartlarda taşmayı engellemek için overflow'u sadece rapor alanında esnetiyoruz */
+.card { 
+    border: none; border-radius: 16px; background: white;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: visible; /* overflow: hidden; yerine visible yaptık */
+}
+
+/* Arama sonuç listesinin tasarımı ve netliği için */
+#repMemberSearchResults {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 5px;
+    z-index: 10000; /* Her şeyin üstünde olması için */
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
     .dash-card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(14, 116, 144, 0.1); }
     
     .dash-card { padding: 25px; position: relative; height: 100%; display: flex; flex-direction: column; justify-content: center; }
@@ -1017,6 +1031,36 @@ div.swal2-container {
         width: calc(100% - 260px) !important;
     }
 }
+/* --- MOBİL ÖZEL CANLI REHBER TASARIMI --- */
+.mobile-member-item {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    border: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.mobile-avatar {
+    width: 45px; height: 45px;
+    background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+    color: #00695c;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1rem;
+}
+.mobile-info { flex-grow: 1; overflow: hidden; }
+.mobile-name { font-weight: 700; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px; }
+.mobile-location { font-size: 0.8rem; color: #64748b; }
+.btn-mobile-action {
+    width: 36px; height: 36px;
+    border-radius: 10px; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+}
+
 </style>
 </head>
 <body>
@@ -1544,7 +1588,7 @@ div.swal2-container {
                 <div><h5 class="m-0 fw-bold">Üretici Hesap Özeti</h5><small class="text-muted">Detaylı hesap dökümü</small></div>
             </div>
         </div>
-        <div class="card border-0 shadow-sm p-4 mb-4 no-print" style="background: linear-gradient(to right, #ffffff, #f8f9fa); border-left: 5px solid #0f766e;">
+        <div class="card border-0 shadow-sm p-4 mb-4 no-print" style="background: linear-gradient(to right, #ffffff, #f8f9fa); border-left: 5px solid #0f766e; overflow: visible !important; position: relative; z-index: 1000;"></div>
             <div class="row g-3 align-items-end">
                 <div class="col-lg-4 col-md-12 position-relative">
                     <label class="small fw-bold text-primary mb-1 ms-1">Müşteri Seçimi</label>
@@ -1553,7 +1597,7 @@ div.swal2-container {
                         <input type="text" class="form-control border-start-0 ps-0 fw-bold text-dark" id="repMemberSearch" placeholder=" Üretici Ara" autocomplete="off">
                         <input type="hidden" id="repSelectedMemberId">
                     </div>
-                    <div id="repMemberSearchResults" class="list-group position-absolute w-100 shadow-lg" style="z-index: 99999; top: 100%; display: none; max-height: 350px; overflow-y: auto;"></div>
+                   <div id="repMemberSearchResults" class="list-group position-absolute w-100 shadow-lg" style="z-index: 99999; top: 100%; display: none !important; max-height: 350px; overflow-y: auto;"></div>
                 </div>
                 <div class="col-lg-2 col-md-6">
                     <label class="small fw-bold text-primary mb-1 ms-1">Dönem</label>
@@ -1659,8 +1703,7 @@ div.swal2-container {
                         </button>
                     </div>
                 </div>
-
-                <div class="table-responsive">
+<div class="table-responsive d-none d-md-block">
                     <table class="table table-custom table-hover">
                         <thead>
                             <tr class="table-light text-secondary" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -1679,6 +1722,9 @@ div.swal2-container {
                         <tbody id="memberTableBody"></tbody>
                     </table>
                 </div>
+
+                <div id="mobileMemberList" class="d-md-none pb-5">
+                    </div>
             </div>
         </div>
         <div id="stocks" class="content-section hidden-section">
@@ -1838,6 +1884,13 @@ div.swal2-container {
         <small class="text-muted d-block">Şoför ve Personel Yönetimi</small>
     </div>
 </div>
+<div class="col-md-4">
+    <div class="card settings-card" onclick="openSubSetting('sub-coop-info')">
+        <div class="s-icon icon-blue"><i class="fa-solid fa-building-column"></i></div>
+        <h5 class="fw-bold text-dark">Kurum Bilgileri</h5>
+        <small class="text-muted d-block">Kooperatif adı, adres ve destek hattı</small>
+    </div>
+</div>
                 </div>
             </div>
  <div id="sub-regions" class="d-none sub-setting-page">
@@ -1846,6 +1899,7 @@ div.swal2-container {
             <i class="fa-solid fa-arrow-left text-primary"></i>
         </button>
         <div>
+            
             <h4 class="m-0 fw-bold">Bölge & Rota Yönetimi</h4>
             <small class="text-muted">Köy ve mahalle tanımları.</small>
         </div>
@@ -2022,6 +2076,45 @@ div.swal2-container {
             <div id="authorizedUsersList" class="list-group list-group-flush">
                 <div class="text-center p-5">
                     <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="sub-coop-info" class="d-none sub-setting-page">
+    <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-light rounded-circle shadow-sm me-3" onclick="closeSubSetting()" style="width: 45px; height: 45px;">
+            <i class="fa-solid fa-arrow-left text-primary"></i>
+        </button>
+        <div>
+            <h4 class="m-0 fw-bold">Kurum Bilgileri</h4>
+            <small class="text-muted">Kooperatif resmi bilgilerini düzenleyin.</small>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Kooperatif Adı</label>
+                    <input type="text" id="setting-coop-name" class="form-control fw-bold" placeholder="Kurumun Tam Adı">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Resmi Adres</label>
+                    <textarea id="setting-coop-address" class="form-control" rows="2" placeholder="Açık adresiniz"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-success">
+                        <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp Destek Hattı
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-success text-white">90</span>
+                        <input type="number" id="setting-coop-phone" class="form-control" placeholder="5XXXXXXXXX">
+                    </div>
+                    <small class="text-muted" style="font-size: 0.7rem;">Üretici panelindeki "Destek" butonu bu numaraya yönlenir.</small>
+                </div>
+                <button class="btn btn-primary-custom w-100 py-3 fw-bold rounded-3" onclick="kurumBilgileriniKaydet()">
+                    <i class="fa-solid fa-save me-2"></i> BİLGİLERİ GÜNCELLE
                 </div>
             </div>
         </div>
@@ -3862,103 +3955,80 @@ window.switchTab = function(tabId, el) {
         document.getElementById('settings-main-menu').classList.remove('d-none');
     }
     
-
 function tabloyuCiz(data) {
-        const tbody = document.getElementById("memberTableBody");
-        if(!tbody) return;
-        tbody.innerHTML = "";
-        
-        // "Tümünü Seç" kutusunu sıfırla
-        const masterCheck = document.getElementById("selectAllMembers");
-        if(masterCheck) masterCheck.checked = false;
-        secimKontrol(); // Butonu gizle
+    const tbody = document.getElementById("memberTableBody");
+    const mobileList = document.getElementById("mobileMemberList");
+    
+    if(tbody) tbody.innerHTML = "";
+    if(mobileList) mobileList.innerHTML = "";
+    
+    const masterCheck = document.getElementById("selectAllMembers");
+    if(masterCheck) masterCheck.checked = false;
+    secimKontrol();
 
-        if (data.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='8' class='text-center text-muted py-5'><i class='fa-solid fa-inbox fa-2x mb-3 opacity-25'></i><br>Kayıt bulunamadı.</td></tr>";
-            return;
+    if (data.length === 0) {
+        if(tbody) tbody.innerHTML = "<tr><td colspan='8' class='text-center text-muted py-5'>Kayıt bulunamadı.</td></tr>";
+        if(mobileList) mobileList.innerHTML = "<div class='text-center p-5 text-muted'>Kayıt bulunamadı.</div>";
+        return;
+    }
+
+    data.forEach(uye => {
+        // --- A) MASAÜSTÜ (ESKİ KODUNUZUN AYNISI - DETAYLAR KORUNDU) ---
+        if(tbody) {
+            let tipBadge = uye.tip === 'tedarikci' 
+                ? '<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3">TEDARİKÇİ</span>'
+                : '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3">MÜŞTERİ</span>';
+
+            const tr = document.createElement("tr");
+            tr.className = "member-row align-middle border-bottom hover-shadow transition-all";
+            tr.innerHTML = `
+                <td class="text-center"><input type="checkbox" class="form-check-input member-checkbox" value="${uye.id}" onclick="secimKontrol()"></td>
+                <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center mx-auto text-white fw-bold rounded-circle shadow-sm" style="width: 35px; height: 35px; font-size: 0.9rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                        ${uye.sira || '-'}
+                    </div>
+                </td>
+                <td><div class="fw-bold text-dark fs-6">${uye.ad} ${uye.soyad}</div></td>
+                <td><span class="font-monospace text-secondary fw-bold" style="font-size: 0.9rem;">${uye.tc || '-'}</span></td>
+                <td class="text-center">${tipBadge}</td>
+                <td><span class="text-dark fw-medium">${uye.koy}</span></td>
+                <td><span class="text-muted small fw-bold">${uye.telefon || ''}</span></td>
+                <td class="text-end pe-3">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-sm btn-light text-warning border" onclick="uyeGirisYetkisiVer('${uye.id}', '${uye.telefon}', '${uye.ad} ${uye.soyad}', '${uye.coopId}')"><i class="fa-solid fa-key"></i></button>
+                        <button class="btn btn-sm btn-light text-primary border" onclick="hesapAc('${uye.id}')"><i class="fa-solid fa-chevron-right"></i></button>
+                        <button class="btn btn-sm btn-light text-secondary border" onclick="uyeDuzenle('${uye.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn btn-sm btn-light text-danger border" onclick="uyeSil('${uye.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </td>`;
+            tbody.appendChild(tr);
         }
 
-        data.forEach(uye => {
-            // 1. Tip Rozeti
-            let tipBadge = '';
-            if(uye.tip === 'tedarikci') {
-                tipBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3">TEDARİKÇİ</span>';
-            } else {
-                tipBadge = '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3">MÜŞTERİ</span>';
-            }
-
-            // 2. SIRA NO
-            const siraNoHtml = `
-                <div class="d-flex align-items-center justify-content-center mx-auto text-white fw-bold rounded-circle shadow-sm" 
-                     style="width: 35px; height: 35px; font-size: 0.9rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
-                    ${uye.sira || '-'}
+        // --- B) MOBİL (DİNAMİK REHBER TASARIMI - BAKİYE YOK) ---
+        if(mobileList) {
+            const initial = (uye.ad[0] + uye.soyad[0]).toUpperCase();
+            const card = `
+            <div class="mobile-member-item">
+                <div class="mobile-avatar">${initial}</div>
+                <div class="mobile-info">
+                    <div class="mobile-name">${uye.ad} ${uye.soyad}</div>
+                    <div class="mobile-location"><i class="fa-solid fa-location-dot me-1 text-danger opacity-50"></i>${uye.koy}</div>
                 </div>
-            `;
-                    const row = `
-                <tr class="member-row align-middle border-bottom hover-shadow transition-all" style="height: 60px;">
-                    <td class="text-center">
-                        <input type="checkbox" class="form-check-input member-checkbox" value="${uye.id}" onclick="secimKontrol()">
-                    </td>
+                <div class="d-flex gap-1">
+                    <button class="btn-mobile-action bg-warning bg-opacity-10 text-warning" onclick="uyeGirisYetkisiVer('${uye.id}', '${uye.telefon}', '${uye.ad} ${uye.soyad}', '${uye.coopId}')"><i class="fa-solid fa-key"></i></button>
+                    <button class="btn-mobile-action bg-primary bg-opacity-10 text-primary" onclick="hesapAc('${uye.id}')"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button class="btn-mobile-action bg-secondary bg-opacity-10 text-secondary" onclick="uyeDuzenle('${uye.id}')"><i class="fa-solid fa-pen"></i></button>
+                </div>
+            </div>`;
+            mobileList.insertAdjacentHTML('beforeend', card);
+        }
+    });
+    
+    const recCount = document.getElementById("recordCount");
+    if(recCount) recCount.innerText = `${data.length} kayıt listelendi`;
+}
 
-                    <td class="text-center">
-                        ${siraNoHtml}
-                    </td>
-                    
-                    <td>
-                        <div class="fw-bold text-dark fs-6">${uye.ad} ${uye.soyad}</div>
-                    </td>
 
-                    <td>
-                        <span class="font-monospace text-secondary fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
-                            ${uye.tc || '<span class="text-muted opacity-50">-</span>'}
-                        </span>
-                    </td>
-
-                    <td class="text-center">${tipBadge}</td>
-
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <i class="fa-solid fa-location-dot text-danger opacity-50 me-2 small"></i>
-                            <span class="text-dark fw-medium">${uye.koy}</span>
-                        </div>
-                    </td>
-
-                    <td>
-                        <span class="text-muted small fw-bold">${uye.telefon || ''}</span>
-                    </td>
-
-                    <td class="text-end pe-3">
-                        <div class="d-flex justify-content-end gap-2">
-    <button class="btn btn-sm btn-light text-warning border shadow-sm" 
-            onclick="uyeGirisYetkisiVer('${uye.id}', '${uye.telefon}', '${uye.ad} ${uye.soyad}', '${uye.coopId}')" 
-            title="Giriş Şifresi Oluştur">
-        <i class="fa-solid fa-key"></i>
-    </button>
-    <button class="btn btn-sm btn-light text-primary border shadow-sm" 
-            onclick="hesapAc('${uye.id}')" title="Hesap Detayı"
-            style="width: 35px; height: 35px; border-radius: 8px;">
-        <i class="fa-solid fa-chevron-right"></i>
-    </button>
-    <button class="btn btn-sm btn-light text-secondary border shadow-sm" 
-            onclick="uyeDuzenle('${uye.id}')" title="Düzenle" 
-            style="width: 35px; height: 35px; border-radius: 8px;">
-        <i class="fa-solid fa-pen-to-square"></i>
-    </button>
-    <button class="btn btn-sm btn-light text-danger border shadow-sm" 
-            onclick="uyeSil('${uye.id}')" title="Sil" 
-            style="width: 35px; height: 35px; border-radius: 8px;">
-        <i class="fa-solid fa-trash-can"></i>
-    </button>
-</div>
-                    </td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
-        });
-        
-        const recCount = document.getElementById("recordCount");
-        if(recCount) recCount.innerText = `${data.length} kayıt listelendi`;
-    }
     window.sutHesaplamaModalAc = function() {
         console.log("1. Fonksiyon tetiklendi.");
 
@@ -7437,16 +7507,20 @@ window.yayiniKaldir = async function() {
                     item.style.cursor = 'pointer';
                     item.style.borderBottom = '1px solid #f1f5f9'; // Hafif çizgi
                     
-                    // İçerik: İkon + İsim + Köy
-                    item.innerHTML = `
-                        <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px;">
-                            <i class="fa-solid fa-user small"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold text-dark" style="font-size: 0.95rem;">${m.ad} ${m.soyad}</div>
-                            <small class="text-muted" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot me-1"></i>${m.koy || 'Merkez'}</small>
-                        </div>
-                    `;
+                   item.innerHTML = `
+    <div class="d-flex align-items-center w-100 bg-white">
+        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; flex-shrink: 0;">
+            <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="text-start">
+            <div class="fw-bold text-dark mb-0" style="font-size: 1rem; line-height: 1.2;">${m.ad} ${m.soyad}</div>
+            <small class="text-muted"><i class="fa-solid fa-map-marker-alt me-1"></i>${m.koy || 'Merkez'}</small>
+        </div>
+    </div>
+`;
+// Ayrıca görünürlük tetikleyiciyi ekleyin
+repResultsDiv.style.display = 'block';
+repResultsDiv.style.zIndex = "10001";
                     
                     // Tıklayınca Seçimi Yap
                     item.onclick = function() {
@@ -8517,11 +8591,10 @@ window.uyeKaydetSubmit = async function(e) {
     const sira = getVal("uyeSira");
     const iban = getVal("uyeIban");
 
-    // Zorunlu alan kontrolü
-    if (!ad || !soyad || !tel || !email) {
-        Swal.fire("Uyarı", "Ad, Soyad, Telefon ve E-Posta zorunludur!", "warning");
-        return;
-    }
+   if (!ad || !soyad) {
+    Swal.showValidationMessage('Lütfen zorunlu alanları doldurun (Ad ve Soyad)');
+    return false;
+}
 
     try {
         Swal.showLoading();
@@ -9224,7 +9297,33 @@ window.sifreTalepleriniTakipEt = function() {
 sifreTalepleriniTakipEt();
 // Uygulama başladığında bu takibi başlat
 sifreTalepleriniTakipEt();
+window.kurumBilgileriniKaydet = async function() {
+    const name = document.getElementById('setting-coop-name').value;
+    const address = document.getElementById('setting-coop-address').value;
+    const phone = document.getElementById('setting-coop-phone').value;
 
+    if(!name) { 
+        Swal.fire("Hata", "Lütfen en azından kooperatif adını girin.", "warning");
+        return; 
+    }
+
+    try {
+        Swal.fire({ title: 'Kaydediliyor...', didOpen: () => Swal.showLoading() });
+        
+        // currentCoopId değişkeninin tanımlı olduğunu varsayıyoruz (Admin panelinde mevcuttur)
+        const coopRef = doc(db, "cooperatives", currentCoopId);
+        await updateDoc(coopRef, {
+            name: name,
+            address: address,
+            telefon: phone // Üretici panelinin okuduğu alan budur
+        });
+
+        Swal.fire("Başarılı", "Kurum bilgileri güncellendi.", "success");
+    } catch (error) {
+        console.error("Hata:", error);
+        Swal.fire("Hata", "Bilgiler kaydedilemedi.", "error");
+    }
+};
 
 </script>
 <div class="bottom-nav d-lg-none">

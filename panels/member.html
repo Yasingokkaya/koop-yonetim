@@ -261,21 +261,18 @@
         <div class="px-3 pt-3">
     <div class="bg-white p-3 rounded-4 shadow-sm border-0">
         <div class="row align-items-center">
-            <div class="col-7">
-                <small class="text-muted d-block fw-bold mb-1"><i class="fa-solid fa-calendar-check me-1 text-primary"></i> AKTİF DÖNEM</small>
-                <span class="fw-bold text-dark small" id="lblSelectedMonth">Yükleniyor...</span>
-            </div>
-            <div class="col-5 text-end">
-                <select id="activePeriod" class="form-select border-0 bg-light fw-bold text-primary rounded-3" onchange="periodDegisti(this.value)">
-    <option value="2025-12" selected>Aralık 2025</option>
-    <option value="2025-11">Kasım 2025</option>
-    <option value="2025-10">Ekim 2025</option>
-    <option value="2025-09">Eylül 2025</option>
-    <option value="2025-08">Ağustos 2025</option>
-    <option value="2025-07">Temmuz 2025</option>
-    <option value="2024-12">Aralık 2024</option>
-</select>
-            </div>
+            <div class="col-12 d-flex justify-content-between align-items-center">
+    <div>
+        <small class="text-muted d-block fw-bold" style="font-size: 0.75rem;">
+            <i class="fa-solid fa-calendar-check me-1 text-primary"></i> AKTİF DÖNEM
+        </small>
+        </div>
+    <div style="min-width: 150px;"> 
+        <select id="activePeriod" class="form-select form-select-sm border-0 bg-light fw-bold text-primary rounded-3 shadow-sm" 
+                style="padding-right: 30px;" onchange="periodDegisti(this.value)">
+            </select>
+    </div>
+</div>
         </div>
     </div>
 </div>
@@ -400,27 +397,24 @@
     </div>
 
     <div class="px-3">
-        <div class="card border-0 shadow-sm rounded-4 mb-3 bg-primary text-white p-3 text-center">
-            <small class="opacity-75 fw-bold">SEÇİLİ DÖNEM TOPLAMI</small>
-            <h2 class="fw-800 mb-0" id="yem-toplam-adet">0 Adet</h2>
-        </div>
-
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr class="small text-muted text-uppercase">
-                            <th class="ps-4">Malzeme Adı</th>
-                            <th class="text-center">Miktar</th>
-                        </tr>
-                    </thead>
-                    <tbody id="yem-listesi-body">
-                        <tr><td colspan="2" class="text-center p-4 text-muted">Dönem seçiniz...</td></tr>
-                    </tbody>
-                </table>
+    <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden" style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);">
+        <div class="card-body p-4 text-center text-white">
+            <div class="bg-white bg-opacity-20 rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                <i class="fa-solid fa-warehouse fs-4"></i>
             </div>
+            <small class="opacity-75 fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.7rem;">Dönemlik Toplam Tüketim</small>
+            <h2 class="fw-800 mb-0 mt-1" id="yem-toplam-adet" style="font-size: 2.2rem;">0 Adet</h2>
         </div>
     </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+        <h6 class="fw-bold text-secondary m-0 small">MALZEME DETAYLARI</h6>
+        <span class="badge bg-light text-dark border rounded-pill fw-bold" id="yem-kalem-sayisi">0 Kalem</span>
+    </div>
+
+    <div id="yem-listesi-container" class="pb-4">
+        </div>
+</div>
 </div>
     <div id="page-milk" style="display: none;">
         <div class="bg-white px-3 pt-3 pb-4 shadow-sm mb-3 position-sticky top-0" style="z-index: 900; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;">
@@ -558,7 +552,6 @@
         </button>
         <div>
             <h5 class="fw-bold text-dark m-0">Hesap Ekstresi</h5>
-            <small class="text-muted" id="accCoopName">Kooperatif</small>
         </div>
     </div>
 
@@ -586,7 +579,6 @@
                 </button>
                 <div>
                     <h5 class="fw-bold text-dark m-0">Hayvan Varlığım</h5>
-                    <small class="text-muted">Çiftlik Yönetimi</small>
                 </div>
             </div>
             <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3" onclick="yeniHayvanEkle()">
@@ -595,31 +587,31 @@
         </div>
 
         <div class="row g-2 text-center mb-3">
-            <div class="col-3">
-                <div class="bg-light p-2 rounded-3 border">
-                    <small class="d-block text-muted" style="font-size:0.6rem">TOPLAM</small>
-                    <span class="fw-bold text-dark" id="stat-total">0</span>
-                </div>
-            </div>
-            <div class="col-3">
-                <div class="bg-warning bg-opacity-10 p-2 rounded-3 border border-warning border-opacity-25">
-                    <small class="d-block text-warning fw-bold" style="font-size:0.6rem">İNEK</small>
-                    <span class="fw-bold text-dark" id="stat-inek">0</span>
-                </div>
-            </div>
-            <div class="col-3">
-                <div class="bg-info bg-opacity-10 p-2 rounded-3 border border-info border-opacity-25">
-                    <small class="d-block text-info fw-bold" style="font-size:0.6rem">GENÇ</small>
-                    <span class="fw-bold text-dark" id="stat-genc">0</span>
-                </div>
-            </div>
-            <div class="col-3">
-                <div class="bg-danger bg-opacity-10 p-2 rounded-3 border border-danger border-opacity-25">
-                    <small class="d-block text-danger fw-bold" style="font-size:0.6rem">ERKEK</small>
-                    <span class="fw-bold text-dark" id="stat-erkek">0</span>
-                </div>
-            </div>
+    <div class="col-3">
+        <div class="bg-secondary bg-opacity-10 p-2 rounded-4 border border-secondary border-opacity-25 shadow-sm">
+            <small class="d-block text-secondary fw-bold" style="font-size:0.55rem">TOPLAM</small>
+            <span class="fw-bold text-dark fs-5" id="stat-total">0</span>
         </div>
+    </div>
+    <div class="col-3">
+        <div class="bg-warning bg-opacity-10 p-2 rounded-4 border border-warning border-opacity-25 shadow-sm">
+            <small class="d-block text-warning fw-bold" style="font-size:0.55rem">İNEK</small>
+            <span class="fw-bold text-dark fs-5" id="stat-inek">0</span>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="bg-info bg-opacity-10 p-2 rounded-4 border border-info border-opacity-25 shadow-sm">
+            <small class="d-block text-info fw-bold" style="font-size:0.55rem">GENÇ</small>
+            <span class="fw-bold text-dark fs-5" id="stat-genc">0</span>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="bg-danger bg-opacity-10 p-2 rounded-4 border border-danger border-opacity-25 shadow-sm">
+            <small class="d-block text-danger fw-bold" style="font-size:0.55rem">ERKEK</small>
+            <span class="fw-bold text-dark fs-5" id="stat-erkek">0</span>
+        </div>
+    </div>
+</div>
 
         <div class="position-relative">
             <input type="text" id="animalSearch" class="form-control rounded-pill ps-5 bg-light border-0" placeholder="Küpe no ile ara..." onkeyup="hayvanAra()">
@@ -717,7 +709,7 @@ window.periodDegisti = function(val) {
     // 1. Üstteki yazı etiketini güncelle
     const select = document.getElementById("activePeriod");
     const ayIsmi = select.options[select.selectedIndex].text;
-    document.getElementById("lblSelectedMonth").innerText = ayIsmi;
+    
     
     // 2. Süt verilerini yeni seçilen döneme göre tekrar süz
     if(globalMilkSnapshot) {
@@ -1021,7 +1013,7 @@ if(yearSelect) {
             // Etiketi Güncelle (Örn: Aralık 2023)
             const dateObj = new Date(selectedMonth);
             const monthName = dateObj.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-            document.getElementById("lblSelectedMonth").innerText = monthName;
+            
 
             let groupedData = {};
             let totalsByDate = {}; 
@@ -1366,7 +1358,7 @@ window.cikisYap = async function() {
         text: "Günü bitiriyor musunuz?",
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'Evet, Çıkış Yap',
+        confirmButtonText: 'Çıkış Yap',
         cancelButtonText: 'Vazgeç',
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6'
@@ -1435,31 +1427,44 @@ window.hayvanlariGetir = function() {
             // GÖRSEL AYARLAR
             const isErkek = data.cinsiyet === 'Erkek';
             const stripeClass = isErkek ? 'gender-male' : 'gender-female';
-            
-            // Gebelik Durumu (Sadece Dişiler İçin)
+            // --- DİNAMİK GEBELİK VE KURU DÖNEMİ HESABI ---
             let gebelikBilgi = '';
             let dogumButonu = '';
             
-            if (!isErkek && data.gebelik === 'Gebe') {
-                // Kalan Gün Hesabı
-                let kalanGunText = '';
-                if(data.tohumlamaTarihi) {
-                    const tohumlama = new Date(data.tohumlamaTarihi);
-                    const tahminiDogum = new Date(tohumlama);
-                    tahminiDogum.setDate(tohumlama.getDate() + 285);
-                    const kalan = Math.ceil((tahminiDogum - new Date()) / (1000 * 60 * 60 * 24));
-                    
-                    if(kalan > 0) kalanGunText = `<span class="text-danger fw-bold small"><i class="fa-solid fa-stopwatch me-1"></i>${kalan} Gün Kaldı</span>`;
-                    else kalanGunText = `<span class="text-success fw-bold small blink">Doğum Bekleniyor!</span>`;
+            if (!isErkek && data.gebelik === 'Gebe' && data.tohumlamaTarihi) {
+                const tohumlama = new Date(data.tohumlamaTarihi);
+                const bugun = new Date();
+                
+                // 285 gün sonra doğum, 225 gün sonra (doğuma 60 gün kala) kuruya ayırma
+                const tahminiDogum = new Date(tohumlama);
+                tahminiDogum.setDate(tohumlama.getDate() + 285);
+                
+                const kuruyaAyirmaTarihi = new Date(tohumlama);
+                kuruyaAyirmaTarihi.setDate(tohumlama.getDate() + 225);
+
+                const dogumaKalan = Math.ceil((tahminiDogum - bugun) / (1000 * 60 * 60 * 24));
+                const kuruyaKalan = Math.ceil((kuruyaAyirmaTarihi - bugun) / (1000 * 60 * 60 * 24));
+
+                let kuruDurum = '';
+                if (kuruyaKalan > 0) {
+                    kuruDurum = `<div class="text-primary small fw-bold"><i class="fa-solid fa-droplet-slash me-1"></i>Kuruya: ${kuruyaKalan} Gün</div>`;
+                } else {
+                    kuruDurum = `<div class="text-success small fw-bold"><i class="fa-solid fa-check-circle me-1"></i>KURUDA</div>`;
                 }
 
                 gebelikBilgi = `
-                <div class="d-flex align-items-center justify-content-between mt-2 p-2 bg-danger bg-opacity-10 rounded border border-danger border-opacity-25">
-                    <div class="d-flex align-items-center text-danger">
-                        <i class="fa-solid fa-baby-carriage me-2"></i>
-                        <span class="fw-bold small">GEBE</span>
+                <div class="mt-2 p-2 rounded-3 bg-light border">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge bg-danger px-2">GEBE</span>
+                        ${kuruDurum}
                     </div>
-                    ${kalanGunText}
+                    <div class="progress" style="height: 6px; border-radius: 10px;">
+                        <div class="progress-bar bg-danger" style="width: ${Math.min(100, ( (285 - dogumaKalan) / 285) * 100)}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small class="text-muted" style="font-size:0.65rem">Doğuma: <b>${dogumaKalan} Gün</b></small>
+                        <small class="text-muted" style="font-size:0.65rem">Tarih: ${tahminiDogum.toLocaleDateString('tr-TR')}</small>
+                    </div>
                 </div>`;
 
                 dogumButonu = `
@@ -1693,15 +1698,17 @@ window.dogumKaydet = async function(anneId, anneKupe, anneIrk) {
     `;
 
     const { value: result } = await Swal.fire({
-        title: '🎉 Doğum Kaydı',
-        html: `
-            <div class="text-start">
-                <p class="small text-muted mb-2"><b>${anneKupe}</b> doğum yapıyor. İkiz/Üçüz durumunda aşağıdaki butona basarak ekleme yapın.</p>
-                
-                <div class="mb-2">
-                    <label class="small fw-bold text-dark">Doğum Tarihi (Hepsi İçin)</label>
-                    <input type="date" id="ortak-tarih" class="form-control" value="${bugun}">
-                </div>
+        title: '🎉 Doğum Bilgisi Girişi',
+html: `
+    <div class="text-start">
+        <div class="alert alert-warning py-2 mb-3">
+            <p class="small mb-0">Lütfen hayvanın doğum tarihini ve yavru durumunu giriniz.</p>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold small">Doğum Tarihi</label>
+            <input type="date" id="ortak-tarih" class="form-control" value="${bugun}">
+        </div>
 
                 <div id="buzagi-container" class="mb-2" style="max-height: 300px; overflow-y: auto;">
                     </div>
@@ -1801,7 +1808,7 @@ window.malzemeSiparisiVer = async function() {
     let urunDetaylari = {};
 
     try {
-        // 1. Kullanıcı ve Kooperatif Bilgilerini Kontrol Et
+        
         const user = auth.currentUser;
         if (!user) return Swal.fire("Hata", "Oturum açmanız gerekiyor.", "error");
 
@@ -1813,7 +1820,7 @@ window.malzemeSiparisiVer = async function() {
         // Eğer hala currentMemberId tanımlı değilse user.uid kullan
         const memberUid = typeof currentMemberId !== 'undefined' ? currentMemberId : user.uid;
 
-        if (!currentCoopId) return Swal.fire("Hata", "Kooperatif bilgisi alınamadı.", "error");
+        if (!currentCoopId) return Swal.fire("Hata", "İşletme bilgisi alınamadı.", "error");
 
         // 2. Ürünleri Firebase'den Çek
         Swal.fire({ title: 'Ürünler Hazırlanıyor...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -1837,23 +1844,28 @@ window.malzemeSiparisiVer = async function() {
         return Swal.fire("Hata", "Bir sorun oluştu: " + error.message, "error");
     }
 
-    // Ürün Satırı Şablonu
+    // Ürün Satırı Şablonu (Mobil Uyumlu Dikey Tasarım)
     const urunSatiriHTML = `
-        <div class="siparis-satir rounded-4 p-3 mb-3 bg-white shadow-sm position-relative border">
+        <div class="siparis-satir rounded-4 p-3 mb-3 bg-white shadow-sm position-relative border" style="padding-top: 2.5rem !important;">
+            <button type="button" class="btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 m-2 shadow-sm d-flex align-items-center justify-content-center" 
+                    style="width:28px; height:28px;" onclick="this.parentElement.remove()">
+                <i class="fa-solid fa-xmark" style="font-size: 0.8rem;"></i>
+            </button>
             <div class="row g-2">
-                <div class="col-8">
-                    <label class="small text-muted fw-bold mb-1"><i class="fa-solid fa-tag me-1"></i> Ürün</label>
-                    <select class="form-select border-0 bg-light fw-bold inp-urun">${urunOptions}</select>
+                <div class="col-12 mb-2">
+                    <label class="small text-muted fw-bold mb-1 d-flex align-items-center" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <i class="fa-solid fa-tag me-1 text-primary"></i> ÜRÜN SEÇİMİ
+                    </label>
+                    <select class="form-select border-0 bg-light fw-bold inp-urun py-2" style="border-radius: 12px; height: 45px;">${urunOptions}</select>
                 </div>
-                <div class="col-4">
-                    <label class="small text-muted fw-bold mb-1"><i class="fa-solid fa-weight-hanging me-1"></i> Miktar</label>
-                    <input type="number" class="form-control border-0 bg-light fw-bold text-center inp-miktar" value="1" min="1">
+                <div class="col-12">
+                    <label class="small text-muted fw-bold mb-1 d-flex align-items-center" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <i class="fa-solid fa-weight-hanging me-1 text-primary"></i> SİPARİŞ MİKTARI
+                    </label>
+                    <input type="number" class="form-control border-0 bg-light fw-bold text-center inp-miktar" 
+                           value="1" min="1" style="border-radius: 12px; height: 45px;">
                 </div>
             </div>
-            <button type="button" class="btn btn-sm btn-light text-danger rounded-circle position-absolute top-0 end-0 m-1" 
-                    style="width:24px; height:24px; padding:0; line-height:1;" onclick="this.parentElement.remove()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
         </div>`;
 
     // 3. Sipariş Formunu Göster
@@ -1871,7 +1883,7 @@ window.malzemeSiparisiVer = async function() {
                     <label class="small fw-bold text-secondary mb-1">Teslimat Tercihi</label>
                     <select id="swal-teslimat" class="form-select border-0 bg-light">
                         <option value="Süt Arabası">Süt Arabası ile Gelsin</option>
-                        <option value="Elden Teslim">Kooperatiften Alacağım</option>
+                        <option value="Elden Teslim">Kendim gelip Alacağım</option>
                     </select>
                 </div>
 
@@ -1941,7 +1953,7 @@ window.malzemeSiparisiVer = async function() {
             Swal.fire({
                 icon: 'success',
                 title: 'Başarılı!',
-                text: 'Siparişiniz kooperatife iletildi.',
+                text: 'Siparişiniz Yöneticiye iletildi.',
                 confirmButtonColor: '#0f766e'
             });
 
@@ -1951,40 +1963,58 @@ window.malzemeSiparisiVer = async function() {
         }
     }
 };
-// --- 8. WHATSAPP DESTEK ---
+
+// --- WHATSAPP DESTEK AKTİF ETME (DİNAMİK) ---
 window.whatsappDestekAc = async function() {
-    Swal.fire({title: 'Bağlanıyor...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+    Swal.fire({
+        title: 'Destek Hattına Bağlanılıyor...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
 
     try {
-        if (!currentCoopId) throw new Error("Kurum bilgisi bulunamadı.");
+        if (!currentCoopId) throw new Error("Kurum (Kooperatif) bilgisi bulunamadı.");
 
-        // Kooperatif bilgilerini çek
+        // 1. Firebase'den kooperatif bilgilerini çek
         const docRef = doc(db, "cooperatives", currentCoopId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // Veritabanında 'telefon' alanı varsa al, yoksa varsayılanı kullan
-            // Örn: veritabanında 0532 123 45 67 kayıtlı olsa bile temizleyip 905321234567 yapar.
-            let rawPhone = data.telefon || "905000000000"; 
-            
-            // Sadece rakamları bırak (Boşluk, parantez vs temizle)
+            // 2. Adminin panele girdiği 'telefon' alanını al
+            let rawPhone = data.telefon; 
+
+            if (!rawPhone) {
+                throw new Error("Yönetici henüz bir destek numarası tanımlamamış.");
+            }
+
+            // 3. Numarayı temizle (Boşluk, parantez, tire varsa siler)
             let phone = rawPhone.replace(/\D/g, '');
-            
-            // Başına 90 ekle (Eğer yoksa)
-            if (!phone.startsWith("90")) {
-                if (phone.startsWith("0")) phone = "9" + phone;
-                else phone = "90" + phone;
+
+            // 4. Türkiye formatına uygun hale getir (Başında 90 yoksa ekle)
+            if (phone.startsWith("0")) {
+                phone = "9" + phone; // 05xx -> 905xx yapar
+            } else if (!phone.startsWith("90")) {
+                phone = "90" + phone; // 5xx -> 905xx yapar
             }
 
             Swal.close();
-            // WhatsApp'ı aç
-            window.open(`https://wa.me/${phone}`, '_blank');
+            
+            // 5. WhatsApp'ı hazır mesajla aç
+            const mesaj = encodeURIComponent("Merhaba, KoopSistem üzerinden bir konu hakkında destek almak istiyorum.");
+            window.open(`https://wa.me/${phone}?text=${mesaj}`, '_blank');
+            
         } else {
-            throw new Error("Kurum bilgisine ulaşılamadı.");
+            throw new Error("Kooperatif kaydı veritabanında bulunamadı.");
         }
     } catch (error) {
-        Swal.fire("Hata", "Destek hattına bağlanılamadı. Lütfen yöneticinizi arayın.", "error");
+        console.error("Destek Hatası:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Bağlantı Hatası',
+            text: error.message || "Destek hattına şu an ulaşılamıyor.",
+            confirmButtonColor: '#0f766e'
+        });
     }
 }
 // --- 5. DOĞUM BİLDİRİM KONTROLÜ ---
@@ -2047,13 +2077,15 @@ window.dogumBildirimiYap = async function(uid) {
     // Eğer yaklaşan doğum varsa uyarı ver
     if (sayac > 0) {
         Swal.fire({
-            title: '🔔 Doğum Yaklaşıyor!',
-            html: `
-                <p class="text-muted small mb-3">Aşağıdaki hayvanlarınızın doğumu çok yakın:</p>
-                <div class="bg-light p-3 rounded border text-start" style="max-height: 300px; overflow-y: auto;">
-                    ${bildirimListesi}
-                </div>
-            `,
+            title: '🔔 Doğum Bilgilendirmesi',
+html: `
+    <div class="alert alert-warning text-start">
+        <p class="mb-0" style="font-size:0.85rem;">Lütfen hayvanın doğum tarihini ve yavru durumunu kontrol ederek sisteme işleyiniz.</p>
+    </div>
+    <div class="bg-light p-3 rounded border text-start">
+        ${bildirimListesi}
+    </div>
+`,
             icon: 'info',
             confirmButtonText: 'Tamam, Anlaşıldı',
             confirmButtonColor: '#0f766e'
@@ -2810,71 +2842,75 @@ window.verileriGetir = function() {
 document.getElementById('activePeriod').addEventListener('change', window.verileriGetir);
 
 window.yemDefteriYukle = async function() {
-    const donem = document.getElementById("activePeriod").value; // Örn: "2025-12"
-    const listBody = document.getElementById("yem-listesi-body");
+    const donem = document.getElementById("activePeriod").value;
+    const container = document.getElementById("yem-listesi-container");
     const totalDisplay = document.getElementById("yem-toplam-adet");
+    const countDisplay = document.getElementById("yem-kalem-sayisi");
     
-    // Üye ID kontrolü
     if(!currentMemberId) return; 
 
-    listBody.innerHTML = '<tr><td colspan="2" class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div> Ürünler Getiriliyor...</td></tr>';
+    container.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border text-primary mb-2"></div><br>Veriler inceleniyor...</div>';
 
-    // DOĞRU YER: Aylık Hesap Ekstresi içindeki Satış Listesi
-    // Belge ID Yapısı: UyeID_YIL-AY (Örn: Abc123_2025-12)
     const docId = `${currentMemberId}_${donem}`;
     const docRef = doc(db, "monthly_statements", docId);
 
     try {
         const docSnap = await getDoc(docRef);
-        
         let html = "";
         let toplamAdet = 0;
+        let kalemSayisi = 0;
 
-        // Belge var mı ve içinde satış listesi var mı?
         if (docSnap.exists() && docSnap.data().satisListesi && docSnap.data().satisListesi.length > 0) {
-            
             const satislar = docSnap.data().satisListesi;
+            kalemSayisi = satislar.length;
 
-            // Listeyi döngüye al
             satislar.forEach(item => {
-                // Veritabanındaki alan adları: item.name (isim) ve item.qty (adet)
                 const urunAdi = item.name || "İsimsiz Ürün";
                 const miktar = Number(item.qty || item.adet || 0);
                 const birim = item.unit || 'Adet';
-
                 toplamAdet += miktar;
 
-                // İstenilen Görünüm: Sadece İsim ve Adet (Tarih/Fiyat Yok)
+                // Ürün ikonunu isme göre belirle
+                let icon = "fa-box";
+                if(urunAdi.toLowerCase().includes("yem")) icon = "fa-wheat-awn";
+                if(urunAdi.toLowerCase().includes("küspe")) icon = "fa-seedling";
+                if(urunAdi.toLowerCase().includes("saman")) icon = "fa-layer-group";
+
                 html += `
-                <tr>
-                    <td class="ps-4 py-3 align-middle">
-                        <div class="fw-bold text-dark" style="font-size:1.1rem; letter-spacing: -0.5px;">
-                            ${urunAdi}
+                <div class="card border-0 shadow-sm rounded-4 mb-2 overflow-hidden">
+                    <div class="card-body p-3 d-flex align-items-center">
+                        <div class="bg-light text-primary rounded-3 d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; flex-shrink:0;">
+                            <i class="fa-solid ${icon} fs-4"></i>
                         </div>
-                    </td>
-                    <td class="text-center align-middle">
-                        <span class="badge bg-secondary bg-opacity-10 text-dark fs-6 px-3 py-2 border" style="border-radius: 10px;">
-                            ${miktar} ${birim}
-                        </span>
-                    </td>
-                </tr>`;
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-dark" style="font-size: 0.95rem;">${urunAdi}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge bg-primary bg-opacity-10 text-primary fs-5 px-3 py-1 rounded-pill border border-primary border-opacity-10">
+                                ${miktar} <small style="font-size: 0.7rem;">${birim}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
             });
 
-            listBody.innerHTML = html;
+            container.innerHTML = html;
             totalDisplay.innerText = toplamAdet + " Adet";
+            countDisplay.innerText = kalemSayisi + " Kalem";
 
         } else {
-            // Kayıt yoksa veya liste boşsa
-            listBody.innerHTML = `<tr><td colspan="2" class="text-center p-5 text-muted opacity-75">
-                <i class="fa-solid fa-basket-shopping fa-2x mb-3"></i><br>
-                Bu döneme ait işlenmiş malzeme/yem kaydı bulunamadı.
-            </td></tr>`;
+            container.innerHTML = `
+                <div class="text-center py-5 bg-white rounded-4 border shadow-sm">
+                    <i class="fa-solid fa-folder-open fa-3x text-muted mb-3 opacity-25"></i>
+                    <h6 class="fw-bold text-secondary">Kayıt Bulunamadı</h6>
+                    <p class="small text-muted mb-0">Seçilen dönemde malzeme kaydınız yok.</p>
+                </div>`;
             totalDisplay.innerText = "0 Adet";
+            countDisplay.innerText = "0 Kalem";
         }
-
     } catch (e) {
         console.error("Yem Defteri Hatası:", e);
-        listBody.innerHTML = '<tr><td colspan="2" class="text-center p-4 text-danger">Bağlantı hatası oluştu.</td></tr>';
+        container.innerHTML = '<div class="alert alert-danger rounded-4">Veriler yüklenirken bir hata oluştu.</div>';
     }
 };
 window.siparislerimiGetir = function() {
