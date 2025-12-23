@@ -1549,10 +1549,16 @@ div.swal2-container {
         </div>
         <div class="card border-0 shadow-sm p-4 mb-4">
             <div class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label class="small fw-bold text-muted">Üye Seçiniz</label>
-                    <select class="form-select" id="repFilterMember"><option value="">Tüm Üyeler</option></select>
-                </div>
+
+                <div class="col-md-4 position-relative">
+    <label class="small fw-bold text-primary mb-1 ms-1">Müşteri Seçimi</label>
+    <div class="input-group shadow-sm">
+        <span class="input-group-text bg-white border-end-0 text-primary"><i class="fa-solid fa-search"></i></span>
+        <input type="text" class="form-control border-start-0 ps-0 fw-bold text-dark" id="milkMemberSearch" placeholder=" Üretici Ara" autocomplete="off">
+        <input type="hidden" id="milkSelectedMemberId">
+    </div>
+    <div id="milkMemberSearchResults" class="list-group position-absolute w-100 shadow-lg border-0" style="z-index: 10001; top: 100%; display: none; max-height: 350px; overflow-y: auto; border-radius: 12px;"></div>
+</div>
                 <div class="col-md-3">
                     <label class="small fw-bold text-muted">Başlangıç</label>
                     <input type="date" class="form-control" id="repDateStart">
@@ -1571,8 +1577,14 @@ div.swal2-container {
         <div class="table-responsive bg-white rounded shadow-sm">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                    <tr><th class="ps-4">Tarih</th><th>Üye Adı Soyadı</th><th class="text-center">Dönem</th><th class="text-end pe-4">Miktar (Lt)</th></tr>
-                </thead>
+    <tr>
+        <th class="ps-4">Tarih</th>
+        <th class="text-center"><i class="fa-solid fa-moon text-primary me-1"></i>Akşam</th>
+        <th class="text-center"><i class="fa-solid fa-sun text-warning me-1"></i>Sabah</th>
+        <th class="text-end pe-4">Toplam (Lt)</th>
+    </tr>
+</thead>
+    
                 <tbody id="repMilkTableBody"><tr><td colspan="4" class="text-center p-5 text-muted">Lütfen yukarıdan kriter seçip arama yapınız.</td></tr></tbody>
                 <tfoot class="bg-light fw-bold" style="border-top: 2px solid #e2e8f0;">
                     <tr><td colspan="3" class="text-end pe-3 py-3">TOPLAM SÜT:</td><td class="text-end pe-4 text-primary fs-5" id="repMilkTotal">0 Lt</td></tr>
@@ -3886,73 +3898,83 @@ window.switchTab = function(tabId, el) {
             select.appendChild(opt);
         });
     }
-
-    // Raporu Çek ve Tabloya Bas
+    
     window.musteriSutRaporuGetir = async function() {
-        const memId = document.getElementById("repFilterMember").value;
-        const sDate = document.getElementById("repDateStart").value;
-        const eDate = document.getElementById("repDateEnd").value;
+    const memId = document.getElementById("milkSelectedMemberId").value; // Yeni ID buradan alınır
+    const sDate = document.getElementById("repDateStart").value;
+    const eDate = document.getElementById("repDateEnd").value;
 
-        if(!sDate || !eDate) { Swal.fire("Uyarı", "Tarih aralığı seçiniz.", "warning"); return; }
+    if(!memId) { Swal.fire("Uyarı", "Lütfen bir müşteri arayıp seçiniz.", "warning"); return; }
+    if(!sDate || !eDate) { Swal.fire("Uyarı", "Tarih seçiniz.", "warning"); return; }
 
-        const startDate = new Date(sDate); startDate.setHours(0,0,0,0);
-        const endDate = new Date(eDate); endDate.setHours(23,59,59,999);
+    const startDate = new Date(sDate); startDate.setHours(0,0,0,0);
+    const endDate = new Date(eDate); endDate.setHours(23,59,59,999);
 
-        Swal.showLoading();
+    Swal.showLoading();
 
-        try {
-            // Firebase Sorgusu
-            const q = query(
-                collection(db, "milk_records"),
-                where("coopId", "==", currentCoopId),
-                where("date", ">=", startDate),
-                where("date", "<=", endDate),
-                orderBy("date", "desc")
-            );
+    try {
+        const q = query(
+            collection(db, "milk_records"),
+            where("coopId", "==", currentCoopId),
+            where("memberId", "==", memId),
+            where("date", ">=", startDate),
+            where("date", "<=", endDate),
+            orderBy("date", "asc")
+        );
 
-            const snapshot = await getDocs(q);
-            const tbody = document.getElementById("repMilkTableBody");
-            tbody.innerHTML = "";
-            
-            let total = 0;
-            let count = 0;
+        const snapshot = await getDocs(q);
+        const tbody = document.getElementById("repMilkTableBody");
+        tbody.innerHTML = "";
+        
+        let dailyData = {}; 
+        let grandTotal = 0;
 
-            snapshot.forEach(doc => {
-                const d = doc.data();
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            const dateStr = d.date.toDate().toLocaleDateString('tr-TR');
+            if(!dailyData[dateStr]) dailyData[dateStr] = { sabah: 0, aksam: 0 };
+
+            const liters = Number(d.liters) || 0;
+            if(d.period === 'sabah') dailyData[dateStr].sabah += liters;
+            else dailyData[dateStr].aksam += liters;
+            grandTotal += liters;
+        });
+
+        const sortedDates = Object.keys(dailyData);
+
+        if(sortedDates.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center p-5 text-muted">Kayıt bulunamadı.</td></tr>';
+        } else {
+            sortedDates.forEach(date => {
+                const row = dailyData[date];
+                const gunlukToplam = row.sabah + row.aksam;
                 
-                // JS tarafında üye filtresi (Index hatası almamak için)
-                if(memId && d.memberId !== memId) return;
-
-                total += Number(d.liters);
-                count++;
-
-                const dateStr = d.date.toDate().toLocaleDateString('tr-TR');
-                const donem = d.period === 'sabah' 
-                    ? '<span class="badge bg-warning text-dark"><i class="fa-solid fa-sun me-1"></i>Sabah</span>' 
-                    : '<span class="badge bg-primary"><i class="fa-solid fa-moon me-1"></i>Akşam</span>';
-
                 tbody.innerHTML += `
-                    <tr>
-                        <td class="ps-4 fw-bold text-secondary">${dateStr}</td>
-                        <td>${d.memberName}</td>
-                        <td class="text-center">${donem}</td>
-                        <td class="text-end pe-4 fw-bold fs-6">${d.liters} Lt</td>
-                    </tr>
-                `;
+                    <tr class="align-middle">
+                        <td class="ps-4 fw-bold text-secondary">${date}</td>
+                        <td class="text-center">
+                            <i class="fa-solid fa-moon text-primary small me-1"></i>
+                            ${row.aksam > 0 ? row.aksam.toFixed(2) : '-'}
+                        </td>
+                        <td class="text-center">
+                            <i class="fa-solid fa-sun text-warning small me-1"></i>
+                            ${row.sabah > 0 ? row.sabah.toFixed(2) : '-'}
+                        </td>
+                        <td class="text-end pe-4 fw-bold text-primary">${gunlukToplam.toFixed(2)} Lt</td>
+                    </tr>`;
             });
-
-            if(count === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-5 text-muted fw-bold">Bu kriterlere uygun kayıt bulunamadı.</td></tr>';
-            }
-            
-            document.getElementById("repMilkTotal").innerText = total.toLocaleString('tr-TR') + " Lt";
-            Swal.close();
-
-        } catch (error) {
-            console.error(error);
-            Swal.fire("Hata", "Veri çekilemedi: " + error.message, "error");
         }
+        
+        document.getElementById("repMilkTotal").innerText = grandTotal.toLocaleString('tr-TR') + " Lt";
+        Swal.close();
+
+    } catch (error) {
+        console.error(error);
+        Swal.fire("Hata", "Veri çekilemedi: " + error.message, "error");
     }
+}
+
+
     window.openSubSetting = function(id) {
         document.getElementById('settings-main-menu').classList.add('d-none');
         document.getElementById(id).classList.remove('d-none');
@@ -9379,6 +9401,40 @@ function closeReport() {
     const reportsMain = document.getElementById('reports-main');
     if (reportsMain) reportsMain.classList.remove('d-none');
 }
+
+// 1. Arama kutusunun çalışması için gereken mantık
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'milkMemberSearch') {
+        const val = e.target.value.toLocaleLowerCase('tr').trim();
+        const resultsDiv = document.getElementById('milkMemberSearchResults');
+        const hiddenId = document.getElementById('milkSelectedMemberId');
+        
+        resultsDiv.innerHTML = '';
+        if(val.length === 0) { resultsDiv.style.display = 'none'; return; }
+
+        const matches = allMembers.filter(m => `${m.ad} ${m.soyad}`.toLocaleLowerCase('tr').includes(val));
+
+        if(matches.length > 0) {
+            matches.forEach(m => {
+                const item = document.createElement('a');
+                item.className = 'list-group-item list-group-item-action border-0 py-2 px-3 bg-white';
+                item.style.cursor = 'pointer';
+                item.innerHTML = `<div class="fw-bold">${m.ad} ${m.soyad} <small class="text-muted">(${m.koy})</small></div>`;
+                item.onclick = () => {
+                    e.target.value = `${m.ad} ${m.soyad}`;
+                    hiddenId.value = m.id;
+                    resultsDiv.style.display = 'none';
+                };
+                resultsDiv.appendChild(item);
+            });
+            resultsDiv.style.display = 'block';
+        }
+    }
+});
+
+// 2. Aldığınız 'options of null' hatasını gidermek için bu fonksiyonu boşaltın
+window.raporUyeListesiDoldur = function() { return; };
+
 </script>
 <div class="bottom-nav d-lg-none">
     <a class="b-nav-item active" onclick="switchTab('dashboard', this); closeSidebar()">
