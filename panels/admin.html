@@ -1588,7 +1588,6 @@ div.swal2-container {
                 <div><h5 class="m-0 fw-bold">Üretici Hesap Özeti</h5><small class="text-muted">Detaylı hesap dökümü</small></div>
             </div>
         </div>
-        <div class="card border-0 shadow-sm p-4 mb-4 no-print" style="background: linear-gradient(to right, #ffffff, #f8f9fa); border-left: 5px solid #0f766e; overflow: visible !important; position: relative; z-index: 1000;"></div>
             <div class="row g-3 align-items-end">
                 <div class="col-lg-4 col-md-12 position-relative">
                     <label class="small fw-bold text-primary mb-1 ms-1">Müşteri Seçimi</label>
@@ -1756,19 +1755,20 @@ div.swal2-container {
         </div>
     </div>
 </div>
-
-<div id="milk-management" class="content-section hidden-section">
-    <div class="row g-4">
-        <div class="col-md-6 col-lg-5">
+<div id="milk-management" class="content-section hidden-section px-md-4">
+    <div class="row g-4 d-flex align-items-stretch">
+        <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);">
-                <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
-                    <div class="bg-white p-3 rounded-circle shadow-sm mb-3 text-warning">
-                        <i class="fa-solid fa-calculator fa-3x"></i>
+                <div class="card-body p-4 text-center d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <div class="bg-white p-3 rounded-circle shadow-sm mb-3 text-warning d-inline-flex">
+                            <i class="fa-solid fa-calculator fa-3x"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark">Dönemsel Hesaplama</h4>
+                        <p class="text-muted small mb-3">
+                            Belirlenen tarih aralığındaki toplanan sütleri hesaplayıp, üyelerin cari hesabına "Alacak" olarak işler.
+                        </p>
                     </div>
-                    <h4 class="fw-bold text-dark">Dönemsel Hesaplama</h4>
-                    <p class="text-muted small mb-4">
-                        Belirlenen tarih aralığındaki toplanan sütleri hesaplayıp, üyelerin cari hesabına "Alacak" olarak işler.
-                    </p>
                     <button class="btn btn-warning w-100 fw-bold py-3 rounded-3 shadow-sm text-dark" onclick="sutHesaplamaModalAc()">
                         <i class="fa-solid fa-play me-2"></i> HESAPLAMA BAŞLAT
                     </button>
@@ -1776,20 +1776,22 @@ div.swal2-container {
             </div>
         </div>
 
-        <div class="col-md-6 col-lg-7">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-circle-info text-primary me-2"></i>Nasıl Çalışır?</h5>
-                    <ul class="list-group list-group-flush small">
-                        <li class="list-group-item bg-transparent px-0">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100 bg-white">
+                <div class="card-body p-4 d-flex flex-column">
+                    <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">
+                        <i class="fa-solid fa-circle-info text-primary me-2"></i>Nasıl Çalışır?
+                    </h5>
+                    <ul class="list-group list-group-flush small flex-grow-1">
+                        <li class="list-group-item bg-transparent px-0 py-3">
                             <i class="fa-solid fa-check text-success me-2"></i>
                             <strong>Adım 1:</strong> Şoförler sahada sütleri toplar.
                         </li>
-                        <li class="list-group-item bg-transparent px-0">
+                        <li class="list-group-item bg-transparent px-0 py-3">
                             <i class="fa-solid fa-check text-success me-2"></i>
                             <strong>Adım 2:</strong> Siz buradan tarih aralığı (Örn: 1-15 Kasım) ve Litre Fiyatı girersiniz.
                         </li>
-                        <li class="list-group-item bg-transparent px-0">
+                        <li class="list-group-item bg-transparent px-0 py-3">
                             <i class="fa-solid fa-check text-success me-2"></i>
                             <strong>Adım 3:</strong> Sistem herkesin litresini fiyatla çarpıp bakiyesine ekler.
                         </li>
@@ -1797,7 +1799,7 @@ div.swal2-container {
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
 
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-header bg-white py-3">
@@ -3751,12 +3753,17 @@ window.yeniUyeModalAc = function() {
     document.getElementById("logoutBtn").addEventListener("click", async()=>{ 
         await signOut(auth); window.location.href="../giris.html"; 
     });
+
+    
 // --- DÜZELTİLMİŞ MENÜ GEÇİŞ FONKSİYONU ---
 window.switchTab = function(tabId, el) { 
+    // --- YENİ: Önce açık olan tüm raporları ve detayları kapat/temizle ---
+    if(typeof closeReport === 'function') closeReport(); 
+
     // 1. TÜM SAYFALARI GİZLE VE KİLİTLERİ TEMİZLE
     document.querySelectorAll('.content-section').forEach(e => {
-        e.classList.add('hidden-section'); // CSS ile gizle
-        e.style.display = ''; // ÖNEMLİ: "Listeye Dön"den kalan inline 'none' stilini temizle!
+        e.classList.add('hidden-section'); 
+        e.style.display = ''; 
     });
     
     // 2. DETAY SAYFASINI KAPAT (Eğer açıksa)
@@ -4143,9 +4150,28 @@ function tabloyuCiz(data) {
             return;
         }
 
+        let gercekHesaplanan = 0; // Gerçekten cariye işlenenleri saymak için
+
         for (const [memId, val] of Object.entries(memberData)) {
             const toplamTutar = (val.sabah + val.aksam) * price;
             if(toplamTutar <= 0) continue;
+
+            const uyeVarMi = allMembers.find(m => m.id === memId);
+            
+            if (!uyeVarMi) {
+                console.warn("Üye bulunamadı (Silinmiş), kayıtlar kapatılıyor. ID:", memId);
+                // Üye silinmiş olsa bile, bu süt kayıtlarını 'işlendi' yapalım ki listede 'Bekliyor' kalmasınlar.
+                val.docs.forEach(docId => {
+                    batch.update(doc(db, "milk_records", docId), { 
+                        isProcessed: true, 
+                        processedBatchId: batchId,
+                        note: "Silinmiş Üye Kaydı" 
+                    });
+                });
+                continue; // Bir sonraki üyeye geç
+            }
+
+            gercekHesaplanan += val.docs.length; // Sadece var olan üyelerin sütlerini say
 
             // Cari Hareketi Oluştur
             const transRef = doc(collection(db, "transactions"));
@@ -4157,13 +4183,15 @@ function tabloyuCiz(data) {
                 description: `Süt Bedeli (${startVal} - ${endVal})`,
                 amount: toplamTutar,
                 date: islemTarihi,
-                batchId: batchId, // <--- KRİTİK: İşlem Kimliği Eklendi
+                batchId: batchId,
                 createdAt: new Date()
             });
-                const uyeRef = doc(db, "members", memId);
-                batch.update(uyeRef, { 
-                    guncelBakiye: increment(-toplamTutar) 
-                });
+
+            const uyeRef = doc(db, "members", memId);
+            batch.update(uyeRef, { 
+                guncelBakiye: increment(-toplamTutar) 
+            });
+                
             // Süt Kayıtlarını Kilitle ve Kimliği Bas
             val.docs.forEach(docId => {
                 const milkRef = doc(db, "milk_records", docId);
@@ -5877,42 +5905,53 @@ window.urunDuzenle = function(id) {
             tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger p-4">Veri yüklenirken hata oluştu.</td></tr>';
         }
     }
+window.sutDuzenle = async function(docId, mevcutLitre, isim) {
+    const { value: yeniLitre } = await Swal.fire({
+        title: 'Süt Miktarını Düzenle',
+        text: isim,
+        input: 'number',
+        inputValue: mevcutLitre,
+        showCancelButton: true,
+        confirmButtonText: 'Güncelle',
+        cancelButtonText: 'İptal',
+        inputAttributes: { step: '0.1', min: '0' }
+    });
 
-    // --- SÜT KAYDI DÜZENLEME ---
-    window.sutDuzenle = async function(docId, mevcutLitre, isim) {
-        const { value: yeniLitre } = await Swal.fire({
-            title: 'Süt Miktarını Düzenle',
-            text: isim,
-            input: 'number',
-            inputValue: mevcutLitre,
-            showCancelButton: true,
-            confirmButtonText: 'Güncelle',
-            cancelButtonText: 'İptal',
-            inputAttributes: { step: '0.1', min: '0' }
-        });
-
-        if (yeniLitre && yeniLitre !== mevcutLitre) {
-            try {
-                await updateDoc(doc(db, "milk_records", docId), {
-                    liters: Number(yeniLitre)
-                });
-                Swal.fire({
-                    toast: true, position: 'top-end', 
-                    icon: 'success', title: 'Güncellendi', 
-                    timer: 1500, showConfirmButton: false
-                });
-            } catch (error) {
-                Swal.fire("Hata", "Güncellenemedi: " + error.message, "error");
-            }
+    if (yeniLitre && yeniLitre !== mevcutLitre) {
+        try {
+            await updateDoc(doc(db, "milk_records", docId), {
+                liters: Number(yeniLitre)
+            });
+            
+            // --- KRİTİK EKLEME: Listeyi yenile ---
+            sutListesiniGetir(true); 
+            
+            Swal.fire({
+                toast: true, position: 'top-end', 
+                icon: 'success', title: 'Güncellendi', 
+                timer: 1500, showConfirmButton: false
+            });
+        } catch (error) {
+            Swal.fire("Hata", "Güncellenemedi: " + error.message, "error");
         }
     }
+}
 
-   window.sutKaydiSil = async function(id) {
-         if((await Swal.fire({title:'Silinsin mi?', text:'Bu süt kaydı silinecek.', icon:'warning', showCancelButton:true})).isConfirmed) {
+
+  window.sutKaydiSil = async function(id) {
+    if((await Swal.fire({title:'Silinsin mi?', text:'Bu süt kaydı silinecek.', icon:'warning', showCancelButton:true})).isConfirmed) {
+        try {
             await deleteDoc(doc(db, "milk_records", id));
+            
+            // --- KRİTİK EKLEME: Listeyi yenile ---
+            sutListesiniGetir(true); 
+
             Swal.fire({toast:true, position:'top-end', icon:'success', title:'Silindi', timer:1000, showConfirmButton:false});
+        } catch (error) {
+            Swal.fire("Hata", "Silinemedi: " + error.message, "error");
         }
     }
+}
     
     // Hızlı Tahsilat (Hızlı İşlemler İçin)
 window.hizliTahsilatBaslat = async function() {
@@ -7778,8 +7817,7 @@ window.ureticiHesapOzetiGetir = async function() {
                 </div>
             </div>
         </div>`;
-
-        // ANA ÇIKTIYI BAS (Sarı Uyarı SİLİNDİ)
+// ANA ÇIKTIYI BAS (Sarı Uyarı SİLİNDİ)
         container.innerHTML = `
             <div class="bg-white p-4 rounded-4 shadow-sm border" style="max-width:100%; margin:0 auto; font-family: 'Segoe UI', sans-serif;">
                 
@@ -9324,7 +9362,23 @@ window.kurumBilgileriniKaydet = async function() {
         Swal.fire("Hata", "Bilgiler kaydedilemedi.", "error");
     }
 };
+function closeReport() {
+    // 1. Tüm alt rapor ekranlarını gizle (Detaylı rapor sayfası gibi)
+    document.querySelectorAll('.sub-report').forEach(div => {
+        div.classList.add('d-none');
+    });
 
+    // 2. Rapor içeriklerini temizle (Eski tabloların görünmemesi için)
+    const accountContent = document.getElementById('accountReportContent');
+    if (accountContent) accountContent.innerHTML = '';
+    
+    const summaryResult = document.getElementById('cariSummaryResult');
+    if (summaryResult) summaryResult.innerHTML = '';
+
+    // 3. Rapor ana menüsünü (varsa) görünür yap
+    const reportsMain = document.getElementById('reports-main');
+    if (reportsMain) reportsMain.classList.remove('d-none');
+}
 </script>
 <div class="bottom-nav d-lg-none">
     <a class="b-nav-item active" onclick="switchTab('dashboard', this); closeSidebar()">
